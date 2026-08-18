@@ -71,7 +71,7 @@ nav button{background:transparent;color:#9aa9ba;border:1px solid transparent;pad
 </div>
 
 <div class="container">
-  <div class="hero"><div><h1>Nico Cut Beta 💪</h1><p>Control simple de definición y déficit semanal</p><div id="profileGreeting" class="hint"></div></div><span class="badge">v0.4.5</span></div>
+  <div class="hero"><div><h1>Nico Cut Beta 💪</h1><p>Control simple de definición y déficit semanal</p><div id="profileGreeting" class="hint"></div></div><span class="badge">v0.4.6</span></div>
 
   <section id="home" class="view active">
     <div class="dashboard">
@@ -255,7 +255,7 @@ function renderSettings(){
 }
 function renderFoodLibrary(){
   const q=(librarySearch.value||'').trim().toLowerCase(),arr=data.foodLibrary.filter(f=>!q||String(f.name).toLowerCase().includes(q)||String(f.barcode||'').includes(q));
-  foodLibraryList.innerHTML=arr.length?arr.map(f=>`<div class="item"><div><strong>${esc(f.name)}</strong><small>${Math.round(f.kcal||0)} kcal · P ${round1(f.protein)} / C ${round1(f.carbs)} / G ${round1(f.fat)}</small></div><div class="mini-actions"><button onclick="useFood('${f.id}')">Usar</button><button class="danger" onclick="delFood('${f.id}')">×</button></div></div>`).join(''):'<div class="hint">Todavía no guardaste alimentos.</div>';
+  foodLibraryList.innerHTML=arr.length?arr.map(f=>`<div class="item"><div><strong>${esc(f.name)}</strong><small>${f.defaultPortions?round1(f.defaultPortions)+' porciones · ':''}${Math.round(f.kcal||0)} kcal · P ${round1(f.protein)} / C ${round1(f.carbs)} / G ${round1(f.fat)}</small></div><div class="mini-actions"><button onclick="useFood('${f.id}')">Usar</button><button class="danger" onclick="delFood('${f.id}')">×</button></div></div>`).join(''):'<div class="hint">Todavía no guardaste alimentos.</div>';
 }
 function renderAll(){renderHome();renderMeals();renderProgress();renderSettings();renderFoodLibrary()}
 
@@ -340,8 +340,7 @@ function setMealFields(f){
     kcal:n(f.baseKcal??f.kcal),protein:n(f.baseProtein??f.protein),carbs:n(f.baseCarbs??f.carbs),fat:n(f.baseFat??f.fat),fiber:n(f.baseFiber??f.fiber),
     satFat:n(f.baseSatFat??f.satFat),transFat:n(f.baseTransFat??f.transFat),servingGrams:servingSize,gramsPerUnit:n(f.gramsPerUnit)
   };
-  mealServingWhole.value=1;
-  mealServingFraction.value='0';
+  splitServingNumber(n(f.defaultPortions)||1);
   recalcNutrition();
 }
 function clearMealFields(){
@@ -430,10 +429,12 @@ saveFoodBtn.onclick=()=>{
   if(!mealName.value.trim())return alert('Escribí el nombre del alimento.');
   const b=baseNutrition||{basis:num('mealQty')||100,kcal:num('mealKcal'),protein:num('mealProtein'),carbs:num('mealCarbs'),fat:num('mealFat'),fiber:num('mealFiber'),satFat:num('mealSatFat'),transFat:num('mealTransFat')};
   const f={id:activeFoodId||crypto.randomUUID(),name:mealName.value.trim(),state:mealState.value,basis:b.basis||100,defaultQty:servingUnitSize()||b.basis||100,servingGrams:servingUnitSize()||b.servingGrams||0,measureUnit:mealUnit.value,gramsPerUnit:num('mealUnitGrams')||b.gramsPerUnit||0,
+    defaultPortions:selectedServings(),
     baseKcal:b.kcal,baseProtein:b.protein,baseCarbs:b.carbs,baseFat:b.fat,baseFiber:b.fiber,baseSatFat:b.satFat,baseTransFat:b.transFat,
-    kcal:b.kcal,protein:b.protein,carbs:b.carbs,fat:b.fat,fiber:b.fiber,satFat:b.satFat,transFat:b.transFat,source:mealSource.value.trim()};
+    kcal:num('mealKcal'),protein:num('mealProtein'),carbs:num('mealCarbs'),fat:num('mealFat'),fiber:num('mealFiber'),satFat:num('mealSatFat'),transFat:num('mealTransFat'),
+    source:mealSource.value.trim()};
   const i=data.foodLibrary.findIndex(x=>x.id===f.id);i>=0?data.foodLibrary[i]=f:data.foodLibrary.unshift(f);activeFoodId=f.id;save();
-  foodSaveStatus.textContent='✅ Guardado en Mis alimentos.';foodSaveStatus.className='statusbox show ok';
+  foodSaveStatus.textContent=`✅ Guardado: ${round1(selectedServings())} porciones · ${Math.round(num('mealKcal'))} kcal.`;foodSaveStatus.className='statusbox show ok';
 };
 addProgressBtn.onclick=()=>{const ds=progressDate.value||today();data.progress=data.progress.filter(p=>p.date!==ds);data.progress.push({id:crypto.randomUUID(),date:ds,weight:num('progressWeight'),waist:num('progressWaist'),navel:num('progressNavel'),steps:num('progressSteps'),gym:progressGym.value});save()};
 
