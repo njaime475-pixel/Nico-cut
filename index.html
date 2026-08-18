@@ -7,125 +7,388 @@
 <title>Nico Cut Beta</title>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <style>
-:root{--bg:#0b1220;--panel:#111827;--panel2:#172033;--text:#f8fafc;--muted:#94a3b8;--accent:#38bdf8;--good:#22c55e;--warn:#f59e0b;--bad:#ef4444;--line:#263247}
-*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:linear-gradient(180deg,#07111f,#0b1220 35%,#0b1220);color:var(--text)}
-.container{max-width:880px;margin:auto;padding:18px 14px 90px}.hero{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:6px 0 16px}.hero h1{font-size:25px;margin:0}.hero p{margin:4px 0 0;color:var(--muted);font-size:14px}.badge{background:#10283a;color:#7dd3fc;padding:7px 10px;border-radius:999px;font-size:12px;font-weight:700}
-.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.card{background:rgba(17,24,39,.94);border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:0 8px 30px rgba(0,0,0,.18)}.metric .value{font-size:26px;font-weight:800;margin-top:5px}.metric .label{font-size:12px;color:var(--muted)}.metric .sub{font-size:12px;margin-top:4px;color:#cbd5e1}.wide{grid-column:1/-1}
-.progress{height:10px;background:#0b1322;border-radius:999px;overflow:hidden;border:1px solid #203047;margin-top:9px}.bar{height:100%;background:linear-gradient(90deg,#38bdf8,#22c55e);width:0%}.bar.limit{background:linear-gradient(90deg,#22c55e,#f59e0b,#ef4444)}
-.section-title{font-size:17px;margin:20px 2px 9px}.row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}.row3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.formgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.row>div,.row3>div,.formgrid>div{min-width:0}
-input,select,textarea,button{width:100%;min-width:0;max-width:100%;border-radius:12px;border:1px solid #2a3950;background:#0c1626;color:var(--text);padding:12px;font-size:15px}input[type="date"]{font-size:14px}textarea{min-height:74px;resize:vertical}label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}button{background:#0ea5e9;border:none;font-weight:800;cursor:pointer}button.secondary{background:#1f2937;color:#e2e8f0;border:1px solid #334155}button.danger{background:#7f1d1d}.actions{display:flex;gap:8px;flex-wrap:wrap}.actions button{width:auto;flex:1;min-width:130px}
-.list{display:flex;flex-direction:column;gap:8px}.item{display:flex;justify-content:space-between;align-items:center;gap:10px;background:#0d1727;border:1px solid #23324a;padding:11px;border-radius:12px}.item strong{display:block}.item small{color:var(--muted)}.item button{width:auto;padding:8px 10px;background:#3f1d24;color:#fecaca}.item .mini-actions{display:flex;gap:6px;flex-shrink:0}.item .mini-actions button{background:#172033;color:#dbeafe;border:1px solid #334155}.item .mini-actions button.danger{background:#3f1d24;color:#fecaca}
-canvas{width:100%;height:170px;background:#0c1626;border-radius:12px;border:1px solid #24334a}.hint{font-size:12px;color:var(--muted);line-height:1.45}.ok{color:#86efac}.warn{color:#fbbf24}.bad{color:#fca5a5}.footer{color:#64748b;font-size:11px;text-align:center;margin-top:22px}
-nav{position:fixed;left:0;right:0;bottom:0;background:rgba(10,18,32,.96);backdrop-filter:blur(12px);border-top:1px solid #25334a;padding:9px max(10px,env(safe-area-inset-right)) calc(9px + env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left));display:grid;grid-template-columns:repeat(4,1fr);gap:7px;z-index:20}nav button{background:#111827;padding:9px 4px;font-size:12px;border:1px solid #263247}.view{display:none}.view.active{display:block}.scan-tools{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}.scan-panel{display:none;margin:10px 0}.scan-panel.active{display:block}.reader-wrap{background:#050b14;border:1px solid #263247;border-radius:14px;padding:8px;overflow:hidden}.reader-wrap video{border-radius:10px}.statusbox{display:none;margin-top:10px;padding:10px 12px;border-radius:12px;background:#0c1626;border:1px solid #263247;font-size:13px;line-height:1.4}.statusbox.show{display:block}
-.food-search{position:relative}.suggestions{display:none;position:absolute;z-index:15;left:0;right:0;top:100%;margin-top:5px;background:#0b1322;border:1px solid #2a3950;border-radius:12px;overflow:hidden;box-shadow:0 15px 30px rgba(0,0,0,.4);max-height:260px;overflow-y:auto}.suggestions.show{display:block}.suggestion{padding:10px 12px;border-bottom:1px solid #203047;cursor:pointer}.suggestion:last-child{border-bottom:0}.suggestion strong,.suggestion small{display:block}.suggestion small{color:var(--muted);margin-top:3px}.library-tools{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end}.library-tools button{width:auto;min-width:120px}.chip{display:inline-block;background:#10283a;color:#7dd3fc;border-radius:999px;padding:4px 8px;font-size:11px;margin-top:5px}
-.photo-ai{margin-bottom:10px}.photo-ai button{font-size:16px;padding:14px}.photo-panel{display:none;margin:10px 0;padding:12px;background:#0c1626;border:1px solid #263247;border-radius:14px}.photo-panel.show{display:block}.photo-preview{width:100%;max-height:280px;object-fit:cover;border-radius:12px;border:1px solid #263247;margin-bottom:10px}.ai-result{display:none;margin-top:10px}.ai-result.show{display:block}.ai-item{background:#0d1727;border:1px solid #23324a;border-radius:12px;padding:10px;margin-top:8px}.ai-item-grid{display:grid;grid-template-columns:1.4fr .7fr .7fr .7fr;gap:7px;margin-top:7px}.ai-item-grid input{padding:9px;font-size:13px}.ai-item small{color:var(--muted)}.ai-summary{margin-top:10px;padding:10px;border-radius:12px;background:#10283a;color:#dbeafe;line-height:1.45}
-.onboarding{position:fixed;inset:0;z-index:100;background:linear-gradient(180deg,#07111f,#0b1220 35%,#0b1220);display:none;overflow-y:auto;padding:calc(24px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom))}.onboarding.active{display:flex;align-items:center;justify-content:center}.onboarding-card{width:min(100%,520px);background:rgba(17,24,39,.98);border:1px solid var(--line);border-radius:22px;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.4)}.onboarding h2{font-size:27px;margin:0 0 6px}.onboarding .welcome-sub{color:var(--muted);margin:0 0 18px;line-height:1.45}.goal-options{display:grid;grid-template-columns:1fr;gap:8px}.goal-option{display:flex;align-items:center;gap:9px;background:#0c1626;border:1px solid #2a3950;border-radius:12px;padding:12px}.goal-option input{width:auto;margin:0;accent-color:#0ea5e9}.goal-option span{font-weight:700}.profile-greeting{font-size:13px;color:#7dd3fc;margin-top:4px}
-@media(max-width:520px){
-/* iOS: evita que los controles nativos de fecha/select invadan la columna vecina */
-.row>div,.row3>div,.formgrid>div{min-width:0;overflow:hidden}
-.row input,.row select,.row3 input,.row3 select,.formgrid input,.formgrid select{display:block;width:100%;min-width:0;max-width:100%;box-sizing:border-box}
-input[type="date"]{width:100%;min-width:0;max-width:100%;font-size:13px;padding-left:9px;padding-right:9px}
-.ai-item-grid{grid-template-columns:1fr 1fr}.ai-item-grid>div:first-child{grid-column:1/-1}.row3{grid-template-columns:1fr 1fr}.row3>div:last-child{grid-column:1/-1}.scan-tools{grid-template-columns:1fr}.library-tools{grid-template-columns:1fr}.library-tools button{width:100%}}
-@media(min-width:700px){.grid{grid-template-columns:repeat(4,1fr)}.metric.wide{grid-column:auto}.formgrid{grid-template-columns:repeat(3,1fr)}.container{padding-bottom:40px}nav{position:sticky;top:0;bottom:auto;margin:-18px -14px 16px;padding:10px 14px;background:#0b1220}.hero{margin-top:10px}}
-
-/* Nico Cut v0.4.2 — smart dashboard */
-:root{--blue:#1d9bf0;--cyan:#38bdf8;--lime:#70e000;--gold:#ffb000;--violet:#7c5cff;--orange:#ff6b35;--red:#ff453a}
-body{background:radial-gradient(circle at 50% -10%,#0d2740 0,#07111f 30%,#050b14 70%);min-height:100vh}
-.container{max-width:920px}.hero{padding:8px 4px 12px}.hero h1{font-size:27px;letter-spacing:-.6px}.badge{border:1px solid #0d3b5a;box-shadow:0 0 28px rgba(56,189,248,.12)}
-.dashboard{display:flex;flex-direction:column;gap:14px}.dash-card{background:linear-gradient(145deg,rgba(14,31,50,.96),rgba(7,18,31,.98));border:1px solid #173a58;border-radius:22px;padding:16px;box-shadow:0 16px 45px rgba(0,0,0,.25),inset 0 1px rgba(255,255,255,.025)}
-.dash-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}.dash-title{font-size:18px;font-weight:800}.pill{font-size:12px;color:#55c7ff;background:#09243a;border:1px solid #123b58;padding:7px 10px;border-radius:999px}
-.summary-grid{display:grid;grid-template-columns:1fr 1.25fr 1fr;gap:12px;align-items:center}.big-number{font-size:32px;font-weight:850;letter-spacing:-1px}.muted{color:var(--muted)}
-.cal-ring{position:relative;--p:0;--ring:#1d9bf0;width:170px;aspect-ratio:1;border-radius:50%;margin:auto;background:conic-gradient(var(--ring) calc(var(--p)*1%),#11283c 0);display:grid;place-items:center;box-shadow:0 0 35px rgba(29,155,240,.16)}.cal-ring:before{content:'';width:142px;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,#0d1c2d,#07131f);position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}.ring-inner{position:relative;text-align:center}.ring-inner strong{display:block;font-size:34px}.ring-inner small{color:#a7b6c8}
-.macro-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.macro{background:linear-gradient(145deg,#0d2135,#091522);border:1px solid #17354e;border-radius:18px;padding:12px;min-width:0}.macro-name{font-size:13px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mini-ring{position:relative;--p:0;--ring:#1d9bf0;width:96px;aspect-ratio:1;border-radius:50%;margin:10px auto 5px;background:conic-gradient(var(--ring) calc(var(--p)*1%),#142638 0);display:grid;place-items:center}.mini-ring:before{content:'';width:76px;aspect-ratio:1;border-radius:50%;background:#0b1928;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}.mini-ring>div{position:relative;text-align:center;font-size:12px}.mini-ring strong{font-size:22px;display:block}.macro-percent{text-align:center;font-weight:800;color:var(--ring)}
-.triple{display:grid;grid-template-columns:1fr 1.15fr 1fr;gap:10px}.info-card{background:linear-gradient(145deg,#0d2135,#091522);border:1px solid #17354e;border-radius:18px;padding:14px}.info-card strong{font-size:24px}.status-lines{margin-top:8px;line-height:1.65;font-size:13px}.streak-days{display:flex;gap:5px;margin-top:10px}.streak-days span{width:25px;height:25px;border:1px solid #24435d;border-radius:50%;display:grid;place-items:center;font-size:10px;color:#9fb1c3}.motivation{display:flex;gap:12px;align-items:center;background:linear-gradient(100deg,#0b1d31,#0b2540);border:1px solid #173a58;border-radius:18px;padding:14px}.motivation .star{font-size:30px}.motivation b{color:#38bdf8}
-nav{border-top:1px solid #173a58;background:rgba(5,13,23,.94);box-shadow:0 -12px 35px rgba(0,0,0,.25)}nav button{border-color:transparent;background:transparent;color:#9aa9ba;border-radius:16px}nav button.active{background:#0b3150;color:#38bdf8;border:1px solid #12507a}
-@media(max-width:650px){.summary-grid{grid-template-columns:1fr 1fr}.summary-grid>.summary-side:last-child{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:10px}.cal-ring{width:145px}.cal-ring:before{width:119px}.macro-grid{grid-template-columns:repeat(2,1fr)}.triple{grid-template-columns:1fr 1fr}.triple>.info-card:last-child{grid-column:1/-1}.hero h1{font-size:25px}}
-
-/* v0.4.2 refinements */
-.today-secondary{display:grid;grid-template-columns:1fr 1.35fr;gap:10px}
-.weight-mini{width:100%;height:48px!important;background:transparent;border:0;margin-top:8px}
-.tip-card{position:relative;overflow:hidden}.tip-card:after{content:'🥗';position:absolute;right:14px;bottom:12px;width:58px;height:58px;border-radius:50%;display:grid;place-items:center;font-size:34px;background:rgba(56,189,248,.07);border:1px solid #244d6d}
-.tip-copy{padding-right:64px}.tip-lead{display:block;color:#78ef9d;font-weight:800;margin:8px 0 4px}.tip-more{display:inline-block;margin-top:7px;color:#38bdf8;font-weight:750;font-size:12px}
-.streak-card{display:flex;align-items:center;justify-content:space-between;gap:12px}.streak-main{min-width:0}.streak-flame{width:72px;height:72px;border-radius:50%;display:grid;place-items:center;font-size:35px;background:radial-gradient(circle,rgba(255,107,53,.25),rgba(255,107,53,.05) 60%,transparent 61%);border:1px solid #24435d;flex:0 0 auto}
-.ring-inner span:not(.muted){display:block;line-height:1.1}.ring-inner small{display:block;margin-top:3px}
-@media(max-width:520px){.today-secondary{grid-template-columns:1fr 1.2fr}.tip-card:after{width:48px;height:48px;font-size:28px;right:10px}.tip-copy{padding-right:48px}.streak-flame{width:60px;height:60px}}
-
-/* iPhone layout fix: stack paired native controls to prevent overlap */
-@media(max-width:520px){
-  #food .row,
-  #progressView .row{
-    grid-template-columns:1fr !important;
-    gap:12px !important;
-  }
-  #food .row > *,
-  #progressView .row > *{
-    min-width:0 !important;
-    width:100% !important;
-    overflow:visible !important;
-  }
-  #food input, #food select, #food textarea,
-  #progressView input, #progressView select, #progressView textarea{
-    width:100% !important;
-    max-width:100% !important;
-    min-width:0 !important;
-    box-sizing:border-box !important;
-  }
+:root{
+  --bg:#07111f;--panel:#101b2d;--panel2:#0c1626;--line:#263247;--text:#f8fafc;
+  --muted:#94a3b8;--blue:#1d9bf0;--cyan:#38bdf8;--good:#22c55e;--warn:#f59e0b;--bad:#ef4444;
+  --lime:#70e000;--gold:#ffb000;--violet:#7c5cff;--orange:#ff6b35;--red:#ff453a
 }
-
-/* v0.4.2: centrar aros de macros en todos los tamaños de iPhone */
-.macro .mini-ring{margin-left:auto!important;margin-right:auto!important;justify-self:center}
-.macro{display:flex;flex-direction:column}
-.macro .macro-name{width:100%}
-.macro .macro-percent{width:100%}
-
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:radial-gradient(circle at 50% -10%,#0d2740 0,#07111f 30%,#050b14 70%);color:var(--text);min-height:100vh}
+.container{max-width:920px;margin:auto;padding:18px 14px 100px}
+.hero{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 4px 12px}
+.hero h1{font-size:27px;margin:0;letter-spacing:-.6px}.hero p{margin:4px 0 0;color:var(--muted);font-size:14px}
+.badge,.pill{background:#09243a;border:1px solid #173a58;color:#55c7ff;padding:7px 10px;border-radius:999px;font-size:12px;font-weight:800}
+.view{display:none}.view.active{display:block}
+.card,.dash-card,.info-card{background:linear-gradient(145deg,rgba(14,31,50,.96),rgba(7,18,31,.98));border:1px solid #173a58;border-radius:20px;padding:15px;box-shadow:0 16px 45px rgba(0,0,0,.22)}
+.section-title{font-size:18px;margin:20px 2px 10px}.muted,.hint{color:var(--muted)}.hint{font-size:12px;line-height:1.45}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.row3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.formgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+input,select,textarea,button{width:100%;border-radius:12px;border:1px solid #2a3950;background:#0c1626;color:var(--text);padding:12px;font-size:15px}
+button{background:#0ea5e9;border:none;font-weight:800;cursor:pointer}button.secondary{background:#1f2937;border:1px solid #334155}button.danger{background:#7f1d1d}
+label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}.actions{display:flex;gap:8px;flex-wrap:wrap}.actions button{flex:1;min-width:130px}
+.dashboard{display:flex;flex-direction:column;gap:14px}.dash-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.dash-title{font-size:18px;font-weight:800}
+.summary-grid{display:grid;grid-template-columns:1fr 1.2fr 1fr;gap:12px;align-items:center}.big-number{font-size:31px;font-weight:850}
+.cal-ring{position:relative;--p:0;width:160px;aspect-ratio:1;border-radius:50%;margin:auto;background:conic-gradient(var(--blue) calc(var(--p)*1%),#11283c 0);display:grid;place-items:center}
+.cal-ring:before{content:"";position:absolute;width:132px;aspect-ratio:1;border-radius:50%;background:#0a1726}.ring-inner{position:relative;text-align:center}.ring-inner strong{display:block;font-size:33px}
+.progress{height:10px;background:#0b1322;border-radius:999px;overflow:hidden;border:1px solid #203047;margin-top:9px}.bar{height:100%;background:linear-gradient(90deg,#38bdf8,#22c55e);width:0}
+.macro-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.macro{display:flex;flex-direction:column;background:linear-gradient(145deg,#0d2135,#091522);border:1px solid #17354e;border-radius:18px;padding:12px}
+.macro-name{font-size:13px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mini-ring{position:relative;--p:0;--ring:#1d9bf0;width:96px;aspect-ratio:1;border-radius:50%;margin:10px auto 5px;background:conic-gradient(var(--ring) calc(var(--p)*1%),#142638 0);display:grid;place-items:center}
+.mini-ring:before{content:"";position:absolute;width:76px;aspect-ratio:1;border-radius:50%;background:#0b1928}.mini-ring>div{position:relative;text-align:center;font-size:12px}.mini-ring strong{display:block;font-size:21px}
+.macro-percent{text-align:center;font-weight:800;color:var(--ring)}
+.list{display:flex;flex-direction:column;gap:8px}.item{display:flex;justify-content:space-between;align-items:center;gap:10px;background:#0d1727;border:1px solid #23324a;padding:11px;border-radius:12px}.item strong{display:block}.item small{color:var(--muted)}.mini-actions{display:flex;gap:6px}.mini-actions button,.item>button{width:auto;padding:8px 10px}
+.scan-tools{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}.scan-panel{display:none;margin:10px 0}.scan-panel.active{display:block}.reader-wrap{background:#050b14;border:1px solid #263247;border-radius:14px;padding:8px}
+.statusbox{display:none;margin-top:10px;padding:10px 12px;border-radius:12px;background:#0c1626;border:1px solid #263247;font-size:13px;line-height:1.4}.statusbox.show{display:block}.ok{color:#86efac}.warn{color:#fbbf24}
+.food-search{position:relative}.suggestions{display:none;position:absolute;z-index:30;left:0;right:0;top:100%;background:#0b1322;border:1px solid #2a3950;border-radius:12px;max-height:260px;overflow:auto}.suggestions.show{display:block}.suggestion{padding:10px 12px;border-bottom:1px solid #203047}
+.portion-box{margin-top:10px;padding:11px;border-radius:14px;background:#091625;border:1px solid #24435d}.portion-box strong{color:#7dd3fc}
+.photo-panel{display:none;margin:10px 0;padding:12px;background:#0c1626;border:1px solid #263247;border-radius:14px}.photo-panel.show{display:block}.photo-preview{width:100%;max-height:280px;object-fit:cover;border-radius:12px}.ai-item{background:#0d1727;border:1px solid #23324a;border-radius:12px;padding:10px;margin-top:8px}
+.onboarding{position:fixed;inset:0;z-index:100;background:linear-gradient(180deg,#07111f,#0b1220);display:none;overflow:auto;padding:24px 16px}.onboarding.active{display:flex;align-items:center;justify-content:center}.onboarding-card{width:min(100%,520px);background:#111827;border:1px solid var(--line);border-radius:22px;padding:20px}
+.goal-options{display:grid;gap:8px}.goal-option{display:flex;align-items:center;gap:9px;background:#0c1626;border:1px solid #2a3950;border-radius:12px;padding:12px}.goal-option input{width:auto}
+nav{position:fixed;left:0;right:0;bottom:0;background:rgba(5,13,23,.96);border-top:1px solid #173a58;padding:9px max(10px,env(safe-area-inset-right)) calc(9px + env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left));display:grid;grid-template-columns:repeat(4,1fr);gap:7px;z-index:40}
+nav button{background:transparent;color:#9aa9ba;border:1px solid transparent;padding:9px 4px;font-size:12px}nav button.active{background:#0b3150;color:#38bdf8;border-color:#12507a}
+.footer{color:#64748b;font-size:11px;text-align:center;margin-top:22px}
+@media(max-width:650px){.summary-grid{grid-template-columns:1fr 1fr}.summary-grid>div:last-child{grid-column:1/-1}.macro-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:520px){.row,.row3{grid-template-columns:1fr}.scan-tools{grid-template-columns:1fr}.container{padding-bottom:105px}.hero h1{font-size:25px}}
 </style>
 </head>
 <body>
-<div id="onboarding" class="onboarding" aria-modal="true" role="dialog"><div class="onboarding-card"><h2>👋 Bienvenida/o a Nico Cut</h2><p class="welcome-sub">Configuramos lo básico una sola vez. Después podés cambiarlo cuando quieras desde Ajustes.</p><div><label>¿Cómo te llamás?</label><input id="onboardName" autocomplete="name" placeholder="Ej: Cande"></div><div style="margin-top:12px"><label>¿Cuál es tu objetivo?</label><div class="goal-options"><label class="goal-option"><input type="radio" name="onboardGoal" value="lose" checked><span>🔥 Perder grasa</span></label><label class="goal-option"><input type="radio" name="onboardGoal" value="maintain"><span>⚖️ Mantener</span></label><label class="goal-option"><input type="radio" name="onboardGoal" value="gain"><span>💪 Ganar músculo</span></label></div></div><div class="row" style="margin-top:12px"><div><label>Edad</label><input id="onboardAge" type="number" inputmode="numeric" placeholder="Ej: 27"></div><div><label>Estatura (cm)</label><input id="onboardHeight" type="number" inputmode="numeric" placeholder="Ej: 165"></div></div><div class="row" style="margin-top:12px"><div><label>Peso actual (kg)</label><input id="onboardWeight" type="text" inputmode="decimal" placeholder="Ej: 62"></div><div><label>Sexo para el cálculo</label><select id="onboardSex"><option value="female">Mujer</option><option value="male">Hombre</option></select></div></div><div style="margin-top:12px"><label>Nivel de actividad habitual</label><select id="onboardActivity"><option value="sedentary">Sedentaria/o · poco ejercicio</option><option value="light">Ligera · 1–3 días/semana</option><option value="moderate" selected>Moderada · 3–5 días/semana</option><option value="high">Alta · 6–7 días/semana</option></select></div><button id="calculateTargetsBtn" class="secondary" style="margin-top:12px">🧮 Calcular mis objetivos</button><div id="calorieEstimateBox" class="statusbox" style="margin-top:10px"></div><div class="row" style="margin-top:12px"><div><label>Calorías objetivo</label><input id="onboardCalories" type="number" inputmode="numeric"></div><div><label>Proteína objetivo (g)</label><input id="onboardProtein" type="number" inputmode="numeric"></div></div><div style="margin-top:12px"><label>Pasos diarios</label><input id="onboardSteps" type="number" inputmode="numeric" placeholder="Ej: 8000"></div><button id="finishOnboardingBtn" style="margin-top:16px">Empezar 🚀</button><p class="hint" style="margin-bottom:0">Si elegís “Perder grasa”, Nico Cut estima tu mantenimiento y resta 500 kcal/día. Los demás macros se calculan automáticamente y después podés editarlos.</p></div></div>
-<div class="container"><div class="hero"><div><h1>Nico Cut Beta 💪</h1><p>Control simple de definición y déficit semanal</p><div id="profileGreeting" class="profile-greeting"></div></div><span class="badge">v0.4.2</span></div>
-<section id="home" class="view active">
-<div class="dashboard">
-  <div class="dash-card">
-    <div class="dash-head"><div class="dash-title">🗓️ Resumen de hoy</div><span class="pill">Tu objetivo</span></div>
-    <div class="summary-grid">
-      <div class="summary-side"><div class="muted">Presupuesto diario</div><div class="big-number"><span id="dailyGoalBig">2000</span> <small>kcal</small></div><div class="muted" style="margin-top:18px">Consumido</div><div class="big-number" style="color:#299cff"><span id="kcalToday">0</span> <small>kcal</small></div><div class="progress"><div id="kcalBar" class="bar"></div></div></div>
-      <div><div id="calorieRing" class="cal-ring"><div class="ring-inner"><span class="muted">Te quedan</span><strong id="kcalRemainingBig">2000</strong><span>kcal</span><small id="kcalGoalText">de 2000 kcal</small></div></div></div>
-      <div class="summary-side"><div>🔥 <span class="muted">Objetivo diario</span></div><strong id="dailyGoalSide">2000 kcal</strong><div style="margin-top:16px">🟢 <span class="muted">Presupuesto semanal</span></div><strong id="weekRemaining">14000 kcal</strong><div class="muted" id="weekBudgetText">de 14000 kcal semanales</div></div>
+<div id="onboarding" class="onboarding">
+  <div class="onboarding-card">
+    <h2>👋 Bienvenida/o a Nico Cut</h2>
+    <p class="hint">Configuramos lo básico una sola vez. Después podés cambiarlo en Ajustes.</p>
+    <label>¿Cómo te llamás?</label><input id="onboardName" placeholder="Ej: Nico">
+    <div style="margin-top:12px"><label>Objetivo</label>
+      <div class="goal-options">
+        <label class="goal-option"><input type="radio" name="onboardGoal" value="lose" checked>🔥 Perder grasa</label>
+        <label class="goal-option"><input type="radio" name="onboardGoal" value="maintain">⚖️ Mantener</label>
+        <label class="goal-option"><input type="radio" name="onboardGoal" value="gain">💪 Ganar músculo</label>
+      </div>
     </div>
+    <div class="row" style="margin-top:12px"><div><label>Edad</label><input id="onboardAge" type="number"></div><div><label>Estatura (cm)</label><input id="onboardHeight" type="number"></div></div>
+    <div class="row" style="margin-top:12px"><div><label>Peso (kg)</label><input id="onboardWeight" inputmode="decimal"></div><div><label>Sexo para cálculo</label><select id="onboardSex"><option value="female">Mujer</option><option value="male">Hombre</option></select></div></div>
+    <div style="margin-top:12px"><label>Actividad</label><select id="onboardActivity"><option value="sedentary">Sedentaria</option><option value="light">Ligera</option><option value="moderate" selected>Moderada</option><option value="high">Alta</option></select></div>
+    <button id="finishOnboardingBtn" style="margin-top:16px">Empezar 🚀</button>
   </div>
-  <div class="dash-card"><div class="dash-head"><div class="dash-title">◔ Macros de hoy</div><span class="pill">Objetivos</span></div><div class="macro-grid">
-    <div class="macro" style="--ring:#1d9bf0"><div class="macro-name">💪 Proteína</div><div id="proteinRing" class="mini-ring"><div><strong id="proteinToday">0 g</strong><span id="proteinGoalText">de 170 g</span></div></div><div id="proteinPct" class="macro-percent">0%</div><div id="proteinBar" hidden></div></div>
-    <div class="macro" style="--ring:#70e000"><div class="macro-name">🌾 Carbohidratos</div><div id="carbsRing" class="mini-ring"><div><strong id="carbsToday">0 g</strong><span id="carbsGoalText">de 180 g</span></div></div><div id="carbsPct" class="macro-percent">0%</div><div id="carbsBar" hidden></div></div>
-    <div class="macro" style="--ring:#ffb000"><div class="macro-name">💧 Grasas</div><div id="fatRing" class="mini-ring"><div><strong id="fatToday">0 g</strong><span id="fatGoalText">de 60 g</span></div></div><div id="fatPct" class="macro-percent">0%</div><div id="fatBar" hidden></div></div>
-    <div class="macro" style="--ring:#7c5cff"><div class="macro-name">🍃 Fibra</div><div id="fiberRing" class="mini-ring"><div><strong id="fiberToday">0 g</strong><span id="fiberGoalText">de 30 g</span></div></div><div id="fiberPct" class="macro-percent">0%</div><div id="fiberBar" hidden></div></div>
-    <div class="macro" style="--ring:#ff6b35"><div class="macro-name">🧡 Grasas saturadas</div><div id="satFatRing" class="mini-ring"><div><strong id="satFatToday">0 g</strong><span id="satFatGoalText">límite 20 g</span></div></div><div id="satFatPct" class="macro-percent">0%</div></div>
-    <div class="macro" style="--ring:#ff453a"><div class="macro-name">⚠️ Grasas trans</div><div id="transFatRing" class="mini-ring"><div><strong id="transFatToday">0 g</strong><span id="transFatGoalText">límite 2 g</span></div></div><div id="transFatPct" class="macro-percent">0%</div><div id="transFatBar" hidden></div></div>
-  </div><p class="hint" style="text-align:center;margin-bottom:0">ⓘ Los valores se acumulan a medida que registrás comidas.</p></div>
-  <div class="today-secondary">
-    <div class="info-card"><div>⚖️ <span class="muted">Peso actual</span></div><strong id="weightNow">—</strong><div id="weightTrend" class="muted">Sin datos</div><canvas id="weightMiniChart" class="weight-mini" width="300" height="48"></canvas></div>
-    <div class="info-card tip-card"><div class="tip-copy"><div>💡 <b>Tip del día</b></div><span id="tipLead" class="tip-lead">Sumá proteína en cada comida.</span><p id="dayStatus" class="status-lines muted">Te ayuda a mantener la masa muscular y sentirte lleno por más tiempo.</p><span class="tip-more">Tip personalizado según tu día ✨</span></div></div>
-  </div>
-  <div class="info-card streak-card"><div class="streak-main"><div>🔥 <b>Racha</b></div><strong><span id="streakCount">0</span> días</strong><div class="muted">Registrando comidas</div><div class="streak-days"><span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span></div></div><div class="streak-flame">🔥</div></div>
-  <div class="motivation"><div class="star">⭐</div><div><b>Pequeños hábitos, grandes resultados</b><div class="muted">La constancia de hoy construye el progreso de mañana.</div></div></div>
-  <h2 class="section-title">Últimas comidas</h2><div id="recentMeals" class="list"></div>
-</div></section>
-<section id="food" class="view"><h2 class="section-title">Agregar comida</h2><div class="card"><div class="photo-ai"><button id="photoAnalyzeBtn">📸 Analizar plato con foto</button><input id="platePhotoInput" type="file" accept="image/*" capture="environment" hidden><div id="photoPanel" class="photo-panel"><img id="platePreview" class="photo-preview" alt="Vista previa del plato"><div id="photoStatus" class="statusbox show">Elegí o sacá una foto clara del plato.</div><div id="aiResult" class="ai-result"><strong>Estimación de la IA</strong><p class="hint">Podés corregir nombres, gramos y valores antes de cargarlos.</p><div id="aiItems"></div><div id="aiSummary" class="ai-summary"></div><div class="actions" style="margin-top:10px"><button id="useAiEstimateBtn">✅ Usar esta estimación</button><button id="cancelAiBtn" class="secondary">Cancelar</button></div></div></div></div><div class="scan-tools"><button id="scanBtn">📷 Escanear código</button><button id="barcodeManualBtn" class="secondary">⌨️ Ingresar código</button></div><div id="scanPanel" class="scan-panel"><div class="reader-wrap"><div id="reader"></div></div><button id="stopScanBtn" class="secondary" style="margin-top:8px">Cerrar cámara</button></div><div id="barcodeManualBox" class="scan-panel"><div class="row"><div><label>Código de barras</label><input id="barcodeInput" inputmode="numeric"></div><div style="align-self:end"><button id="lookupBarcodeBtn">Buscar producto</button></div></div></div><div id="scanStatus" class="statusbox"></div><div class="row"><div><label>Fecha</label><input id="mealDate" type="date"></div><div><label>Comida</label><select id="mealType"><option>Desayuno</option><option>Almuerzo</option><option>Merienda</option><option>Cena</option><option>Snack</option></select></div></div><div class="food-search" style="margin-top:10px"><label>Alimento / producto</label><input id="mealName" autocomplete="off" placeholder="Escribí para buscar en Mis alimentos"><div id="foodSuggestions" class="suggestions"></div></div><div class="row3" style="margin-top:10px"><div><label>Cantidad</label><input id="mealQty" type="text" inputmode="decimal"></div><div><label>Unidad</label><select id="mealUnit"><option>g</option><option>ml</option><option>unidad</option></select></div><div><label>Estado</label><select id="mealState"><option>Cocido</option><option>Crudo</option><option>Envasado</option><option>Unidad</option></select></div></div><div class="formgrid" style="margin-top:10px"><div><label>Kcal</label><input id="mealKcal" type="text" inputmode="decimal"></div><div><label>Proteína</label><input id="mealProtein" type="text" inputmode="decimal"></div><div><label>Carbos</label><input id="mealCarbs" type="text" inputmode="decimal"></div><div><label>Grasas</label><input id="mealFat" type="text" inputmode="decimal"></div><div><label>Fibra</label><input id="mealFiber" type="text" inputmode="decimal"></div><div><label>Grasas saturadas</label><input id="mealSatFat" type="text" inputmode="decimal"></div><div><label>Grasas trans</label><input id="mealTransFat" type="text" inputmode="decimal"></div></div><div style="margin-top:10px"><label>Fuente / notas</label><input id="mealSource"></div><div class="actions" style="margin-top:12px"><button id="addMealBtn">Guardar comida</button><button id="saveFoodBtn" class="secondary">⭐ Guardar en Mis alimentos</button></div><div id="foodSaveStatus" class="statusbox" aria-live="polite"></div></div><h2 class="section-title">Mis alimentos</h2><div class="card"><div class="library-tools"><div><label>Buscar guardados</label><input id="librarySearch"></div><button id="clearFoodFormBtn" class="secondary">Limpiar carga</button></div><div id="foodLibraryList" class="list" style="margin-top:10px"></div></div><h2 class="section-title">Registro de comidas</h2><div id="mealList" class="list"></div></section>
-<section id="progressView" class="view"><h2 class="section-title">Registrar progreso</h2><div class="card"><div class="row"><div><label>Fecha</label><input id="progressDate" type="date"></div><div><label>Peso (kg)</label><input id="progressWeight" type="text" inputmode="decimal"></div></div><div class="row" style="margin-top:10px"><div><label>Cintura (cm)</label><input id="progressWaist" type="text" inputmode="decimal"></div><div><label>Ombligo (cm)</label><input id="progressNavel" type="text" inputmode="decimal"></div></div><div class="row" style="margin-top:10px"><div><label>Pasos</label><input id="progressSteps" type="number"></div><div><label>Gym</label><select id="progressGym"><option>No</option><option>Sí</option></select></div></div><button id="addProgressBtn" style="margin-top:12px">Guardar progreso</button></div><h2 class="section-title">Historial</h2><div id="progressList" class="list"></div></section>
-<section id="settings" class="view"><h2 class="section-title">Perfil</h2><div class="card"><div class="row"><div><label>Nombre</label><input id="profileName"></div><div><label>Objetivo</label><select id="profileGoal"><option value="lose">Perder grasa</option><option value="maintain">Mantener</option><option value="gain">Ganar músculo</option></select></div></div><div class="row" style="margin-top:10px"><div><label>Edad</label><input id="profileAge" type="number"></div><div><label>Estatura (cm)</label><input id="profileHeight" type="number"></div></div><div class="row" style="margin-top:10px"><div><label>Peso (kg)</label><input id="profileWeight" type="text" inputmode="decimal"></div><div><label>Sexo para el cálculo</label><select id="profileSex"><option value="female">Mujer</option><option value="male">Hombre</option></select></div></div><div style="margin-top:10px"><label>Actividad habitual</label><select id="profileActivity"><option value="sedentary">Sedentaria/o</option><option value="light">Ligera</option><option value="moderate">Moderada</option><option value="high">Alta</option></select></div><div class="actions" style="margin-top:12px"><button id="saveProfileBtn" class="secondary">Guardar perfil</button><button id="recalcTargetsBtn">🧮 Recalcular objetivos</button></div></div><h2 class="section-title">Objetivos</h2><div class="card"><div class="row"><div><label>Kcal lunes–viernes</label><input id="goalWeekday" type="number"></div><div><label>Kcal sábado</label><input id="goalSaturday" type="number"></div></div><div class="row" style="margin-top:10px"><div><label>Kcal domingo</label><input id="goalSunday" type="number"></div><div><label>Proteína diaria (g)</label><input id="goalProtein" type="number"></div></div><div class="row" style="margin-top:10px"><div><label>Carbohidratos (g)</label><input id="goalCarbs" type="number"></div><div><label>Grasas (g)</label><input id="goalFat" type="number"></div></div><div class="row" style="margin-top:10px"><div><label>Fibra (g)</label><input id="goalFiber" type="number"></div><div><label>Límite grasas saturadas (g)</label><input id="goalSatFat" type="number" step="0.1"></div><div><label>Límite grasas trans (g)</label><input id="goalTransFat" type="number" step="0.1"></div></div><div class="row" style="margin-top:10px"><div><label>Pasos diarios</label><input id="goalSteps" type="number"></div><div><label>Objetivo cambio semanal (kg)</label><input id="goalWeeklyLoss" type="number" step="0.05"></div></div><button id="saveGoalsBtn" style="margin-top:12px">Guardar objetivos</button></div><h2 class="section-title">Datos</h2><div class="card"><div class="actions"><button id="exportBtn" class="secondary">Exportar respaldo</button><button id="importBtn" class="secondary">Importar respaldo</button><button id="resetBtn" class="danger">Borrar datos</button></div><input id="importFile" type="file" accept="application/json" hidden></div></section><div class="footer">Beta personal · Datos de productos externos pueden contener errores: verificá la etiqueta cuando importe precisión.</div></div>
-<nav><button data-view="home">🏠 Inicio</button><button data-view="food">🍽️ Comidas</button><button data-view="progressView">📉 Progreso</button><button data-view="settings">⚙️ Ajustes</button></nav>
+</div>
+
+<div class="container">
+  <div class="hero"><div><h1>Nico Cut Beta 💪</h1><p>Control simple de definición y déficit semanal</p><div id="profileGreeting" class="hint"></div></div><span class="badge">v0.4.3</span></div>
+
+  <section id="home" class="view active">
+    <div class="dashboard">
+      <div class="dash-card">
+        <div class="dash-head"><div class="dash-title">🗓️ Resumen de hoy</div><span class="pill">Tu objetivo</span></div>
+        <div class="summary-grid">
+          <div><div class="muted">Presupuesto diario</div><div class="big-number"><span id="dailyGoalBig">2000</span> <small>kcal</small></div><div class="muted" style="margin-top:16px">Consumido</div><div class="big-number"><span id="kcalToday">0</span> <small>kcal</small></div><div class="progress"><div id="kcalBar" class="bar"></div></div></div>
+          <div><div id="calorieRing" class="cal-ring"><div class="ring-inner"><span class="muted">Te quedan</span><strong id="kcalRemainingBig">2000</strong><span>kcal</span></div></div></div>
+          <div><div>🟢 <span class="muted">Presupuesto semanal</span></div><strong id="weekRemaining">14000 kcal</strong><div id="weekBudgetText" class="muted"></div></div>
+        </div>
+      </div>
+      <div class="dash-card"><div class="dash-head"><div class="dash-title">◔ Macros de hoy</div><span class="pill">Objetivos</span></div>
+        <div class="macro-grid">
+          <div class="macro" style="--ring:#1d9bf0"><div class="macro-name">💪 Proteína</div><div id="proteinRing" class="mini-ring"><div><strong id="proteinToday">0 g</strong><span id="proteinGoalText"></span></div></div><div id="proteinPct" class="macro-percent">0%</div></div>
+          <div class="macro" style="--ring:#70e000"><div class="macro-name">🌾 Carbohidratos</div><div id="carbsRing" class="mini-ring"><div><strong id="carbsToday">0 g</strong><span id="carbsGoalText"></span></div></div><div id="carbsPct" class="macro-percent">0%</div></div>
+          <div class="macro" style="--ring:#ffb000"><div class="macro-name">💧 Grasas</div><div id="fatRing" class="mini-ring"><div><strong id="fatToday">0 g</strong><span id="fatGoalText"></span></div></div><div id="fatPct" class="macro-percent">0%</div></div>
+          <div class="macro" style="--ring:#7c5cff"><div class="macro-name">🍃 Fibra</div><div id="fiberRing" class="mini-ring"><div><strong id="fiberToday">0 g</strong><span id="fiberGoalText"></span></div></div><div id="fiberPct" class="macro-percent">0%</div></div>
+          <div class="macro" style="--ring:#ff6b35"><div class="macro-name">🧡 Saturadas</div><div id="satFatRing" class="mini-ring"><div><strong id="satFatToday">0 g</strong><span id="satFatGoalText"></span></div></div><div id="satFatPct" class="macro-percent">0%</div></div>
+          <div class="macro" style="--ring:#ff453a"><div class="macro-name">⚠️ Trans</div><div id="transFatRing" class="mini-ring"><div><strong id="transFatToday">0 g</strong><span id="transFatGoalText"></span></div></div><div id="transFatPct" class="macro-percent">0%</div></div>
+        </div>
+      </div>
+      <h2 class="section-title">Últimas comidas</h2><div id="recentMeals" class="list"></div>
+    </div>
+  </section>
+
+  <section id="food" class="view">
+    <h2 class="section-title">Agregar comida</h2>
+    <div class="card">
+      <div class="actions"><button id="photoAnalyzeBtn">📸 Analizar plato con foto</button></div>
+      <input id="platePhotoInput" type="file" accept="image/*" capture="environment" hidden>
+      <div id="photoPanel" class="photo-panel"><img id="platePreview" class="photo-preview"><div id="photoStatus" class="statusbox show">Elegí o sacá una foto clara del plato.</div><div id="aiItems"></div><div id="aiSummary" class="portion-box"></div><div class="actions" style="margin-top:10px"><button id="useAiEstimateBtn">✅ Usar estimación</button><button id="cancelAiBtn" class="secondary">Cancelar</button></div></div>
+
+      <div class="scan-tools" style="margin-top:10px"><button id="scanBtn">📷 Escanear código</button><button id="barcodeManualBtn" class="secondary">⌨️ Ingresar código</button></div>
+      <div id="scanPanel" class="scan-panel"><div class="reader-wrap"><div id="reader"></div></div><button id="stopScanBtn" class="secondary" style="margin-top:8px">Cerrar cámara</button></div>
+      <div id="barcodeManualBox" class="scan-panel"><div class="row"><div><label>Código de barras</label><input id="barcodeInput" inputmode="numeric"></div><div style="align-self:end"><button id="lookupBarcodeBtn">Buscar producto</button></div></div></div>
+      <div id="scanStatus" class="statusbox"></div>
+
+      <div class="row"><div><label>Fecha</label><input id="mealDate" type="date"></div><div><label>Comida</label><select id="mealType"><option>Desayuno</option><option>Almuerzo</option><option>Merienda</option><option>Cena</option><option>Snack</option></select></div></div>
+      <div class="food-search" style="margin-top:10px"><label>Alimento / producto</label><input id="mealName" autocomplete="off"><div id="foodSuggestions" class="suggestions"></div></div>
+
+      <div class="row3" style="margin-top:10px">
+        <div><label>Cantidad</label><input id="mealQty" inputmode="decimal"></div>
+        <div><label>Unidad</label><select id="mealUnit"><option value="g">g</option><option value="ml">ml</option><option value="porcion">porción</option><option value="rebanada">rebanada</option><option value="unidad">unidad</option></select></div>
+        <div><label>Estado</label><select id="mealState"><option>Cocido</option><option>Crudo</option><option>Envasado</option><option>Unidad</option></select></div>
+      </div>
+
+      <div id="portionControls" class="portion-box">
+        <div class="row">
+          <div><label id="equivLabel">Equivalencia (g por unidad)</label><input id="mealUnitGrams" inputmode="decimal" placeholder="Ej: 33,3"></div>
+          <div><label>Porción del envase (g)</label><input id="mealServingGrams" inputmode="decimal" placeholder="Ej: 50"></div>
+        </div>
+        <div id="portionHint" class="hint" style="margin-top:8px">Escaneá un producto o cargá una equivalencia para usar unidades/rebanadas.</div>
+      </div>
+
+      <div class="formgrid" style="margin-top:10px">
+        <div><label>Kcal</label><input id="mealKcal" inputmode="decimal"></div>
+        <div><label>Proteína</label><input id="mealProtein" inputmode="decimal"></div>
+        <div><label>Carbos</label><input id="mealCarbs" inputmode="decimal"></div>
+        <div><label>Grasas</label><input id="mealFat" inputmode="decimal"></div>
+        <div><label>Fibra</label><input id="mealFiber" inputmode="decimal"></div>
+        <div><label>Grasas saturadas</label><input id="mealSatFat" inputmode="decimal"></div>
+        <div><label>Grasas trans</label><input id="mealTransFat" inputmode="decimal"></div>
+      </div>
+      <div style="margin-top:10px"><label>Fuente / notas</label><input id="mealSource"></div>
+      <div class="actions" style="margin-top:12px"><button id="addMealBtn">Guardar comida</button><button id="saveFoodBtn" class="secondary">⭐ Guardar en Mis alimentos</button></div>
+      <div id="foodSaveStatus" class="statusbox"></div>
+    </div>
+
+    <h2 class="section-title">Mis alimentos</h2>
+    <div class="card"><input id="librarySearch" placeholder="Buscar guardados"><div id="foodLibraryList" class="list" style="margin-top:10px"></div></div>
+    <h2 class="section-title">Registro de comidas</h2><div id="mealList" class="list"></div>
+  </section>
+
+  <section id="progressView" class="view">
+    <h2 class="section-title">Registrar progreso</h2>
+    <div class="card"><div class="row"><div><label>Fecha</label><input id="progressDate" type="date"></div><div><label>Peso (kg)</label><input id="progressWeight" inputmode="decimal"></div></div><div class="row" style="margin-top:10px"><div><label>Cintura (cm)</label><input id="progressWaist" inputmode="decimal"></div><div><label>Ombligo (cm)</label><input id="progressNavel" inputmode="decimal"></div></div><div class="row" style="margin-top:10px"><div><label>Pasos</label><input id="progressSteps" type="number"></div><div><label>Gym</label><select id="progressGym"><option>No</option><option>Sí</option></select></div></div><button id="addProgressBtn" style="margin-top:12px">Guardar progreso</button></div>
+    <h2 class="section-title">Historial</h2><div id="progressList" class="list"></div>
+  </section>
+
+  <section id="settings" class="view">
+    <h2 class="section-title">Perfil</h2>
+    <div class="card"><div class="row"><div><label>Nombre</label><input id="profileName"></div><div><label>Objetivo</label><select id="profileGoal"><option value="lose">Perder grasa</option><option value="maintain">Mantener</option><option value="gain">Ganar músculo</option></select></div></div><div class="row" style="margin-top:10px"><div><label>Edad</label><input id="profileAge" type="number"></div><div><label>Estatura (cm)</label><input id="profileHeight" type="number"></div></div><div class="row" style="margin-top:10px"><div><label>Peso (kg)</label><input id="profileWeight" inputmode="decimal"></div><div><label>Sexo</label><select id="profileSex"><option value="female">Mujer</option><option value="male">Hombre</option></select></div></div><div style="margin-top:10px"><label>Actividad</label><select id="profileActivity"><option value="sedentary">Sedentaria</option><option value="light">Ligera</option><option value="moderate">Moderada</option><option value="high">Alta</option></select></div><button id="saveProfileBtn" class="secondary" style="margin-top:12px">Guardar perfil</button></div>
+    <h2 class="section-title">Objetivos</h2>
+    <div class="card"><div class="row"><div><label>Kcal lunes–viernes</label><input id="goalWeekday" type="number"></div><div><label>Kcal sábado</label><input id="goalSaturday" type="number"></div></div><div class="row" style="margin-top:10px"><div><label>Kcal domingo</label><input id="goalSunday" type="number"></div><div><label>Proteína diaria</label><input id="goalProtein" type="number"></div></div><div class="row" style="margin-top:10px"><div><label>Carbos</label><input id="goalCarbs" type="number"></div><div><label>Grasas</label><input id="goalFat" type="number"></div></div><div class="row" style="margin-top:10px"><div><label>Fibra</label><input id="goalFiber" type="number"></div><div><label>Saturadas límite</label><input id="goalSatFat" type="number"></div></div><div style="margin-top:10px"><label>Trans límite</label><input id="goalTransFat" type="number"></div><button id="saveGoalsBtn" style="margin-top:12px">Guardar objetivos</button></div>
+    <h2 class="section-title">Datos</h2><div class="card"><div class="actions"><button id="exportBtn" class="secondary">Exportar respaldo</button><button id="importBtn" class="secondary">Importar respaldo</button><button id="resetBtn" class="danger">Borrar datos</button></div><input id="importFile" type="file" accept="application/json" hidden></div>
+  </section>
+
+  <div class="footer">Beta personal · Verificá la etiqueta cuando importe precisión.</div>
+</div>
+<nav><button data-view="home" class="active">🏠 Inicio</button><button data-view="food">🍽️ Comidas</button><button data-view="progressView">📉 Progreso</button><button data-view="settings">⚙️ Ajustes</button></nav>
+
 <script>
-const KEY='nicoCutBeta_v01';const today=()=>new Date().toISOString().slice(0,10);function n(v){const x=Number(v);return Number.isFinite(x)?x:0}const defaultData={profile:{name:'',goal:'lose',setupDone:false,age:0,height:0,weight:0,sex:'female',activity:'moderate'},goals:{weekday:2000,saturday:2300,sunday:2300,protein:170,carbs:180,fat:60,fiber:30,satFat:20,transFat:2,steps:10000,weeklyLoss:-0.30},meals:[],progress:[],foodLibrary:[]};let data=load(),scanner=null,scannerRunning=false,activeFoodId=null,baseNutrition=null;
-function normalizeData(d){d=d&&typeof d==='object'?d:structuredClone(defaultData);d.profile={...defaultData.profile,...(d.profile||{})};d.goals={...defaultData.goals,...(d.goals||{})};d.meals=Array.isArray(d.meals)?d.meals.map(m=>({...m,transFat:n(m.transFat)})):[];d.progress=Array.isArray(d.progress)?d.progress:[];d.foodLibrary=Array.isArray(d.foodLibrary)?d.foodLibrary.map(f=>({...f,transFat:n(f.transFat)})):[];return d}function load(){try{return normalizeData(JSON.parse(localStorage.getItem(KEY))||structuredClone(defaultData))}catch{return structuredClone(defaultData)}}function save(){data=normalizeData(data);localStorage.setItem(KEY,JSON.stringify(data));renderAll()}function localNum(v){if(typeof v==='number')return Number.isFinite(v)?v:0;const raw=String(v??'').trim().replace(/\s/g,'').replace(',','.');const x=Number(raw);return Number.isFinite(x)?x:0}function num(id){return localNum(document.getElementById(id).value)}function esc(s){return String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}function round1(v){return Math.round((n(v)+Number.EPSILON)*10)/10}function goalForDate(ds){const d=new Date(ds+'T12:00:00'),day=d.getDay();return day===6?data.goals.saturday:day===0?data.goals.sunday:data.goals.weekday}function weekStart(ds=today()){const d=new Date(ds+'T12:00:00'),day=(d.getDay()+6)%7;d.setDate(d.getDate()-day);return d.toISOString().slice(0,10)}function weekDates(ds=today()){const s=new Date(weekStart(ds)+'T12:00:00');return [...Array(7)].map((_,i)=>{const d=new Date(s);d.setDate(s.getDate()+i);return d.toISOString().slice(0,10)})}function dailyTotals(ds){return data.meals.filter(m=>m.date===ds).reduce((a,m)=>({kcal:a.kcal+n(m.kcal),protein:a.protein+n(m.protein),carbs:a.carbs+n(m.carbs),fat:a.fat+n(m.fat),fiber:a.fiber+n(m.fiber),satFat:a.satFat+n(m.satFat),transFat:a.transFat+n(m.transFat)}),{kcal:0,protein:0,carbs:0,fat:0,fiber:0,satFat:0,transFat:0})}function weeklyBudget(ds=today()){return weekDates(ds).reduce((s,d)=>s+goalForDate(d),0)}function weeklyConsumed(ds=today()){const set=new Set(weekDates(ds));return data.meals.filter(m=>set.has(m.date)).reduce((s,m)=>s+n(m.kcal),0)}function latestProgress(){return [...data.progress].sort((a,b)=>a.date.localeCompare(b.date)).at(-1)}function avg(arr){return arr.length?arr.reduce((s,x)=>s+x,0)/arr.length:null}function macroTargets(calories,protein){const fat=Math.max(40,Math.round(calories*.27/9)),carbs=Math.max(0,Math.round((calories-protein*4-fat*9)/4));return {carbs,fat,fiber:30,satFat:20,transFat:2}}
-function setMetric(prefix,value,goal){document.getElementById(prefix+'Today').textContent=Math.round(value)+' g';document.getElementById(prefix+'GoalText').textContent=`de ${goal} g`;document.getElementById(prefix+'Bar').style.width=Math.min(100,goal?value/goal*100:0)+'%'}
-function renderHome(){const t=dailyTotals(today()),goal=goalForDate(today());kcalToday.textContent=Math.round(t.kcal);kcalGoalText.textContent=`de ${goal} kcal`;kcalBar.style.width=Math.min(100,t.kcal/goal*100)+'%';setMetric('protein',t.protein,data.goals.protein);setMetric('carbs',t.carbs,data.goals.carbs);setMetric('fat',t.fat,data.goals.fat);setMetric('fiber',t.fiber,data.goals.fiber);transFatToday.textContent=round1(t.transFat)+' g';transFatGoalText.textContent=`límite ${data.goals.transFat} g`;transFatBar.style.width=Math.min(100,data.goals.transFat?t.transFat/data.goals.transFat*100:0)+'%';const lp=latestProgress();weightNow.textContent=lp?.weight?lp.weight.toFixed(1)+' kg':'—';const ps=[...data.progress].filter(p=>p.weight).sort((a,b)=>a.date.localeCompare(b.date));let trend='Sin datos';if(ps.length>=2){const recent=avg(ps.slice(-7).map(p=>p.weight)),prev=avg(ps.slice(-14,-7).map(p=>p.weight));trend=prev?`${recent-prev>=0?'+':''}${(recent-prev).toFixed(2)} kg vs 7d prev`:`Prom. reciente ${recent.toFixed(2)} kg`}weightTrend.textContent=trend;const rem=weeklyBudget()-weeklyConsumed();weekRemaining.textContent=Math.round(rem)+' kcal';weekBudgetText.textContent=`de ${weeklyBudget()} kcal semanales`;let tipLeadText='Sumá proteína en cada comida.',tipText='Te ayuda a mantener la masa muscular y sentirte lleno por más tiempo.';if(t.transFat>data.goals.transFat){tipLeadText='Hoy priorizá alimentos frescos.';tipText='Ya superaste el límite de grasas trans. Elegí opciones menos procesadas para el resto del día.'}else if(t.fiber<data.goals.fiber*.35&&t.kcal>goal*.45){tipLeadText='Dale un empujón a la fibra.';tipText='Frutas, verduras, legumbres o cereales integrales pueden ayudarte a acercarte a tu objetivo diario.'}else if(t.protein<data.goals.protein*.45&&t.kcal>goal*.5){tipLeadText='Te falta proteína para lo que ya comiste.';tipText='Intentá que la próxima comida tenga una fuente proteica clara para equilibrar el día.'}else if(t.fat>data.goals.fat*.85){tipLeadText='Las grasas ya vienen bastante altas.';tipText='En las próximas comidas podés priorizar proteínas magras y preparaciones con menos aceite o queso.'}else if(t.kcal>goal){tipLeadText='Objetivo diario superado.';tipText='No hace falta compensar de forma agresiva: mirá la tendencia semanal y retomá tu objetivo normalmente.'}else if(t.protein>=data.goals.protein*.8){tipLeadText='Muy buen ritmo de proteína 💪';tipText='Vas bien encaminado para proteger masa muscular. Seguí distribuyéndola entre tus comidas.'}else if(t.kcal===0){tipLeadText='Empezá el día con una buena base.';tipText='Cuando cargues tu primera comida, el tip se va a adaptar automáticamente a tus macros.'}tipLead.textContent=tipLeadText;dayStatus.textContent=tipText;dayStatus.className='status-lines muted';const recent=[...data.meals].sort((a,b)=>(b.date+b.id).localeCompare(a.date+a.id)).slice(0,5);recentMeals.innerHTML=recent.length?recent.map(m=>`<div class="item"><div><strong>${esc(m.name)}</strong><small>${m.date} · ${m.type} · ${m.qty}${esc(m.unit)} · ${Math.round(m.kcal)} kcal</small></div></div>`).join(''):'<div class="card hint">Todavía no cargaste comidas.</div>';const pct=(v,g)=>g?Math.min(100,Math.round(v/g*100)):0;dailyGoalBig.textContent=goal;dailyGoalSide.textContent=goal+' kcal';kcalRemainingBig.textContent=Math.max(0,Math.round(goal-t.kcal));calorieRing.style.setProperty('--p',pct(t.kcal,goal));[['protein',t.protein,data.goals.protein],['carbs',t.carbs,data.goals.carbs],['fat',t.fat,data.goals.fat],['fiber',t.fiber,data.goals.fiber],['satFat',t.satFat,data.goals.satFat],['transFat',t.transFat,data.goals.transFat]].forEach(([id,v,g])=>{const ring=document.getElementById(id+'Ring'),pe=document.getElementById(id+'Pct');if(ring)ring.style.setProperty('--p',pct(v,g));if(pe)pe.textContent=pct(v,g)+'%'});satFatToday.textContent=round1(t.satFat)+' g';satFatGoalText.textContent='límite '+data.goals.satFat+' g';const days=new Set(data.meals.map(m=>m.date));let streak=0,d=new Date(today()+'T12:00:00');while(days.has(d.toISOString().slice(0,10))){streak++;d.setDate(d.getDate()-1)}streakCount.textContent=streak;drawMiniWeight()}
-function renderMeals(){const arr=[...data.meals].sort((a,b)=>(b.date+b.id).localeCompare(a.date+a.id));mealList.innerHTML=arr.length?arr.map(m=>`<div class="item"><div><strong>${esc(m.name)}</strong><small>${m.date} · ${m.type} · P ${round1(m.protein)} / C ${round1(m.carbs)} / G ${round1(m.fat)} / Fib ${round1(m.fiber)} / Trans ${round1(m.transFat)} · ${Math.round(m.kcal)} kcal</small></div><button onclick="delMeal('${m.id}')">Eliminar</button></div>`).join(''):'<div class="card hint">Sin comidas registradas.</div>'}function renderProgress(){const arr=[...data.progress].sort((a,b)=>b.date.localeCompare(a.date));progressList.innerHTML=arr.length?arr.map(p=>`<div class="item"><div><strong>${p.date} · ${p.weight?p.weight.toFixed(1)+' kg':'sin peso'}</strong><small>Cintura ${p.waist||'—'} · Ombligo ${p.navel||'—'} · ${p.steps||0} pasos · Gym ${p.gym}</small></div><button onclick="delProgress('${p.id}')">Eliminar</button></div>`).join(''):'<div class="card hint">Sin registros todavía.</div>'}function renderSettings(){profileName.value=data.profile.name||'';profileGoal.value=data.profile.goal||'lose';profileAge.value=data.profile.age||'';profileHeight.value=data.profile.height||'';profileWeight.value=data.profile.weight||'';profileSex.value=data.profile.sex||'female';profileActivity.value=data.profile.activity||'moderate';goalWeekday.value=data.goals.weekday;goalSaturday.value=data.goals.saturday;goalSunday.value=data.goals.sunday;goalProtein.value=data.goals.protein;goalCarbs.value=data.goals.carbs;goalFat.value=data.goals.fat;goalFiber.value=data.goals.fiber;goalSatFat.value=data.goals.satFat;goalTransFat.value=data.goals.transFat;goalSteps.value=data.goals.steps;goalWeeklyLoss.value=data.goals.weeklyLoss;profileGreeting.textContent=data.profile.name?`Hola, ${data.profile.name} 👋`:''}
-function renderFoodLibrary(){const q=(librarySearch.value||'').trim().toLowerCase(),arr=[...data.foodLibrary].filter(f=>!q||f.name.toLowerCase().includes(q)||String(f.barcode||'').includes(q));foodLibraryList.innerHTML=arr.length?arr.map(f=>`<div class="item"><div><strong>${esc(f.name)}</strong><small>${round1(f.kcal)} kcal · P ${round1(f.protein)} / C ${round1(f.carbs)} / G ${round1(f.fat)} / Fib ${round1(f.fiber)} / Trans ${round1(f.transFat)}</small></div><div class="mini-actions"><button onclick="useFood('${f.id}')">Usar</button><button class="danger" onclick="delFood('${f.id}')">×</button></div></div>`).join(''):'<div class="hint">Todavía no guardaste alimentos.</div>'}function showSuggestions(){const q=mealName.value.trim().toLowerCase();if(!q){foodSuggestions.classList.remove('show');return}const hits=data.foodLibrary.filter(f=>f.name.toLowerCase().includes(q)).slice(0,6);if(!hits.length){foodSuggestions.classList.remove('show');return}foodSuggestions.innerHTML=hits.map(f=>`<div class="suggestion" onclick="useFood('${f.id}')"><strong>${esc(f.name)}</strong><small>${round1(f.kcal)} kcal</small></div>`).join('');foodSuggestions.classList.add('show')}function drawMiniWeight(){const c=document.getElementById('weightMiniChart');if(!c)return;const ctx=c.getContext('2d'),pts=[...data.progress].filter(p=>p.weight).sort((a,b)=>a.date.localeCompare(b.date)).slice(-12);ctx.clearRect(0,0,c.width,c.height);if(pts.length<2)return;const vals=pts.map(p=>p.weight),min=Math.min(...vals)-.2,max=Math.max(...vals)+.2;ctx.strokeStyle='#1d9bf0';ctx.lineWidth=2.5;ctx.beginPath();pts.forEach((p,i)=>{const x=4+i*(c.width-8)/(pts.length-1),y=c.height-5-(p.weight-min)/(max-min)*(c.height-10);i?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.stroke();ctx.fillStyle='#38bdf8';pts.forEach((p,i)=>{const x=4+i*(c.width-8)/(pts.length-1),y=c.height-5-(p.weight-min)/(max-min)*(c.height-10);ctx.beginPath();ctx.arc(x,y,2.4,0,Math.PI*2);ctx.fill()})}
-function drawChart(){const c=weightChart,ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);const pts=[...data.progress].filter(p=>p.weight).sort((a,b)=>a.date.localeCompare(b.date)).slice(-30);ctx.strokeStyle='#263247';for(let i=1;i<5;i++){let y=i*c.height/5;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(c.width,y);ctx.stroke()}if(pts.length<2){ctx.fillStyle='#94a3b8';ctx.font='14px sans-serif';ctx.fillText('Cargá al menos 2 pesos para ver la tendencia.',20,90);return}const vals=pts.map(p=>p.weight),min=Math.min(...vals)-.3,max=Math.max(...vals)+.3;ctx.strokeStyle='#38bdf8';ctx.lineWidth=3;ctx.beginPath();pts.forEach((p,i)=>{const x=20+i*(c.width-40)/(pts.length-1),y=c.height-20-(p.weight-min)/(max-min)*(c.height-40);i?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.stroke()}
-function clearMealFields(){['mealName','mealQty','mealKcal','mealProtein','mealCarbs','mealFat','mealFiber','mealSatFat','mealTransFat','mealSource'].forEach(id=>document.getElementById(id).value='');activeFoodId=null;baseNutrition=null}function setMealFields(f){activeFoodId=f.id;mealName.value=f.name;mealQty.value=f.defaultQty||f.basis||100;mealUnit.value=f.unit||'g';mealState.value=f.state||'Envasado';mealKcal.value=f.kcal;mealProtein.value=f.protein;mealCarbs.value=f.carbs;mealFat.value=f.fat;mealFiber.value=f.fiber;mealSatFat.value=f.satFat||0;mealTransFat.value=f.transFat||0;mealSource.value=f.source||''}window.useFood=id=>{const f=data.foodLibrary.find(x=>x.id===id);if(f)setMealFields(f)};window.delMeal=id=>{data.meals=data.meals.filter(x=>x.id!==id);save()};window.delProgress=id=>{data.progress=data.progress.filter(x=>x.id!==id);save()};window.delFood=id=>{data.foodLibrary=data.foodLibrary.filter(x=>x.id!==id);save()};
-async function lookupBarcode(code){code=String(code||'').replace(/\D/g,'');if(!code)return;const local=data.foodLibrary.find(f=>f.barcode===code);if(local)return setMealFields(local);scanStatus.textContent='Buscando producto…';scanStatus.className='statusbox show';try{const r=await fetch(`https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(code)}.json?fields=code,product_name,brands,nutriments`),j=await r.json();if(j.status!==1)return;const p=j.product,nu=p.nutriments||{},f={id:crypto.randomUUID(),barcode:code,name:[p.product_name,p.brands].filter(Boolean).join(' · ')||`Producto ${code}`,unit:'g',state:'Envasado',basis:100,defaultQty:100,kcal:n(nu['energy-kcal_100g'])||(n(nu.energy_100g)?n(nu.energy_100g)/4.184:0),protein:n(nu.proteins_100g),carbs:n(nu.carbohydrates_100g),fat:n(nu.fat_100g),fiber:n(nu.fiber_100g),satFat:n(nu['saturated-fat_100g']),transFat:n(nu['trans-fat_100g']),source:'Open Food Facts',updatedAt:new Date().toISOString()};data.foodLibrary.unshift(f);save();setMealFields(f);scanStatus.textContent='✅ Producto encontrado';scanStatus.className='statusbox show ok'}catch{scanStatus.textContent='No pude consultar la base.';scanStatus.className='statusbox show warn'}}
-async function startScanner(){scanPanel.classList.add('active');if(typeof Html5Qrcode==='undefined')return;scanner=new Html5Qrcode('reader');scannerRunning=true;await scanner.start({facingMode:'environment'},{fps:10,qrbox:{width:280,height:140}},async text=>{await stopScanner();barcodeInput.value=text;lookupBarcode(text)},()=>{})}async function stopScanner(){if(scanner&&scannerRunning){try{await scanner.stop()}catch{}try{await scanner.clear()}catch{}}scannerRunning=false;scanner=null;scanPanel.classList.remove('active')}
-const AI_API_BASE='https://nico-cut-ai.njaime475.workers.dev';let currentAiItems=[];photoAnalyzeBtn.onclick=()=>platePhotoInput.click();cancelAiBtn.onclick=()=>photoPanel.classList.remove('show');platePhotoInput.onchange=async e=>{const file=e.target.files?.[0];if(!file)return;const reader=new FileReader();reader.onload=async()=>{photoPanel.classList.add('show');platePreview.src=reader.result;photoStatus.textContent='🤖 Analizando…';try{const r=await fetch(`${AI_API_BASE}/api/analyze`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image:reader.result})}),p=await r.json();currentAiItems=p.analysis?.items||[];aiItems.innerHTML=currentAiItems.map((it,i)=>`<div class="ai-item"><strong>${esc(it.name)}</strong><small>${Math.round(it.kcal||0)} kcal · P ${round1(it.protein)} · C ${round1(it.carbs)} · G ${round1(it.fat)} · Fib ${round1(it.fiber)}</small></div>`).join('');const t=currentAiItems.reduce((a,x)=>({grams:a.grams+n(x.grams),kcal:a.kcal+n(x.kcal),protein:a.protein+n(x.protein),carbs:a.carbs+n(x.carbs),fat:a.fat+n(x.fat),fiber:a.fiber+n(x.fiber)}),{grams:0,kcal:0,protein:0,carbs:0,fat:0,fiber:0});aiSummary.textContent=`Total: ${Math.round(t.kcal)} kcal · P ${round1(t.protein)} · C ${round1(t.carbs)} · G ${round1(t.fat)} · Fibra ${round1(t.fiber)} g`;aiResult.classList.add('show');useAiEstimateBtn.onclick=()=>{mealName.value='Plato estimado por foto';mealQty.value=Math.round(t.grams)||1;mealKcal.value=Math.round(t.kcal);mealProtein.value=round1(t.protein);mealCarbs.value=round1(t.carbs);mealFat.value=round1(t.fat);mealFiber.value=round1(t.fiber);mealTransFat.value=0;mealSource.value='Estimación visual Nico Cut AI';photoPanel.classList.remove('show')}}catch{photoStatus.textContent='⚠️ No pude analizar la foto.'}};reader.readAsDataURL(file)};
-addMealBtn.onclick=()=>{if(!mealName.value.trim()||!num('mealKcal'))return alert('Cargá alimento y calorías.');data.meals.push({id:crypto.randomUUID(),date:mealDate.value||today(),type:mealType.value,name:mealName.value.trim(),qty:num('mealQty'),unit:mealUnit.value,state:mealState.value,kcal:num('mealKcal'),protein:num('mealProtein'),carbs:num('mealCarbs'),fat:num('mealFat'),fiber:num('mealFiber'),satFat:num('mealSatFat'),transFat:num('mealTransFat'),source:mealSource.value.trim()});clearMealFields();save()};saveFoodBtn.onclick=()=>{if(!mealName.value.trim())return alert('Escribí el nombre del alimento antes de guardarlo.');const f={id:activeFoodId||crypto.randomUUID(),name:mealName.value.trim(),basis:num('mealQty')||100,defaultQty:num('mealQty')||100,unit:mealUnit.value,state:mealState.value,kcal:num('mealKcal'),protein:num('mealProtein'),carbs:num('mealCarbs'),fat:num('mealFat'),fiber:num('mealFiber'),satFat:num('mealSatFat'),transFat:num('mealTransFat'),source:mealSource.value.trim(),updatedAt:new Date().toISOString()};const i=data.foodLibrary.findIndex(x=>x.id===f.id);i>=0?data.foodLibrary[i]=f:data.foodLibrary.unshift(f);activeFoodId=f.id;save();renderFoodLibrary();foodSaveStatus.textContent=`✅ ${f.name} quedó guardado en Mis alimentos. La próxima vez podés tocar “Usar”.`;foodSaveStatus.className='statusbox show ok';document.getElementById('foodLibraryList')?.scrollIntoView({behavior:'smooth',block:'center'});};addProgressBtn.onclick=()=>{const ds=progressDate.value||today();data.progress=data.progress.filter(p=>p.date!==ds);data.progress.push({id:crypto.randomUUID(),date:ds,weight:num('progressWeight'),waist:num('progressWaist'),navel:num('progressNavel'),steps:num('progressSteps'),gym:progressGym.value});save()};
-function activityFactor(x){return ({sedentary:1.2,light:1.375,moderate:1.55,high:1.725})[x]||1.55}function estimateTargets(age,height,weight,sex,activity,goal){const bmr=10*weight+6.25*height-5*age+(sex==='male'?5:-161),tdee=bmr*activityFactor(activity),calories=Math.round(goal==='lose'?tdee-500:goal==='gain'?tdee+250:tdee),protein=Math.round(weight*(goal==='maintain'?1.6:1.8));return {tdee:Math.round(tdee),calories,protein,...macroTargets(calories,protein)}}function calcOnboardTargets(){const r=estimateTargets(+onboardAge.value,+onboardHeight.value,localNum(onboardWeight.value),onboardSex.value,onboardActivity.value,document.querySelector('input[name="onboardGoal"]:checked')?.value||'lose');onboardCalories.value=r.calories;onboardProtein.value=r.protein;calorieEstimateBox.innerHTML=`Mantenimiento: <strong>${r.tdee} kcal</strong><br>Objetivo: <strong>${r.calories} kcal</strong> · P ${r.protein} · C ${r.carbs} · G ${r.fat} · Fibra ${r.fiber}`;calorieEstimateBox.className='statusbox show';return r}calculateTargetsBtn.onclick=calcOnboardTargets;function showOnboardingIfNeeded(){if(!data.profile.setupDone){onboardName.value=data.profile.name||'';onboardAge.value=data.profile.age||'';onboardHeight.value=data.profile.height||'';onboardWeight.value=data.profile.weight||'';onboardCalories.value=data.goals.weekday;onboardProtein.value=data.goals.protein;onboardSteps.value=data.goals.steps;onboarding.classList.add('active')}}finishOnboardingBtn.onclick=()=>{const r=calcOnboardTargets(),goal=document.querySelector('input[name="onboardGoal"]:checked')?.value||'lose';data.profile={name:onboardName.value.trim(),goal,setupDone:true,age:+onboardAge.value,height:+onboardHeight.value,weight:localNum(onboardWeight.value),sex:onboardSex.value,activity:onboardActivity.value};data.goals={...data.goals,weekday:+onboardCalories.value,saturday:+onboardCalories.value,sunday:+onboardCalories.value,protein:+onboardProtein.value,carbs:r.carbs,fat:r.fat,fiber:r.fiber,transFat:r.transFat,steps:+onboardSteps.value};localStorage.setItem(KEY,JSON.stringify(data));onboarding.classList.remove('active');renderAll()};saveProfileBtn.onclick=()=>{data.profile={...data.profile,name:profileName.value.trim(),goal:profileGoal.value,age:+profileAge.value,height:+profileHeight.value,weight:localNum(profileWeight.value),sex:profileSex.value,activity:profileActivity.value,setupDone:true};save()};recalcTargetsBtn.onclick=()=>{const r=estimateTargets(+profileAge.value,+profileHeight.value,localNum(profileWeight.value),profileSex.value,profileActivity.value,profileGoal.value);goalWeekday.value=goalSaturday.value=goalSunday.value=r.calories;goalProtein.value=r.protein;goalCarbs.value=r.carbs;goalFat.value=r.fat;goalFiber.value=r.fiber;goalTransFat.value=r.transFat};saveGoalsBtn.onclick=()=>{data.goals={...data.goals,weekday:num('goalWeekday'),saturday:num('goalSaturday'),sunday:num('goalSunday'),protein:num('goalProtein'),carbs:num('goalCarbs'),fat:num('goalFat'),fiber:num('goalFiber'),satFat:num('goalSatFat'),transFat:num('goalTransFat'),steps:num('goalSteps'),weeklyLoss:Number(goalWeeklyLoss.value)||-.3};save()};exportBtn.onclick=()=>{const b=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='nico-cut-respaldo.json';a.click()};importBtn.onclick=()=>importFile.click();importFile.onchange=e=>{const r=new FileReader();r.onload=()=>{data=normalizeData(JSON.parse(r.result));save()};r.readAsText(e.target.files[0])};resetBtn.onclick=()=>{if(confirm('¿Borrar todos los datos?')){data=structuredClone(defaultData);save()}};scanBtn.onclick=startScanner;stopScanBtn.onclick=stopScanner;barcodeManualBtn.onclick=()=>barcodeManualBox.classList.toggle('active');lookupBarcodeBtn.onclick=()=>lookupBarcode(barcodeInput.value);mealName.addEventListener('input',showSuggestions);librarySearch.addEventListener('input',renderFoodLibrary);clearFoodFormBtn.onclick=clearMealFields;document.querySelectorAll('nav button').forEach(b=>b.onclick=async()=>{if(b.dataset.view!=='food')await stopScanner();document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(b.dataset.view).classList.add('active');document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x===b));scrollTo(0,0)});mealDate.value=progressDate.value=today();function renderAll(){renderHome();renderMeals();renderProgress();renderSettings();renderFoodLibrary()}renderAll();showOnboardingIfNeeded();
+const KEY='nicoCutBeta_v01';
+const AI_API_BASE='https://nico-cut-ai.njaime475.workers.dev';
+const today=()=>new Date().toISOString().slice(0,10);
+const n=v=>{const x=Number(v);return Number.isFinite(x)?x:0};
+function localNum(v){if(typeof v==='number')return Number.isFinite(v)?v:0;const x=Number(String(v??'').trim().replace(/\s/g,'').replace(',','.'));return Number.isFinite(x)?x:0}
+const num=id=>localNum(document.getElementById(id).value);
+const round1=v=>Math.round((n(v)+Number.EPSILON)*10)/10;
+const esc=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+
+const defaultData={profile:{name:'',goal:'lose',setupDone:false,age:0,height:0,weight:0,sex:'female',activity:'moderate'},goals:{weekday:2000,saturday:2300,sunday:2300,protein:170,carbs:180,fat:60,fiber:30,satFat:20,transFat:2},meals:[],progress:[],foodLibrary:[]};
+function normalizeData(d){d=d&&typeof d==='object'?d:structuredClone(defaultData);d.profile={...defaultData.profile,...(d.profile||{})};d.goals={...defaultData.goals,...(d.goals||{})};d.meals=Array.isArray(d.meals)?d.meals:[];d.progress=Array.isArray(d.progress)?d.progress:[];d.foodLibrary=Array.isArray(d.foodLibrary)?d.foodLibrary:[];return d}
+function load(){try{return normalizeData(JSON.parse(localStorage.getItem(KEY))||structuredClone(defaultData))}catch{return structuredClone(defaultData)}}
+let data=load(),scanner=null,scannerRunning=false,activeFoodId=null,baseNutrition=null,currentAiItems=[];
+function save(){localStorage.setItem(KEY,JSON.stringify(data));renderAll()}
+
+function goalForDate(ds){const d=new Date(ds+'T12:00:00').getDay();return d===6?data.goals.saturday:d===0?data.goals.sunday:data.goals.weekday}
+function dailyTotals(ds){return data.meals.filter(m=>m.date===ds).reduce((a,m)=>({kcal:a.kcal+n(m.kcal),protein:a.protein+n(m.protein),carbs:a.carbs+n(m.carbs),fat:a.fat+n(m.fat),fiber:a.fiber+n(m.fiber),satFat:a.satFat+n(m.satFat),transFat:a.transFat+n(m.transFat)}),{kcal:0,protein:0,carbs:0,fat:0,fiber:0,satFat:0,transFat:0})}
+function weekDates(ds=today()){const d=new Date(ds+'T12:00:00'),day=(d.getDay()+6)%7;d.setDate(d.getDate()-day);return [...Array(7)].map((_,i)=>{const x=new Date(d);x.setDate(d.getDate()+i);return x.toISOString().slice(0,10)})}
+function weeklyBudget(){return weekDates().reduce((s,d)=>s+goalForDate(d),0)}
+function weeklyConsumed(){const set=new Set(weekDates());return data.meals.filter(m=>set.has(m.date)).reduce((s,m)=>s+n(m.kcal),0)}
+function pct(v,g){return g?Math.min(100,Math.round(v/g*100)):0}
+
+function renderHome(){
+  const t=dailyTotals(today()),goal=goalForDate(today());
+  dailyGoalBig.textContent=goal;kcalToday.textContent=Math.round(t.kcal);kcalBar.style.width=pct(t.kcal,goal)+'%';kcalRemainingBig.textContent=Math.max(0,Math.round(goal-t.kcal));calorieRing.style.setProperty('--p',pct(t.kcal,goal));
+  weekRemaining.textContent=Math.round(weeklyBudget()-weeklyConsumed())+' kcal';weekBudgetText.textContent='de '+weeklyBudget()+' kcal semanales';
+  [['protein',t.protein,data.goals.protein],['carbs',t.carbs,data.goals.carbs],['fat',t.fat,data.goals.fat],['fiber',t.fiber,data.goals.fiber],['satFat',t.satFat,data.goals.satFat],['transFat',t.transFat,data.goals.transFat]].forEach(([id,v,g])=>{
+    document.getElementById(id+'Today').textContent=round1(v)+' g';
+    document.getElementById(id+'GoalText').textContent=(id==='satFat'||id==='transFat'?'límite ':'de ')+g+' g';
+    document.getElementById(id+'Ring').style.setProperty('--p',pct(v,g));
+    document.getElementById(id+'Pct').textContent=pct(v,g)+'%';
+  });
+  const recent=[...data.meals].sort((a,b)=>(b.date+b.id).localeCompare(a.date+a.id)).slice(0,5);
+  recentMeals.innerHTML=recent.length?recent.map(m=>`<div class="item"><div><strong>${esc(m.name)}</strong><small>${m.date} · ${m.qty} ${esc(m.unit)} · ${Math.round(m.kcal)} kcal</small></div></div>`).join(''):'<div class="card hint">Todavía no cargaste comidas.</div>';
+}
+function renderMeals(){
+  const arr=[...data.meals].sort((a,b)=>(b.date+b.id).localeCompare(a.date+a.id));
+  mealList.innerHTML=arr.length?arr.map(m=>`<div class="item"><div><strong>${esc(m.name)}</strong><small>${m.date} · ${m.type} · ${m.qty} ${esc(m.unit)} · P ${round1(m.protein)} / C ${round1(m.carbs)} / G ${round1(m.fat)} / Fib ${round1(m.fiber)} · ${Math.round(m.kcal)} kcal</small></div><button class="danger" onclick="delMeal('${m.id}')">Eliminar</button></div>`).join(''):'<div class="card hint">Sin comidas registradas.</div>';
+}
+function renderProgress(){
+  const arr=[...data.progress].sort((a,b)=>b.date.localeCompare(a.date));
+  progressList.innerHTML=arr.length?arr.map(p=>`<div class="item"><div><strong>${p.date} · ${p.weight||'—'} kg</strong><small>Cintura ${p.waist||'—'} · Ombligo ${p.navel||'—'} · ${p.steps||0} pasos · Gym ${p.gym}</small></div><button class="danger" onclick="delProgress('${p.id}')">Eliminar</button></div>`).join(''):'<div class="card hint">Sin registros todavía.</div>';
+}
+function renderSettings(){
+  profileName.value=data.profile.name||'';profileGoal.value=data.profile.goal||'lose';profileAge.value=data.profile.age||'';profileHeight.value=data.profile.height||'';profileWeight.value=data.profile.weight||'';profileSex.value=data.profile.sex||'female';profileActivity.value=data.profile.activity||'moderate';
+  goalWeekday.value=data.goals.weekday;goalSaturday.value=data.goals.saturday;goalSunday.value=data.goals.sunday;goalProtein.value=data.goals.protein;goalCarbs.value=data.goals.carbs;goalFat.value=data.goals.fat;goalFiber.value=data.goals.fiber;goalSatFat.value=data.goals.satFat;goalTransFat.value=data.goals.transFat;
+  profileGreeting.textContent=data.profile.name?'Hola, '+data.profile.name+' 👋':'';
+}
+function renderFoodLibrary(){
+  const q=(librarySearch.value||'').trim().toLowerCase(),arr=data.foodLibrary.filter(f=>!q||String(f.name).toLowerCase().includes(q)||String(f.barcode||'').includes(q));
+  foodLibraryList.innerHTML=arr.length?arr.map(f=>`<div class="item"><div><strong>${esc(f.name)}</strong><small>${Math.round(f.kcal||0)} kcal · P ${round1(f.protein)} / C ${round1(f.carbs)} / G ${round1(f.fat)}</small></div><div class="mini-actions"><button onclick="useFood('${f.id}')">Usar</button><button class="danger" onclick="delFood('${f.id}')">×</button></div></div>`).join(''):'<div class="hint">Todavía no guardaste alimentos.</div>';
+}
+function renderAll(){renderHome();renderMeals();renderProgress();renderSettings();renderFoodLibrary()}
+
+function fractionTextToNumber(text){
+  if(!text)return 0;
+  const s=String(text).replace(',', '.').trim();
+  let m=s.match(/(\d+(?:\.\d+)?)\s+(\d+)\s*\/\s*(\d+)/);
+  if(m)return Number(m[1])+Number(m[2])/Number(m[3]);
+  m=s.match(/(\d+)\s*\/\s*(\d+)/); if(m)return Number(m[1])/Number(m[2]);
+  m=s.match(/(\d+(?:\.\d+)?)/); return m?Number(m[1]):0;
+}
+function parseServingUnits(servingSize){
+  const s=String(servingSize||'').toLowerCase();
+  const candidates=['rebanada','rebanadas','slice','slices','unidad','unidades','piece','pieces'];
+  for(const word of candidates){
+    const idx=s.indexOf(word);
+    if(idx>=0){
+      const before=s.slice(Math.max(0,idx-18),idx);
+      const val=fractionTextToNumber(before);
+      if(val>0)return val;
+    }
+  }
+  return 0;
+}
+function calcFactor(){
+  if(!baseNutrition)return 1;
+  const qty=num('mealQty'),unit=mealUnit.value;
+  if(unit==='g'||unit==='ml') return qty/(baseNutrition.basis||100);
+  if(unit==='porcion'){
+    const sg=num('mealServingGrams')||baseNutrition.servingGrams||0;
+    return sg>0 ? (qty*sg)/(baseNutrition.basis||100) : qty;
+  }
+  if(unit==='rebanada'||unit==='unidad'){
+    const ug=num('mealUnitGrams')||baseNutrition.gramsPerUnit||0;
+    return ug>0 ? (qty*ug)/(baseNutrition.basis||100) : qty;
+  }
+  return 1;
+}
+function recalcNutrition(){
+  if(!baseNutrition)return;
+  const f=calcFactor();
+  mealKcal.value=round1(baseNutrition.kcal*f);
+  mealProtein.value=round1(baseNutrition.protein*f);
+  mealCarbs.value=round1(baseNutrition.carbs*f);
+  mealFat.value=round1(baseNutrition.fat*f);
+  mealFiber.value=round1(baseNutrition.fiber*f);
+  mealSatFat.value=round1(baseNutrition.satFat*f);
+  mealTransFat.value=round1(baseNutrition.transFat*f);
+  const qty=num('mealQty'),unit=mealUnit.value;
+  if(unit==='rebanada'||unit==='unidad'){
+    const g=num('mealUnitGrams')||baseNutrition.gramsPerUnit||0;
+    portionHint.innerHTML=g?`<strong>${qty} ${unit}${qty===1?'':'s'}</strong> ≈ ${round1(qty*g)} g`:'Cargá los gramos que pesa 1 unidad/rebanada.';
+  }else if(unit==='porcion'){
+    const g=num('mealServingGrams')||baseNutrition.servingGrams||0;
+    portionHint.innerHTML=g?`<strong>${qty} porción${qty===1?'':'es'}</strong> = ${round1(qty*g)} g`:'Cargá los gramos de una porción.';
+  }else{
+    portionHint.innerHTML=`Calculando desde la base nutricional de <strong>${baseNutrition.basis||100} g</strong>.`;
+  }
+}
+function setMealFields(f){
+  activeFoodId=f.id||null;
+  mealName.value=f.name||'';
+  mealState.value=f.state||'Envasado';
+  mealSource.value=f.source||'';
+  mealServingGrams.value=f.servingGrams||'';
+  mealUnitGrams.value=f.gramsPerUnit||'';
+  baseNutrition={
+    basis:f.basis||100,
+    kcal:n(f.baseKcal??f.kcal),protein:n(f.baseProtein??f.protein),carbs:n(f.baseCarbs??f.carbs),fat:n(f.baseFat??f.fat),fiber:n(f.baseFiber??f.fiber),
+    satFat:n(f.baseSatFat??f.satFat),transFat:n(f.baseTransFat??f.transFat),servingGrams:n(f.servingGrams),gramsPerUnit:n(f.gramsPerUnit)
+  };
+  mealUnit.value=f.defaultUnit||f.unit||'g';
+  mealQty.value=f.defaultQty||f.basis||100;
+  recalcNutrition();
+}
+function clearMealFields(){
+  ['mealName','mealQty','mealUnitGrams','mealServingGrams','mealKcal','mealProtein','mealCarbs','mealFat','mealFiber','mealSatFat','mealTransFat','mealSource'].forEach(id=>document.getElementById(id).value='');
+  baseNutrition=null;activeFoodId=null;
+}
+
+window.useFood=id=>{const f=data.foodLibrary.find(x=>x.id===id);if(f)setMealFields(f)};
+window.delFood=id=>{data.foodLibrary=data.foodLibrary.filter(x=>x.id!==id);save()};
+window.delMeal=id=>{data.meals=data.meals.filter(x=>x.id!==id);save()};
+window.delProgress=id=>{data.progress=data.progress.filter(x=>x.id!==id);save()};
+
+async function lookupBarcode(code){
+  code=String(code||'').replace(/\D/g,'');if(!code)return;
+  scanStatus.textContent='Buscando producto…';scanStatus.className='statusbox show';
+  try{
+    const r=await fetch(`https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(code)}.json?fields=code,product_name,brands,serving_size,serving_quantity,nutriments`);
+    const j=await r.json();if(j.status!==1){scanStatus.textContent='Producto no encontrado.';return}
+    const p=j.product,nu=p.nutriments||{};
+    const servingGrams=n(p.serving_quantity)||fractionTextToNumber(p.serving_size);
+    const servingUnits=parseServingUnits(p.serving_size);
+    const gramsPerUnit=servingGrams>0&&servingUnits>0?servingGrams/servingUnits:0;
+    const f={
+      id:crypto.randomUUID(),barcode:code,name:[p.product_name,p.brands].filter(Boolean).join(' · ')||`Producto ${code}`,
+      state:'Envasado',basis:100,defaultQty:servingGrams||100,defaultUnit:servingGrams?'g':'g',
+      servingGrams,gramsPerUnit,
+      baseKcal:n(nu['energy-kcal_100g'])||(n(nu.energy_100g)?n(nu.energy_100g)/4.184:0),
+      baseProtein:n(nu.proteins_100g),baseCarbs:n(nu.carbohydrates_100g),baseFat:n(nu.fat_100g),baseFiber:n(nu.fiber_100g),
+      baseSatFat:n(nu['saturated-fat_100g']),baseTransFat:n(nu['trans-fat_100g']),
+      source:'Open Food Facts'
+    };
+    f.kcal=f.baseKcal;f.protein=f.baseProtein;f.carbs=f.baseCarbs;f.fat=f.baseFat;f.fiber=f.baseFiber;f.satFat=f.baseSatFat;f.transFat=f.baseTransFat;
+    const old=data.foodLibrary.findIndex(x=>x.barcode===code); if(old>=0){f.id=data.foodLibrary[old].id;data.foodLibrary[old]=f}else data.foodLibrary.unshift(f);
+    save();setMealFields(f);
+    scanStatus.textContent=gramsPerUnit?`✅ Producto encontrado · ${round1(gramsPerUnit)} g por unidad/rebanada detectados`:'✅ Producto encontrado · podés usar gramos o cargar equivalencia por unidad';
+    scanStatus.className='statusbox show ok';
+  }catch(e){scanStatus.textContent='No pude consultar la base.';scanStatus.className='statusbox show warn'}
+}
+async function startScanner(){scanPanel.classList.add('active');if(typeof Html5Qrcode==='undefined')return;scanner=new Html5Qrcode('reader');scannerRunning=true;await scanner.start({facingMode:'environment'},{fps:10,qrbox:{width:280,height:140}},async text=>{await stopScanner();barcodeInput.value=text;lookupBarcode(text)},()=>{})}
+async function stopScanner(){if(scanner&&scannerRunning){try{await scanner.stop()}catch{}try{await scanner.clear()}catch{}}scannerRunning=false;scanner=null;scanPanel.classList.remove('active')}
+
+photoAnalyzeBtn.onclick=()=>platePhotoInput.click();
+cancelAiBtn.onclick=()=>photoPanel.classList.remove('show');
+platePhotoInput.onchange=e=>{
+  const file=e.target.files?.[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=async()=>{
+    photoPanel.classList.add('show');platePreview.src=reader.result;photoStatus.textContent='🤖 Analizando…';
+    try{
+      const r=await fetch(`${AI_API_BASE}/api/analyze`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image:reader.result})});
+      const p=await r.json();currentAiItems=p.analysis?.items||[];
+      aiItems.innerHTML=currentAiItems.map(it=>`<div class="ai-item"><strong>${esc(it.name)}</strong><small>${Math.round(it.kcal||0)} kcal · P ${round1(it.protein)} · C ${round1(it.carbs)} · G ${round1(it.fat)}</small></div>`).join('');
+      const t=currentAiItems.reduce((a,x)=>({grams:a.grams+n(x.grams),kcal:a.kcal+n(x.kcal),protein:a.protein+n(x.protein),carbs:a.carbs+n(x.carbs),fat:a.fat+n(x.fat),fiber:a.fiber+n(x.fiber)}),{grams:0,kcal:0,protein:0,carbs:0,fat:0,fiber:0});
+      aiSummary.textContent=`Total: ${Math.round(t.kcal)} kcal · P ${round1(t.protein)} · C ${round1(t.carbs)} · G ${round1(t.fat)} · Fibra ${round1(t.fiber)} g`;
+      useAiEstimateBtn.onclick=()=>{
+        mealName.value='Plato estimado por foto';mealQty.value=Math.round(t.grams)||1;mealUnit.value='g';
+        baseNutrition={basis:mealQty.value||1,kcal:t.kcal,protein:t.protein,carbs:t.carbs,fat:t.fat,fiber:t.fiber,satFat:0,transFat:0};
+        recalcNutrition();mealSource.value='Estimación visual Nico Cut AI';photoPanel.classList.remove('show');
+      }
+    }catch{photoStatus.textContent='⚠️ No pude analizar la foto.'}
+  };reader.readAsDataURL(file);
+};
+
+addMealBtn.onclick=()=>{
+  if(!mealName.value.trim()||!num('mealKcal'))return alert('Cargá alimento y calorías.');
+  data.meals.push({id:crypto.randomUUID(),date:mealDate.value||today(),type:mealType.value,name:mealName.value.trim(),qty:num('mealQty'),unit:mealUnit.value,state:mealState.value,kcal:num('mealKcal'),protein:num('mealProtein'),carbs:num('mealCarbs'),fat:num('mealFat'),fiber:num('mealFiber'),satFat:num('mealSatFat'),transFat:num('mealTransFat'),source:mealSource.value.trim()});
+  clearMealFields();save();
+};
+saveFoodBtn.onclick=()=>{
+  if(!mealName.value.trim())return alert('Escribí el nombre del alimento.');
+  const b=baseNutrition||{basis:num('mealQty')||100,kcal:num('mealKcal'),protein:num('mealProtein'),carbs:num('mealCarbs'),fat:num('mealFat'),fiber:num('mealFiber'),satFat:num('mealSatFat'),transFat:num('mealTransFat')};
+  const f={id:activeFoodId||crypto.randomUUID(),name:mealName.value.trim(),state:mealState.value,basis:b.basis||100,defaultQty:num('mealQty')||b.basis||100,defaultUnit:mealUnit.value,servingGrams:num('mealServingGrams')||b.servingGrams||0,gramsPerUnit:num('mealUnitGrams')||b.gramsPerUnit||0,
+    baseKcal:b.kcal,baseProtein:b.protein,baseCarbs:b.carbs,baseFat:b.fat,baseFiber:b.fiber,baseSatFat:b.satFat,baseTransFat:b.transFat,
+    kcal:b.kcal,protein:b.protein,carbs:b.carbs,fat:b.fat,fiber:b.fiber,satFat:b.satFat,transFat:b.transFat,source:mealSource.value.trim()};
+  const i=data.foodLibrary.findIndex(x=>x.id===f.id);i>=0?data.foodLibrary[i]=f:data.foodLibrary.unshift(f);activeFoodId=f.id;save();
+  foodSaveStatus.textContent='✅ Guardado en Mis alimentos.';foodSaveStatus.className='statusbox show ok';
+};
+addProgressBtn.onclick=()=>{const ds=progressDate.value||today();data.progress=data.progress.filter(p=>p.date!==ds);data.progress.push({id:crypto.randomUUID(),date:ds,weight:num('progressWeight'),waist:num('progressWaist'),navel:num('progressNavel'),steps:num('progressSteps'),gym:progressGym.value});save()};
+
+saveProfileBtn.onclick=()=>{data.profile={...data.profile,name:profileName.value.trim(),goal:profileGoal.value,age:num('profileAge'),height:num('profileHeight'),weight:num('profileWeight'),sex:profileSex.value,activity:profileActivity.value,setupDone:true};save()};
+saveGoalsBtn.onclick=()=>{data.goals={...data.goals,weekday:num('goalWeekday'),saturday:num('goalSaturday'),sunday:num('goalSunday'),protein:num('goalProtein'),carbs:num('goalCarbs'),fat:num('goalFat'),fiber:num('goalFiber'),satFat:num('goalSatFat'),transFat:num('goalTransFat')};save()};
+finishOnboardingBtn.onclick=()=>{data.profile={name:onboardName.value.trim(),goal:document.querySelector('input[name="onboardGoal"]:checked')?.value||'lose',setupDone:true,age:num('onboardAge'),height:num('onboardHeight'),weight:num('onboardWeight'),sex:onboardSex.value,activity:onboardActivity.value};save();onboarding.classList.remove('active')};
+
+exportBtn.onclick=()=>{const b=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='nico-cut-respaldo.json';a.click()};
+importBtn.onclick=()=>importFile.click();importFile.onchange=e=>{const r=new FileReader();r.onload=()=>{data=normalizeData(JSON.parse(r.result));save()};r.readAsText(e.target.files[0])};
+resetBtn.onclick=()=>{if(confirm('¿Borrar todos los datos?')){data=structuredClone(defaultData);save()}};
+
+scanBtn.onclick=startScanner;stopScanBtn.onclick=stopScanner;barcodeManualBtn.onclick=()=>barcodeManualBox.classList.toggle('active');lookupBarcodeBtn.onclick=()=>lookupBarcode(barcodeInput.value);
+mealQty.addEventListener('input',recalcNutrition);mealUnit.addEventListener('change',recalcNutrition);mealUnitGrams.addEventListener('input',recalcNutrition);mealServingGrams.addEventListener('input',recalcNutrition);
+librarySearch.addEventListener('input',renderFoodLibrary);
+mealName.addEventListener('input',()=>{
+  const q=mealName.value.trim().toLowerCase();if(!q){foodSuggestions.classList.remove('show');return}
+  const hits=data.foodLibrary.filter(f=>String(f.name).toLowerCase().includes(q)).slice(0,6);
+  if(!hits.length){foodSuggestions.classList.remove('show');return}
+  foodSuggestions.innerHTML=hits.map(f=>`<div class="suggestion" onclick="useFood('${f.id}')"><strong>${esc(f.name)}</strong></div>`).join('');foodSuggestions.classList.add('show');
+});
+document.querySelectorAll('nav button').forEach(b=>b.onclick=async()=>{if(b.dataset.view!=='food')await stopScanner();document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(b.dataset.view).classList.add('active');document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x===b));scrollTo(0,0)});
+
+mealDate.value=progressDate.value=today();
+renderAll();
+if(!data.profile.setupDone)onboarding.classList.add('active');
 </script>
-</body></html>
+</body>
+</html>
