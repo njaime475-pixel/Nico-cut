@@ -71,7 +71,7 @@ nav button{background:transparent;color:#9aa9ba;border:1px solid transparent;pad
 </div>
 
 <div class="container">
-  <div class="hero"><div><h1>Nico Cut Beta 💪</h1><p>Control simple de definición y déficit semanal</p><div id="profileGreeting" class="hint"></div></div><span class="badge">v0.4.7</span></div>
+  <div class="hero"><div><h1>Nico Cut Beta 💪</h1><p>Control simple de definición y déficit semanal</p><div id="profileGreeting" class="hint"></div></div><span class="badge">v0.4.8</span></div>
 
   <section id="home" class="view active">
     <div class="dashboard">
@@ -100,8 +100,12 @@ nav button{background:transparent;color:#9aa9ba;border:1px solid transparent;pad
   <section id="food" class="view">
     <h2 class="section-title">Agregar comida</h2>
     <div class="card">
-      <div class="actions"><button id="photoAnalyzeBtn">📸 Analizar plato con foto</button></div>
+      <div class="scan-tools">
+        <button id="photoAnalyzeBtn">📸 Sacar foto</button>
+        <button id="photoUploadBtn" class="secondary">🖼️ Subir foto</button>
+      </div>
       <input id="platePhotoInput" type="file" accept="image/*" capture="environment" hidden>
+      <input id="platePhotoUploadInput" type="file" accept="image/*" hidden>
       <div id="photoPanel" class="photo-panel"><img id="platePreview" class="photo-preview"><div id="photoStatus" class="statusbox show">Elegí o sacá una foto clara del plato.</div><div id="aiItems"></div><div id="aiSummary" class="portion-box"></div><div class="actions" style="margin-top:10px"><button id="useAiEstimateBtn">✅ Usar estimación</button><button id="cancelAiBtn" class="secondary">Cancelar</button></div></div>
 
       <div class="scan-tools" style="margin-top:10px"><button id="scanBtn">📷 Escanear código</button><button id="barcodeManualBtn" class="secondary">⌨️ Ingresar código</button></div>
@@ -419,25 +423,76 @@ async function startScanner(){scanPanel.classList.add('active');if(typeof Html5Q
 async function stopScanner(){if(scanner&&scannerRunning){try{await scanner.stop()}catch{}try{await scanner.clear()}catch{}}scannerRunning=false;scanner=null;scanPanel.classList.remove('active')}
 
 photoAnalyzeBtn.onclick=()=>platePhotoInput.click();
+photoUploadBtn.onclick=()=>platePhotoUploadInput.click();
 cancelAiBtn.onclick=()=>photoPanel.classList.remove('show');
-platePhotoInput.onchange=e=>{
-  const file=e.target.files?.[0];if(!file)return;
+
+async function analyzeSelectedPhoto(file){
+  if(!file)return;
   const reader=new FileReader();
   reader.onload=async()=>{
-    photoPanel.classList.add('show');platePreview.src=reader.result;photoStatus.textContent='🤖 Analizando…';
+    photoPanel.classList.add('show');
+    platePreview.src=reader.result;
+    photoStatus.textContent='🤖 Analizando…';
+    aiItems.innerHTML='';
+    aiSummary.textContent='';
     try{
-      const r=await fetch(`${AI_API_BASE}/api/analyze`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image:reader.result})});
-      const p=await r.json();currentAiItems=p.analysis?.items||[];
-      aiItems.innerHTML=currentAiItems.map(it=>`<div class="ai-item"><strong>${esc(it.name)}</strong><small>${Math.round(it.kcal||0)} kcal · P ${round1(it.protein)} · C ${round1(it.carbs)} · G ${round1(it.fat)}</small></div>`).join('');
-      const t=currentAiItems.reduce((a,x)=>({grams:a.grams+n(x.grams),kcal:a.kcal+n(x.kcal),protein:a.protein+n(x.protein),carbs:a.carbs+n(x.carbs),fat:a.fat+n(x.fat),fiber:a.fiber+n(x.fiber)}),{grams:0,kcal:0,protein:0,carbs:0,fat:0,fiber:0});
-      aiSummary.textContent=`Total: ${Math.round(t.kcal)} kcal · P ${round1(t.protein)} · C ${round1(t.carbs)} · G ${round1(t.fat)} · Fibra ${round1(t.fiber)} g`;
-      useAiEstimateBtn.onclick=()=>{
-        mealName.value='Plato estimado por foto';mealQty.value=Math.round(t.grams)||1;mealUnit.value='g';
-        baseNutrition={basis:mealQty.value||1,kcal:t.kcal,protein:t.protein,carbs:t.carbs,fat:t.fat,fiber:t.fiber,satFat:0,transFat:0};
-        recalcNutrition();mealSource.value='Estimación visual Nico Cut AI';photoPanel.classList.remove('show');
+      const r=await fetch(`${AI_API_BASE}/api/analyze`,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({image:reader.result})
+      });
+      const p=await r.json();
+      if(!r.ok || !p?.analysis){
+        photoStatus.textContent='⚠️ '+(p?.error||'No pude analizar la foto.');
+        return;
       }
-    }catch{photoStatus.textContent='⚠️ No pude analizar la foto.'}
-  };reader.readAsDataURL(file);
+      currentAiItems=p.analysis?.items||[];
+      aiItems.innerHTML=currentAiItems.map(it=>`<div class="ai-item"><strong>${esc(it.name)}</strong><small>${Math.round(it.kcal||0)} kcal · P ${round1(it.protein)} · C ${round1(it.carbs)} · G ${round1(it.fat)}</small></div>`).join('');
+      const t=currentAiItems.reduce((a,x)=>({
+        grams:a.grams+n(x.grams),
+        kcal:a.kcal+n(x.kcal),
+        protein:a.protein+n(x.protein),
+        carbs:a.carbs+n(x.carbs),
+        fat:a.fat+n(x.fat),
+        fiber:a.fiber+n(x.fiber)
+      }),{grams:0,kcal:0,protein:0,carbs:0,fat:0,fiber:0});
+      aiSummary.textContent=`Total: ${Math.round(t.kcal)} kcal · P ${round1(t.protein)} · C ${round1(t.carbs)} · G ${round1(t.fat)} · Fibra ${round1(t.fiber)} g`;
+      photoStatus.textContent='✅ Análisis listo';
+      useAiEstimateBtn.onclick=()=>{
+        mealName.value='Plato estimado por foto';
+        mealQty.value=Math.round(t.grams)||1;
+        mealUnit.value='g';
+        baseNutrition={
+          basis:mealQty.value||1,
+          kcal:t.kcal,
+          protein:t.protein,
+          carbs:t.carbs,
+          fat:t.fat,
+          fiber:t.fiber,
+          satFat:0,
+          transFat:0
+        };
+        recalcNutrition();
+        mealSource.value='Estimación visual Nico Cut AI';
+        photoPanel.classList.remove('show');
+      };
+    }catch{
+      photoStatus.textContent='⚠️ No pude analizar la foto.';
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+platePhotoInput.onchange=e=>{
+  const file=e.target.files?.[0];
+  analyzeSelectedPhoto(file);
+  e.target.value='';
+};
+
+platePhotoUploadInput.onchange=e=>{
+  const file=e.target.files?.[0];
+  analyzeSelectedPhoto(file);
+  e.target.value='';
 };
 
 addMealBtn.onclick=()=>{
