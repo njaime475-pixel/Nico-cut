@@ -1,11 +1,19 @@
 const MODEL = "@cf/meta/llama-3.2-11b-vision-instruct";
 
+const CORS = {
+  "access-control-allow-origin": "*",
+  "access-control-allow-methods": "GET,POST,OPTIONS",
+  "access-control-allow-headers": "Content-Type,Accept",
+  "access-control-max-age": "86400"
+};
+
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
     headers: {
       "content-type": "application/json; charset=utf-8",
-      "cache-control": "no-store"
+      "cache-control": "no-store",
+      ...CORS
     }
   });
 }
@@ -26,28 +34,29 @@ const ANALYSIS_SCHEMA = {
           fat: { type: "number" },
           fiber: { type: "number" }
         },
-        required: ["name", "grams", "kcal", "protein", "carbs", "fat", "fiber"]
+        required: ["name","grams","kcal","protein","carbs","fat","fiber"]
       }
     },
     confidence: { type: "string" },
     note: { type: "string" }
   },
-  required: ["items", "confidence", "note"]
+  required: ["items","confidence","note"]
 };
 
 async function runVision(env, image) {
   const prompt = `Analizá esta foto para registrar una comida.
-Identificá solamente alimentos razonablemente visibles. Estimá el peso en gramos de cada alimento y sus macronutrientes para esa cantidad.
-La estimación es visual: no inventes ingredientes ocultos y mantené valores conservadores.
-Si ves un producto envasado pero no podés leer su etiqueta nutricional, estimá por el alimento visible y aclaralo.
+Identificá solamente alimentos razonablemente visibles.
+Estimá el peso comestible en gramos de cada alimento y sus macronutrientes para esa cantidad.
+La estimación es visual: no inventes ingredientes ocultos, aceite o salsas que no sean evidentes.
+Si ves un producto envasado pero no podés leer la etiqueta, estimá por el alimento visible y aclaralo.
 Si la imagen no contiene comida o no permite una estimación razonable, devolvé items vacío.
 protein, carbs, fat y fiber se expresan en gramos; kcal en kilocalorías.`;
 
-  const args = {
+  return await env.AI.run(MODEL, {
     messages: [
       {
         role: "system",
-        content: "Sos un asistente de registro nutricional. Respondé de forma estructurada, aproximada y conservadora."
+        content: "Sos un asistente de registro nutricional. Priorizá estimaciones conservadoras y aclaraciones breves."
       },
       { role: "user", content: prompt }
     ],
@@ -58,18 +67,7 @@ protein, carbs, fat y fiber se expresan en gramos; kcal en kilocalorías.`;
       type: "json_schema",
       json_schema: ANALYSIS_SCHEMA
     }
-  };
-
-  try {
-    return await env.AI.run(MODEL, args);
-  } catch (err) {
-    const msg = String(err?.message || err);
-    if (/5016|agreement|agree|license|acceptable use/i.test(msg)) {
-      await env.AI.run(MODEL, { prompt: "agree" });
-      return await env.AI.run(MODEL, args);
-    }
-    throw err;
-  }
+  });
 }
 
 function normalizeAnalysis(result) {
@@ -103,7 +101,7 @@ function normalizeAnalysis(result) {
 
   analysis.confidence = String(analysis.confidence || "media").slice(0, 20);
   analysis.note = String(
-    analysis.note || "Estimación visual; ajustá cantidades si conocés el peso real."
+    analysis.note || "Estimación visual; corregí cantidades si conocés el peso real."
   ).slice(0, 300);
 
   return analysis;
@@ -113,11 +111,15 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
+    if (request.method === "OPTIONS" && url.pathname.startsWith("/api/")) {
+      return new Response(null, { status: 204, headers: CORS });
+    }
+
     if (url.pathname === "/api/health") {
       return json({
         ok: true,
         service: "nico-cut-ai",
-        version: "0.3.1",
+        version: "0.3.2",
         ai: Boolean(env.AI),
         assets: Boolean(env.ASSETS)
       });
@@ -138,7 +140,7 @@ export default {
           return json({ ok: false, error: "Formato de imagen no válido." }, 400);
         }
         if (body.image.length > 9_000_000) {
-          return json({ ok: false, error: "La foto es demasiado grande. Probá con otra imagen." }, 413);
+          return json({ ok: false, error: "La foto es demasiado grande." }, 413);
         }
         if (!env.AI) {
           return json({ ok: false, error: "El binding de IA no está disponible." }, 500);

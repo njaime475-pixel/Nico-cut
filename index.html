@@ -66,7 +66,7 @@ nav{position:fixed;left:0;right:0;bottom:0;background:rgba(10,18,32,.96);backdro
   </div>
 </div>
 <div class="container">
-  <div class="hero"><div><h1>Nico Cut Beta 💪</h1><p>Control simple de definición y déficit semanal</p><div id="profileGreeting" class="profile-greeting"></div></div><span class="badge">v0.3.1</span></div>
+  <div class="hero"><div><h1>Nico Cut Beta 💪</h1><p>Control simple de definición y déficit semanal</p><div id="profileGreeting" class="profile-greeting"></div></div><span class="badge">v0.3.2</span></div>
 
   <section id="home" class="view active">
     <div class="grid">
@@ -365,7 +365,16 @@ window.delFood=id=>{if(confirm('¿Eliminar este alimento guardado?')){data.foodL
 window.useFood=id=>{const f=data.foodLibrary.find(x=>x.id===id);if(!f)return;setMealFields(f);hideSuggestions();scrollTo({top:0,behavior:'smooth'})};
 
 
+const AI_API_BASE='https://nico-cut-ai.njaime475.workers.dev';
 let currentAiItems=[];
+
+
+async function checkAiBackend(){
+  try{
+    const r=await fetch(`${AI_API_BASE}/api/health`,{headers:{'Accept':'application/json'}});
+    return await r.json();
+  }catch(e){return {ok:false,error:String(e?.message||e)}}
+}
 
 function roundMacro(v){return Math.round((Number(v)||0)*10)/10}
 function setPhotoStatus(msg,cls=''){photoStatus.textContent=msg;photoStatus.className='statusbox show '+cls}
@@ -434,7 +443,7 @@ platePhotoInput.onchange=async(e)=>{
     platePreview.src=image;
     setPhotoStatus('🤖 Analizando el plato… puede tardar unos segundos.');
     photoAnalyzeBtn.disabled=true;
-    const res=await fetch('/api/analyze',{
+    const res=await fetch(`${AI_API_BASE}/api/analyze`,{
       method:'POST',
       headers:{'Content-Type':'application/json','Accept':'application/json'},
       body:JSON.stringify({image})
