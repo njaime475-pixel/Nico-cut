@@ -71,7 +71,7 @@ nav button{background:transparent;color:#9aa9ba;border:1px solid transparent;pad
 </div>
 
 <div class="container">
-  <div class="hero"><div><h1>Nico Cut Beta 💪</h1><p>Control simple de definición y déficit semanal</p><div id="profileGreeting" class="hint"></div></div><span class="badge">v0.4.8</span></div>
+  <div class="hero"><div><h1>Nico Cut Beta 💪</h1><p>Control simple de definición y déficit semanal</p><div id="profileGreeting" class="hint"></div></div><span class="badge">v0.4.9</span></div>
 
   <section id="home" class="view active">
     <div class="dashboard">
@@ -277,7 +277,7 @@ function renderFoodLibrary(){
   foodLibraryList.innerHTML=arr.length?arr.map(f=>{
     const d=libraryDisplayNutrition(f);
     const portionText=n(f.defaultPortions)>0
-      ? `${round1(f.defaultPortions)} porciones · ${round1(n(f.defaultPortions)*(n(f.servingGrams)||n(f.defaultQty)||100))} ${esc(f.measureUnit||f.unit||'g')} · `
+      ? (()=>{const sg=n(f.servingGrams)||n(f.defaultQty)||0;return sg>0?`${round1(f.defaultPortions)} porciones · ${round1(n(f.defaultPortions)*sg)} ${esc(f.measureUnit||f.unit||'g')} · `:`${round1(f.defaultPortions)} porciones · `;})()
       : '';
     return `<div class="item"><div><strong>${esc(f.name)}</strong><small>${portionText}${round1(d.kcal)} kcal · P ${round1(d.protein)} / C ${round1(d.carbs)} / G ${round1(d.fat)}</small></div><div class="mini-actions"><button onclick="useFood('${f.id}')">Usar</button><button class="danger" onclick="delFood('${f.id}')">×</button></div></div>`;
   }).join(''):'<div class="hint">Todavía no guardaste alimentos.</div>';
@@ -319,13 +319,21 @@ function selectedServings(){
   return Math.max(0,localNum(mealServingWhole.value))+Math.max(0,localNum(mealServingFraction.value));
 }
 function servingUnitSize(){
-  return Math.max(0,num('mealQty') || baseNutrition?.servingGrams || baseNutrition?.basis || 100);
+  // El tamaño de porción es un dato propio. La base nutricional (por ej. 100 g)
+  // NO debe convertirse automáticamente en una porción.
+  return Math.max(0,num('mealQty') || baseNutrition?.servingGrams || 0);
 }
 function applyServingSplit(){
   recalcNutrition();
 }
 function updateServingSplitHint(){
   const total=selectedServings(),sg=servingUnitSize(),unit=mealUnit.value||'g';
+  if(sg<=0){
+    servingSplitHint.innerHTML=
+      `<div style="color:#38bdf8;font-weight:800">${round1(total)} porción${Math.abs(total-1)<0.001?'':'es'}</div>`+
+      `<div class="hint" style="margin-top:3px">Definí el tamaño de la porción para calcular la cantidad total.</div>`;
+    return;
+  }
   const grams=total*sg;
   servingSplitHint.innerHTML=
     `<div style="color:#38bdf8;font-weight:800">${round1(total)} porción${Math.abs(total-1)<0.001?'':'es'}</div>`+
@@ -333,11 +341,20 @@ function updateServingSplitHint(){
 }
 function calcFactor(){
   if(!baseNutrition)return 1;
-  const totalAmount=selectedServings()*servingUnitSize();
+  const sg=servingUnitSize();
+  if(sg<=0)return 0;
+  const totalAmount=selectedServings()*sg;
   return totalAmount/(baseNutrition.basis||100);
 }
 function recalcNutrition(){
   if(!baseNutrition){updateServingSplitHint();return}
+  const sg=servingUnitSize();
+  updateServingSplitHint();
+  if(sg<=0){
+    mealServingGrams.value='';
+    portionHint.innerHTML=`Base nutricional: <strong>${baseNutrition.basis||100} ${mealUnit.value||'g'}</strong>. <span class="warn">Definí el tamaño de porción para calcular el total.</span>`;
+    return;
+  }
   const f=calcFactor();
   mealKcal.value=round1(baseNutrition.kcal*f);
   mealProtein.value=round1(baseNutrition.protein*f);
@@ -346,18 +363,17 @@ function recalcNutrition(){
   mealFiber.value=round1(baseNutrition.fiber*f);
   mealSatFat.value=round1(baseNutrition.satFat*f);
   mealTransFat.value=round1(baseNutrition.transFat*f);
-  mealServingGrams.value=servingUnitSize();
-  updateServingSplitHint();
-  portionHint.innerHTML=`Base nutricional: <strong>${baseNutrition.basis||100} ${mealUnit.value||'g'}</strong>. Tamaño de porción: <strong>${round1(servingUnitSize())} ${mealUnit.value||'g'}</strong>.`;
+  mealServingGrams.value=sg;
+  portionHint.innerHTML=`Base nutricional: <strong>${baseNutrition.basis||100} ${mealUnit.value||'g'}</strong>. Tamaño de porción: <strong>${round1(sg)} ${mealUnit.value||'g'}</strong>.`;
 }
 function setMealFields(f){
   activeFoodId=f.id||null;
   mealName.value=f.name||'';
   mealState.value=f.state||'Envasado';
   mealSource.value=f.source||'';
-  const servingSize=n(f.servingGrams)||n(f.defaultQty)||n(f.basis)||100;
-  mealQty.value=servingSize;
-  mealServingGrams.value=servingSize;
+  const servingSize=n(f.servingGrams)||n(f.defaultQty)||0;
+  mealQty.value=servingSize||'';
+  mealServingGrams.value=servingSize||'';
   mealUnit.value=f.measureUnit||f.unit||'g';
   mealUnitGrams.value=f.gramsPerUnit||'';
   baseNutrition={
@@ -505,7 +521,7 @@ saveFoodBtn.onclick=()=>{
   if(!mealName.value.trim())return alert('Escribí el nombre del alimento.');
   const b=baseNutrition||{basis:num('mealQty')||100,kcal:num('mealKcal'),protein:num('mealProtein'),carbs:num('mealCarbs'),fat:num('mealFat'),fiber:num('mealFiber'),satFat:num('mealSatFat'),transFat:num('mealTransFat')};
   const previous=data.foodLibrary.find(x=>x.id===activeFoodId);
-  const f={id:activeFoodId||crypto.randomUUID(),barcode:previous?.barcode||'',name:mealName.value.trim(),state:mealState.value,basis:b.basis||100,defaultQty:servingUnitSize()||b.basis||100,servingGrams:servingUnitSize()||b.servingGrams||0,measureUnit:mealUnit.value,gramsPerUnit:num('mealUnitGrams')||b.gramsPerUnit||0,
+  const f={id:activeFoodId||crypto.randomUUID(),barcode:previous?.barcode||'',name:mealName.value.trim(),state:mealState.value,basis:b.basis||100,defaultQty:servingUnitSize()||0,servingGrams:servingUnitSize()||0,measureUnit:mealUnit.value,gramsPerUnit:num('mealUnitGrams')||b.gramsPerUnit||0,
     defaultPortions:selectedServings(),
     baseKcal:b.kcal,baseProtein:b.protein,baseCarbs:b.carbs,baseFat:b.fat,baseFiber:b.fiber,baseSatFat:b.satFat,baseTransFat:b.transFat,
     kcal:num('mealKcal'),protein:num('mealProtein'),carbs:num('mealCarbs'),fat:num('mealFat'),fiber:num('mealFiber'),satFat:num('mealSatFat'),transFat:num('mealTransFat'),
