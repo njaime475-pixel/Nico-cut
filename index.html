@@ -71,7 +71,7 @@ nav button{background:transparent;color:#9aa9ba;border:1px solid transparent;pad
 </div>
 
 <div class="container">
-  <div class="hero"><div><h1>Nico Cut Beta 💪</h1><p>Control simple de definición y déficit semanal</p><div id="profileGreeting" class="hint"></div></div><span class="badge">v0.4.6</span></div>
+  <div class="hero"><div><h1>Nico Cut Beta 💪</h1><p>Control simple de definición y déficit semanal</p><div id="profileGreeting" class="hint"></div></div><span class="badge">v0.4.7</span></div>
 
   <section id="home" class="view active">
     <div class="dashboard">
@@ -253,9 +253,30 @@ function renderSettings(){
   goalWeekday.value=data.goals.weekday;goalSaturday.value=data.goals.saturday;goalSunday.value=data.goals.sunday;goalProtein.value=data.goals.protein;goalCarbs.value=data.goals.carbs;goalFat.value=data.goals.fat;goalFiber.value=data.goals.fiber;goalSatFat.value=data.goals.satFat;goalTransFat.value=data.goals.transFat;
   profileGreeting.textContent=data.profile.name?'Hola, '+data.profile.name+' 👋':'';
 }
+function libraryDisplayNutrition(f){
+  // New-format foods store the exact nutrition for the selected default portions.
+  if(n(f.defaultPortions)>0){
+    return {
+      kcal:n(f.kcal),protein:n(f.protein),carbs:n(f.carbs),fat:n(f.fat),
+      fiber:n(f.fiber),satFat:n(f.satFat),transFat:n(f.transFat)
+    };
+  }
+  // Legacy scanned foods usually stored their 100 g base values.
+  return {
+    kcal:n(f.kcal),protein:n(f.protein),carbs:n(f.carbs),fat:n(f.fat),
+    fiber:n(f.fiber),satFat:n(f.satFat),transFat:n(f.transFat)
+  };
+}
 function renderFoodLibrary(){
-  const q=(librarySearch.value||'').trim().toLowerCase(),arr=data.foodLibrary.filter(f=>!q||String(f.name).toLowerCase().includes(q)||String(f.barcode||'').includes(q));
-  foodLibraryList.innerHTML=arr.length?arr.map(f=>`<div class="item"><div><strong>${esc(f.name)}</strong><small>${f.defaultPortions?round1(f.defaultPortions)+' porciones · ':''}${Math.round(f.kcal||0)} kcal · P ${round1(f.protein)} / C ${round1(f.carbs)} / G ${round1(f.fat)}</small></div><div class="mini-actions"><button onclick="useFood('${f.id}')">Usar</button><button class="danger" onclick="delFood('${f.id}')">×</button></div></div>`).join(''):'<div class="hint">Todavía no guardaste alimentos.</div>';
+  const q=(librarySearch.value||'').trim().toLowerCase(),
+        arr=data.foodLibrary.filter(f=>!q||String(f.name).toLowerCase().includes(q)||String(f.barcode||'').includes(q));
+  foodLibraryList.innerHTML=arr.length?arr.map(f=>{
+    const d=libraryDisplayNutrition(f);
+    const portionText=n(f.defaultPortions)>0
+      ? `${round1(f.defaultPortions)} porciones · ${round1(n(f.defaultPortions)*(n(f.servingGrams)||n(f.defaultQty)||100))} ${esc(f.measureUnit||f.unit||'g')} · `
+      : '';
+    return `<div class="item"><div><strong>${esc(f.name)}</strong><small>${portionText}${round1(d.kcal)} kcal · P ${round1(d.protein)} / C ${round1(d.carbs)} / G ${round1(d.fat)}</small></div><div class="mini-actions"><button onclick="useFood('${f.id}')">Usar</button><button class="danger" onclick="delFood('${f.id}')">×</button></div></div>`;
+  }).join(''):'<div class="hint">Todavía no guardaste alimentos.</div>';
 }
 function renderAll(){renderHome();renderMeals();renderProgress();renderSettings();renderFoodLibrary()}
 
@@ -428,13 +449,14 @@ addMealBtn.onclick=()=>{
 saveFoodBtn.onclick=()=>{
   if(!mealName.value.trim())return alert('Escribí el nombre del alimento.');
   const b=baseNutrition||{basis:num('mealQty')||100,kcal:num('mealKcal'),protein:num('mealProtein'),carbs:num('mealCarbs'),fat:num('mealFat'),fiber:num('mealFiber'),satFat:num('mealSatFat'),transFat:num('mealTransFat')};
-  const f={id:activeFoodId||crypto.randomUUID(),name:mealName.value.trim(),state:mealState.value,basis:b.basis||100,defaultQty:servingUnitSize()||b.basis||100,servingGrams:servingUnitSize()||b.servingGrams||0,measureUnit:mealUnit.value,gramsPerUnit:num('mealUnitGrams')||b.gramsPerUnit||0,
+  const previous=data.foodLibrary.find(x=>x.id===activeFoodId);
+  const f={id:activeFoodId||crypto.randomUUID(),barcode:previous?.barcode||'',name:mealName.value.trim(),state:mealState.value,basis:b.basis||100,defaultQty:servingUnitSize()||b.basis||100,servingGrams:servingUnitSize()||b.servingGrams||0,measureUnit:mealUnit.value,gramsPerUnit:num('mealUnitGrams')||b.gramsPerUnit||0,
     defaultPortions:selectedServings(),
     baseKcal:b.kcal,baseProtein:b.protein,baseCarbs:b.carbs,baseFat:b.fat,baseFiber:b.fiber,baseSatFat:b.satFat,baseTransFat:b.transFat,
     kcal:num('mealKcal'),protein:num('mealProtein'),carbs:num('mealCarbs'),fat:num('mealFat'),fiber:num('mealFiber'),satFat:num('mealSatFat'),transFat:num('mealTransFat'),
     source:mealSource.value.trim()};
   const i=data.foodLibrary.findIndex(x=>x.id===f.id);i>=0?data.foodLibrary[i]=f:data.foodLibrary.unshift(f);activeFoodId=f.id;save();
-  foodSaveStatus.textContent=`✅ Guardado: ${round1(selectedServings())} porciones · ${Math.round(num('mealKcal'))} kcal.`;foodSaveStatus.className='statusbox show ok';
+  foodSaveStatus.textContent=`✅ v0.4.7 guardado: ${round1(selectedServings())} porciones · ${round1(selectedServings()*servingUnitSize())} ${mealUnit.value} · ${round1(num('mealKcal'))} kcal · C ${round1(num('mealCarbs'))}.`;foodSaveStatus.className='statusbox show ok';
 };
 addProgressBtn.onclick=()=>{const ds=progressDate.value||today();data.progress=data.progress.filter(p=>p.date!==ds);data.progress.push({id:crypto.randomUUID(),date:ds,weight:num('progressWeight'),waist:num('progressWaist'),navel:num('progressNavel'),steps:num('progressSteps'),gym:progressGym.value});save()};
 
