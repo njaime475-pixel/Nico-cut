@@ -48,6 +48,28 @@ nav button{background:transparent;color:#9aa9ba;border:1px solid transparent;pad
 .footer{color:#64748b;font-size:11px;text-align:center;margin-top:22px}
 @media(max-width:650px){.summary-grid{grid-template-columns:1fr 1fr}.summary-grid>div:last-child{grid-column:1/-1}.macro-grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:520px){.row,.row3{grid-template-columns:1fr}.scan-tools{grid-template-columns:1fr}.container{padding-bottom:105px}.hero h1{font-size:25px}}
+
+/* v0.5.0 — revisión visual + controles IA */
+.ai-result-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:10px 0 6px}
+.ai-confidence{display:inline-flex;align-items:center;gap:6px;padding:6px 9px;border-radius:999px;border:1px solid #2a4962;background:#0a1b2c;font-size:12px;font-weight:800}
+.ai-confidence.high{color:#86efac}.ai-confidence.medium{color:#fcd34d}.ai-confidence.low{color:#fca5a5}
+.ai-item{padding:11px 12px}.ai-item-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.ai-item-main{min-width:0}.ai-item-main strong{display:block}.ai-item-meta{display:block;color:#94a3b8;margin-top:4px;font-size:12px}
+.ai-edit-btn{width:auto!important;min-width:72px!important;padding:7px 9px!important;font-size:12px!important;background:#17283c!important;border:1px solid #31506c!important}
+.ai-edit-grid{display:none;grid-template-columns:repeat(2,1fr);gap:7px;margin-top:10px}.ai-edit-grid.show{display:grid}
+.ai-edit-grid .wide-edit{grid-column:1/-1}.ai-edit-grid input{padding:9px;font-size:13px}
+.ai-total{margin-top:10px;padding:12px 14px!important;border:1px solid #1e5676!important;background:linear-gradient(145deg,#0c253b,#091928)!important}
+.ai-total strong{display:block;font-size:18px;color:#7dd3fc;margin-bottom:4px}
+.item-actions{display:flex;gap:6px;flex-shrink:0}.item-actions button{width:auto;padding:8px 9px;font-size:12px}
+.duplicate-btn{background:#12314a!important;color:#7dd3fc!important;border:1px solid #21577b!important}
+.reference-compact{opacity:.9}
+@media(max-width:520px){
+  .card{padding:13px}.section-title{margin-top:16px}
+  .portion-box{padding:11px}
+  .ai-edit-grid{grid-template-columns:1fr 1fr}
+  .item{padding:10px}.item small{font-size:11.5px;line-height:1.35}
+}
+
 </style>
 </head>
 <body>
@@ -71,7 +93,7 @@ nav button{background:transparent;color:#9aa9ba;border:1px solid transparent;pad
 </div>
 
 <div class="container">
-  <div class="hero"><div><h1>Nico Cut Beta 💪</h1><p>Control simple de definición y déficit semanal</p><div id="profileGreeting" class="hint"></div></div><span class="badge">v0.4.9</span></div>
+  <div class="hero"><div><h1>Nico Cut Beta 💪</h1><p>Control simple de definición y déficit semanal</p><div id="profileGreeting" class="hint"></div></div><span class="badge">v0.5.0</span></div>
 
   <section id="home" class="view active">
     <div class="dashboard">
@@ -106,7 +128,17 @@ nav button{background:transparent;color:#9aa9ba;border:1px solid transparent;pad
       </div>
       <input id="platePhotoInput" type="file" accept="image/*" capture="environment" hidden>
       <input id="platePhotoUploadInput" type="file" accept="image/*" hidden>
-      <div id="photoPanel" class="photo-panel"><img id="platePreview" class="photo-preview"><div id="photoStatus" class="statusbox show">Elegí o sacá una foto clara del plato.</div><div id="aiItems"></div><div id="aiSummary" class="portion-box"></div><div class="actions" style="margin-top:10px"><button id="useAiEstimateBtn">✅ Usar estimación</button><button id="cancelAiBtn" class="secondary">Cancelar</button></div></div>
+      <div id="photoPanel" class="photo-panel">
+        <img id="platePreview" class="photo-preview">
+        <div id="photoStatus" class="statusbox show">Elegí o sacá una foto clara del plato.</div>
+        <div id="aiResultHead" class="ai-result-head" style="display:none">
+          <strong>Resultado estimado</strong>
+          <span id="aiConfidence" class="ai-confidence">Confianza: —</span>
+        </div>
+        <div id="aiItems"></div>
+        <div id="aiSummary" class="portion-box ai-total"></div>
+        <div class="actions" style="margin-top:10px"><button id="useAiEstimateBtn">✅ Usar estimación</button><button id="cancelAiBtn" class="secondary">Cancelar</button></div>
+      </div>
 
       <div class="scan-tools" style="margin-top:10px"><button id="scanBtn">📷 Escanear código</button><button id="barcodeManualBtn" class="secondary">⌨️ Ingresar código</button></div>
       <div id="scanPanel" class="scan-panel"><div class="reader-wrap"><div id="reader"></div></div><button id="stopScanBtn" class="secondary" style="margin-top:8px">Cerrar cámara</button></div>
@@ -147,7 +179,7 @@ nav button{background:transparent;color:#9aa9ba;border:1px solid transparent;pad
         </div>
       </div>
 
-      <div class="portion-box" style="margin-top:10px">
+      <div class="portion-box reference-compact" style="margin-top:10px">
         <div style="font-weight:800;margin-bottom:8px">Información de referencia del producto</div>
         <div class="row">
           <div>
@@ -246,7 +278,7 @@ function renderHome(){
 }
 function renderMeals(){
   const arr=[...data.meals].sort((a,b)=>(b.date+b.id).localeCompare(a.date+a.id));
-  mealList.innerHTML=arr.length?arr.map(m=>`<div class="item"><div><strong>${esc(m.name)}</strong><small>${m.date} · ${m.type} · ${m.portions?round1(m.portions)+' porciones · ':''}${m.qty} ${esc(m.unit)} · P ${round1(m.protein)} / C ${round1(m.carbs)} / G ${round1(m.fat)} / Fib ${round1(m.fiber)} · ${Math.round(m.kcal)} kcal</small></div><button class="danger" onclick="delMeal('${m.id}')">Eliminar</button></div>`).join(''):'<div class="card hint">Sin comidas registradas.</div>';
+  mealList.innerHTML=arr.length?arr.map(m=>`<div class="item"><div><strong>${esc(m.name)}</strong><small>${m.date} · ${m.type} · ${m.portions?round1(m.portions)+' porciones · ':''}${m.qty} ${esc(m.unit)} · P ${round1(m.protein)} / C ${round1(m.carbs)} / G ${round1(m.fat)} / Fib ${round1(m.fiber)} · ${Math.round(m.kcal)} kcal</small></div><div class="item-actions"><button class="duplicate-btn" onclick="duplicateMeal('${m.id}')">Duplicar</button><button class="danger" onclick="delMeal('${m.id}')">Eliminar</button></div></div>`).join(''):'<div class="card hint">Sin comidas registradas.</div>';
 }
 function renderProgress(){
   const arr=[...data.progress].sort((a,b)=>b.date.localeCompare(a.date));
@@ -394,6 +426,13 @@ function clearMealFields(){
 window.useFood=id=>{const f=data.foodLibrary.find(x=>x.id===id);if(f)setMealFields(f)};
 window.delFood=id=>{data.foodLibrary=data.foodLibrary.filter(x=>x.id!==id);save()};
 window.delMeal=id=>{data.meals=data.meals.filter(x=>x.id!==id);save()};
+window.duplicateMeal=id=>{
+  const original=data.meals.find(x=>x.id===id);
+  if(!original)return;
+  const copy={...original,id:crypto.randomUUID(),date:today()};
+  data.meals.push(copy);
+  save();
+};
 window.delProgress=id=>{data.progress=data.progress.filter(x=>x.id!==id);save()};
 
 async function lookupBarcode(code){
@@ -451,6 +490,7 @@ async function analyzeSelectedPhoto(file){
     photoStatus.textContent='🤖 Analizando…';
     aiItems.innerHTML='';
     aiSummary.textContent='';
+    aiResultHead.style.display='none';
     try{
       const r=await fetch(`${AI_API_BASE}/api/analyze`,{
         method:'POST',
@@ -462,20 +502,84 @@ async function analyzeSelectedPhoto(file){
         photoStatus.textContent='⚠️ '+(p?.error||'No pude analizar la foto.');
         return;
       }
-      currentAiItems=p.analysis?.items||[];
-      aiItems.innerHTML=currentAiItems.map(it=>`<div class="ai-item"><strong>${esc(it.name)}</strong><small>${Math.round(it.kcal||0)} kcal · P ${round1(it.protein)} · C ${round1(it.carbs)} · G ${round1(it.fat)}</small></div>`).join('');
-      const t=currentAiItems.reduce((a,x)=>({
-        grams:a.grams+n(x.grams),
-        kcal:a.kcal+n(x.kcal),
-        protein:a.protein+n(x.protein),
-        carbs:a.carbs+n(x.carbs),
-        fat:a.fat+n(x.fat),
-        fiber:a.fiber+n(x.fiber)
-      }),{grams:0,kcal:0,protein:0,carbs:0,fat:0,fiber:0});
-      aiSummary.textContent=`Total: ${Math.round(t.kcal)} kcal · P ${round1(t.protein)} · C ${round1(t.carbs)} · G ${round1(t.fat)} · Fibra ${round1(t.fiber)} g`;
-      photoStatus.textContent='✅ Análisis listo';
+      currentAiItems=(p.analysis?.items||[]).map(it=>({
+        name:String(it.name||'Alimento'),
+        grams:n(it.grams),
+        kcal:n(it.kcal),
+        protein:n(it.protein),
+        carbs:n(it.carbs),
+        fat:n(it.fat),
+        fiber:n(it.fiber)
+      }));
+
+      const confidenceRaw=String(p.analysis?.confidence||'media').toLowerCase();
+      const confidenceClass=confidenceRaw.includes('alta')?'high':confidenceRaw.includes('baja')?'low':'medium';
+      const confidenceText=confidenceRaw.includes('alta')?'Alta':confidenceRaw.includes('baja')?'Baja':'Media';
+      aiResultHead.style.display='flex';
+      aiConfidence.className='ai-confidence '+confidenceClass;
+      aiConfidence.textContent='Confianza: '+confidenceText;
+
+      function renderAiEstimate(){
+        aiItems.innerHTML=currentAiItems.map((it,i)=>`
+          <div class="ai-item">
+            <div class="ai-item-top">
+              <div class="ai-item-main">
+                <strong>${esc(it.name)}</strong>
+                <span class="ai-item-meta">${round1(it.grams)} g · ${Math.round(it.kcal)} kcal · P ${round1(it.protein)} · C ${round1(it.carbs)} · G ${round1(it.fat)} · Fib ${round1(it.fiber)}</span>
+              </div>
+              <button type="button" class="ai-edit-btn" onclick="toggleAiEdit(${i})">Editar</button>
+            </div>
+            <div id="aiEdit${i}" class="ai-edit-grid">
+              <div class="wide-edit"><label>Alimento</label><input data-ai="${i}" data-field="name" value="${esc(it.name)}"></div>
+              <div><label>Gramos</label><input inputmode="decimal" data-ai="${i}" data-field="grams" value="${round1(it.grams)}"></div>
+              <div><label>Kcal</label><input inputmode="decimal" data-ai="${i}" data-field="kcal" value="${round1(it.kcal)}"></div>
+              <div><label>Proteína</label><input inputmode="decimal" data-ai="${i}" data-field="protein" value="${round1(it.protein)}"></div>
+              <div><label>Carbos</label><input inputmode="decimal" data-ai="${i}" data-field="carbs" value="${round1(it.carbs)}"></div>
+              <div><label>Grasas</label><input inputmode="decimal" data-ai="${i}" data-field="fat" value="${round1(it.fat)}"></div>
+              <div><label>Fibra</label><input inputmode="decimal" data-ai="${i}" data-field="fiber" value="${round1(it.fiber)}"></div>
+            </div>
+          </div>`).join('');
+
+        document.querySelectorAll('[data-ai]').forEach(input=>{
+          input.oninput=()=>{
+            const i=Number(input.dataset.ai),field=input.dataset.field;
+            currentAiItems[i][field]=field==='name'?input.value:localNum(input.value);
+            updateAiSummary();
+            const meta=input.closest('.ai-item')?.querySelector('.ai-item-meta');
+            const title=input.closest('.ai-item')?.querySelector('.ai-item-main strong');
+            const it=currentAiItems[i];
+            if(title)title.textContent=it.name;
+            if(meta)meta.textContent=`${round1(it.grams)} g · ${Math.round(it.kcal)} kcal · P ${round1(it.protein)} · C ${round1(it.carbs)} · G ${round1(it.fat)} · Fib ${round1(it.fiber)}`;
+          };
+        });
+      }
+
+      window.toggleAiEdit=i=>{
+        document.getElementById('aiEdit'+i)?.classList.toggle('show');
+      };
+
+      function getAiTotals(){
+        return currentAiItems.reduce((a,x)=>({
+          grams:a.grams+n(x.grams),
+          kcal:a.kcal+n(x.kcal),
+          protein:a.protein+n(x.protein),
+          carbs:a.carbs+n(x.carbs),
+          fat:a.fat+n(x.fat),
+          fiber:a.fiber+n(x.fiber)
+        }),{grams:0,kcal:0,protein:0,carbs:0,fat:0,fiber:0});
+      }
+
+      function updateAiSummary(){
+        const t=getAiTotals();
+        aiSummary.innerHTML=`<strong>Total estimado</strong>${Math.round(t.grams)} g · ${Math.round(t.kcal)} kcal · P ${round1(t.protein)} · C ${round1(t.carbs)} · G ${round1(t.fat)} · Fibra ${round1(t.fiber)} g`;
+      }
+
+      renderAiEstimate();
+      updateAiSummary();
+      photoStatus.textContent=confidenceClass==='low'?'⚠️ Revisá el resultado antes de usarlo':'✅ Análisis listo';
       useAiEstimateBtn.onclick=()=>{
-        mealName.value='Plato estimado por foto';
+        const t=getAiTotals();
+        mealName.value=currentAiItems.length===1?currentAiItems[0].name:'Plato estimado por foto';
         mealQty.value=Math.round(t.grams)||1;
         mealUnit.value='g';
         baseNutrition={
@@ -489,7 +593,7 @@ async function analyzeSelectedPhoto(file){
           transFat:0
         };
         recalcNutrition();
-        mealSource.value='Estimación visual Nico Cut AI';
+        mealSource.value='Estimación visual Nico Cut AI · confianza '+confidenceText.toLowerCase();
         photoPanel.classList.remove('show');
       };
     }catch{
