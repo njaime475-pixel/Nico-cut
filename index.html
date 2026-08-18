@@ -25,13 +25,33 @@ nav{position:fixed;left:0;right:0;bottom:0;background:rgba(10,18,32,.96);backdro
 .statusbox{display:none;margin-top:10px;padding:10px 12px;border-radius:12px;background:#0c1626;border:1px solid #263247;font-size:13px;line-height:1.4}.statusbox.show{display:block}
 .food-search{position:relative}.suggestions{display:none;position:absolute;z-index:15;left:0;right:0;top:100%;margin-top:5px;background:#0b1322;border:1px solid #2a3950;border-radius:12px;overflow:hidden;box-shadow:0 15px 30px rgba(0,0,0,.4);max-height:260px;overflow-y:auto}.suggestions.show{display:block}.suggestion{padding:10px 12px;border-bottom:1px solid #203047;cursor:pointer}.suggestion:last-child{border-bottom:0}.suggestion strong,.suggestion small{display:block}.suggestion small{color:var(--muted);margin-top:3px}
 .library-tools{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end}.library-tools button{width:auto;min-width:120px}.chip{display:inline-block;background:#10283a;color:#7dd3fc;border-radius:999px;padding:4px 8px;font-size:11px;margin-top:5px}
+
+.onboarding{position:fixed;inset:0;z-index:100;background:linear-gradient(180deg,#07111f,#0b1220 35%,#0b1220);display:none;overflow-y:auto;padding:calc(24px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom))}.onboarding.active{display:flex;align-items:center;justify-content:center}.onboarding-card{width:min(100%,520px);background:rgba(17,24,39,.98);border:1px solid var(--line);border-radius:22px;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.4)}.onboarding h2{font-size:27px;margin:0 0 6px}.onboarding .welcome-sub{color:var(--muted);margin:0 0 18px;line-height:1.45}.goal-options{display:grid;grid-template-columns:1fr;gap:8px}.goal-option{display:flex;align-items:center;gap:9px;background:#0c1626;border:1px solid #2a3950;border-radius:12px;padding:12px}.goal-option input{width:auto;margin:0;accent-color:#0ea5e9}.goal-option span{font-weight:700}.profile-greeting{font-size:13px;color:#7dd3fc;margin-top:4px}
 @media(max-width:520px){.row3{grid-template-columns:1fr 1fr}.row3>div:last-child{grid-column:1/-1}.scan-tools{grid-template-columns:1fr}.library-tools{grid-template-columns:1fr}.library-tools button{width:100%}}
 @media(min-width:700px){.grid{grid-template-columns:repeat(4,1fr)}.metric.wide{grid-column:auto}.formgrid{display:grid;grid-template-columns:1.2fr .7fr .7fr .7fr .7fr;gap:8px}.container{padding-bottom:40px}nav{position:sticky;top:0;bottom:auto;margin:-18px -14px 16px;padding:10px 14px;background:#0b1220}.hero{margin-top:10px}}
 </style>
 </head>
 <body>
+<div id="onboarding" class="onboarding" aria-modal="true" role="dialog">
+  <div class="onboarding-card">
+    <h2>👋 Bienvenida/o a Nico Cut</h2>
+    <p class="welcome-sub">Configuramos lo básico una sola vez. Después podés cambiarlo cuando quieras desde Ajustes.</p>
+    <div><label>¿Cómo te llamás?</label><input id="onboardName" autocomplete="name" placeholder="Ej: Cande"></div>
+    <div style="margin-top:12px"><label>¿Cuál es tu objetivo?</label>
+      <div class="goal-options">
+        <label class="goal-option"><input type="radio" name="onboardGoal" value="lose" checked><span>🔥 Perder grasa</span></label>
+        <label class="goal-option"><input type="radio" name="onboardGoal" value="maintain"><span>⚖️ Mantener</span></label>
+        <label class="goal-option"><input type="radio" name="onboardGoal" value="gain"><span>💪 Ganar músculo</span></label>
+      </div>
+    </div>
+    <div class="row" style="margin-top:12px"><div><label>Calorías objetivo</label><input id="onboardCalories" type="number" inputmode="numeric" placeholder="Ej: 1900"></div><div><label>Proteína objetivo (g)</label><input id="onboardProtein" type="number" inputmode="numeric" placeholder="Ej: 130"></div></div>
+    <div style="margin-top:12px"><label>Pasos diarios</label><input id="onboardSteps" type="number" inputmode="numeric" placeholder="Ej: 8000"></div>
+    <button id="finishOnboardingBtn" style="margin-top:16px">Empezar 🚀</button>
+    <p class="hint" style="margin-bottom:0">No hace falta que sea perfecto: estos objetivos se pueden editar después.</p>
+  </div>
+</div>
 <div class="container">
-  <div class="hero"><div><h1>Nico Cut Beta 💪</h1><p>Control simple de definición y déficit semanal</p></div><span class="badge">v0.2</span></div>
+  <div class="hero"><div><h1>Nico Cut Beta 💪</h1><p>Control simple de definición y déficit semanal</p><div id="profileGreeting" class="profile-greeting"></div></div><span class="badge">v0.2.1</span></div>
 
   <section id="home" class="view active">
     <div class="grid">
@@ -91,6 +111,11 @@ nav{position:fixed;left:0;right:0;bottom:0;background:rgba(10,18,32,.96);backdro
   </section>
 
   <section id="settings" class="view">
+    <h2 class="section-title">Perfil</h2>
+    <div class="card">
+      <div class="row"><div><label>Nombre</label><input id="profileName" placeholder="Tu nombre"></div><div><label>Objetivo</label><select id="profileGoal"><option value="lose">Perder grasa</option><option value="maintain">Mantener</option><option value="gain">Ganar músculo</option></select></div></div>
+      <button id="saveProfileBtn" class="secondary" style="margin-top:12px">Guardar perfil</button>
+    </div>
     <h2 class="section-title">Objetivos</h2>
     <div class="card">
       <div class="row"><div><label>Kcal lunes–viernes</label><input id="goalWeekday" type="number"></div><div><label>Kcal sábado</label><input id="goalSaturday" type="number"></div></div>
@@ -108,12 +133,13 @@ nav{position:fixed;left:0;right:0;bottom:0;background:rgba(10,18,32,.96);backdro
 <script>
 const KEY='nicoCutBeta_v01';
 const today=()=>new Date().toISOString().slice(0,10);
-const defaultData={goals:{weekday:2000,saturday:2300,sunday:2300,protein:170,steps:10000,weeklyLoss:-0.30},meals:[],progress:[],foodLibrary:[]};
+const defaultData={profile:{name:'',goal:'lose',setupDone:false},goals:{weekday:2000,saturday:2300,sunday:2300,protein:170,steps:10000,weeklyLoss:-0.30},meals:[],progress:[],foodLibrary:[]};
 let data=load();
 let scanner=null, scannerRunning=false, activeFoodId=null, baseNutrition=null;
 
 function normalizeData(d){
   d=d&&typeof d==='object'?d:structuredClone(defaultData);
+  d.profile={...defaultData.profile,...(d.profile||{})};
   d.goals={...defaultData.goals,...(d.goals||{})};
   d.meals=Array.isArray(d.meals)?d.meals:[];
   d.progress=Array.isArray(d.progress)?d.progress:[];
@@ -279,7 +305,7 @@ function renderHome(){const t=dailyTotals(today()), goal=goalForDate(today());
  const recent=[...data.meals].sort((a,b)=>(b.date+b.id).localeCompare(a.date+a.id)).slice(0,5);document.getElementById('recentMeals').innerHTML=recent.length?recent.map(m=>`<div class="item"><div><strong>${esc(m.name)}</strong><small>${m.date} · ${m.type} · ${m.qty}${esc(m.unit)} · ${Math.round(m.kcal)} kcal</small></div></div>`).join(''):'<div class="card hint">Todavía no cargaste comidas.</div>';drawChart();}
 function renderMeals(){const arr=[...data.meals].sort((a,b)=>(b.date+b.id).localeCompare(a.date+a.id));document.getElementById('mealList').innerHTML=arr.length?arr.map(m=>`<div class="item"><div><strong>${esc(m.name)}</strong><small>${m.date} · ${m.type} · ${m.qty}${esc(m.unit)} · P ${m.protein} / C ${m.carbs} / G ${m.fat} · ${Math.round(m.kcal)} kcal</small></div><button onclick="delMeal('${m.id}')">Eliminar</button></div>`).join(''):'<div class="card hint">Sin comidas registradas.</div>'}
 function renderProgress(){const arr=[...data.progress].sort((a,b)=>b.date.localeCompare(a.date));document.getElementById('progressList').innerHTML=arr.length?arr.map(p=>`<div class="item"><div><strong>${p.date} · ${p.weight?p.weight.toFixed(1)+' kg':'sin peso'}</strong><small>Cintura ${p.waist||'—'} · Ombligo ${p.navel||'—'} · ${p.steps||0} pasos · Gym ${p.gym}</small></div><button onclick="delProgress('${p.id}')">Eliminar</button></div>`).join(''):'<div class="card hint">Sin registros todavía.</div>'}
-function renderSettings(){goalWeekday.value=data.goals.weekday;goalSaturday.value=data.goals.saturday;goalSunday.value=data.goals.sunday;goalProtein.value=data.goals.protein;goalSteps.value=data.goals.steps;goalWeeklyLoss.value=data.goals.weeklyLoss}
+function renderSettings(){profileName.value=data.profile?.name||'';profileGoal.value=data.profile?.goal||'lose';goalWeekday.value=data.goals.weekday;goalSaturday.value=data.goals.saturday;goalSunday.value=data.goals.sunday;goalProtein.value=data.goals.protein;goalSteps.value=data.goals.steps;goalWeeklyLoss.value=data.goals.weeklyLoss;profileGreeting.textContent=data.profile?.name?`Hola, ${data.profile.name} 👋`:''}
 function renderFoodLibrary(){
  const q=(librarySearch.value||'').trim().toLowerCase();
  const arr=[...data.foodLibrary].filter(f=>!q||f.name.toLowerCase().includes(q)||String(f.barcode||'').includes(q)).sort((a,b)=>(b.updatedAt||'').localeCompare(a.updatedAt||''));
@@ -314,6 +340,10 @@ saveFoodBtn.onclick=()=>{
  const saved=upsertFood(food);activeFoodId=saved.id;save();alert('Guardado en Mis alimentos ⭐')
 };
 addProgressBtn.onclick=()=>{const ds=progressDate.value||today();data.progress=data.progress.filter(p=>p.date!==ds);data.progress.push({id:crypto.randomUUID(),date:ds,weight:num('progressWeight'),waist:num('progressWaist'),navel:num('progressNavel'),steps:num('progressSteps'),gym:progressGym.value});save()}
+function weeklyLossForGoal(goal){return goal==='gain'?0.20:goal==='maintain'?0:-0.30}
+function showOnboardingIfNeeded(){if(!data.profile?.setupDone){onboardName.value=data.profile?.name||'';onboardCalories.value=data.goals?.weekday||2000;onboardProtein.value=data.goals?.protein||170;onboardSteps.value=data.goals?.steps||10000;const r=document.querySelector(`input[name="onboardGoal"][value="${data.profile?.goal||'lose'}"]`);if(r)r.checked=true;onboarding.classList.add('active')}}
+finishOnboardingBtn.onclick=()=>{const name=onboardName.value.trim(),cal=Number(onboardCalories.value),protein=Number(onboardProtein.value),steps=Number(onboardSteps.value),goal=document.querySelector('input[name="onboardGoal"]:checked')?.value||'lose';if(!name)return alert('Poné tu nombre.');if(!cal||!protein||!steps)return alert('Completá calorías, proteína y pasos.');data.profile={name,goal,setupDone:true};data.goals.weekday=cal;data.goals.saturday=cal;data.goals.sunday=cal;data.goals.protein=protein;data.goals.steps=steps;data.goals.weeklyLoss=weeklyLossForGoal(goal);localStorage.setItem(KEY,JSON.stringify(data));onboarding.classList.remove('active');renderAll()}
+saveProfileBtn.onclick=()=>{const name=profileName.value.trim();if(!name)return alert('Poné tu nombre.');data.profile={...(data.profile||{}),name,goal:profileGoal.value,setupDone:true};data.goals.weeklyLoss=weeklyLossForGoal(profileGoal.value);save();alert('Perfil guardado.')}
 saveGoalsBtn.onclick=()=>{data.goals={weekday:num('goalWeekday'),saturday:num('goalSaturday'),sunday:num('goalSunday'),protein:num('goalProtein'),steps:num('goalSteps'),weeklyLoss:Number(goalWeeklyLoss.value)||-.3};save();alert('Objetivos guardados.')}
 exportBtn.onclick=()=>{const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='nico-cut-respaldo.json';a.click();URL.revokeObjectURL(a.href)}
 importBtn.onclick=()=>importFile.click();importFile.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{data=normalizeData(JSON.parse(r.result));save();alert('Respaldo importado.')}catch{alert('Archivo inválido.')}};r.readAsText(f)}
@@ -332,6 +362,6 @@ document.querySelectorAll('nav button').forEach(b=>b.onclick=async()=>{if(b.data
 window.addEventListener('pagehide',()=>{if(scannerRunning)stopScanner()});
 
 mealDate.value=progressDate.value=today();
-function renderAll(){renderHome();renderMeals();renderProgress();renderSettings();renderFoodLibrary()}renderAll();
+function renderAll(){renderHome();renderMeals();renderProgress();renderSettings();renderFoodLibrary()}renderAll();showOnboardingIfNeeded();
 </script>
 </body></html>
