@@ -71,7 +71,7 @@ nav button{background:transparent;color:#9aa9ba;border:1px solid transparent;pad
 </div>
 
 <div class="container">
-  <div class="hero"><div><h1>Nico Cut Beta 💪</h1><p>Control simple de definición y déficit semanal</p><div id="profileGreeting" class="hint"></div></div><span class="badge">v0.4.3</span></div>
+  <div class="hero"><div><h1>Nico Cut Beta 💪</h1><p>Control simple de definición y déficit semanal</p><div id="profileGreeting" class="hint"></div></div><span class="badge">v0.4.4</span></div>
 
   <section id="home" class="view active">
     <div class="dashboard">
@@ -123,6 +123,29 @@ nav button{background:transparent;color:#9aa9ba;border:1px solid transparent;pad
           <div><label id="equivLabel">Equivalencia (g por unidad)</label><input id="mealUnitGrams" inputmode="decimal" placeholder="Ej: 33,3"></div>
           <div><label>Porción del envase (g)</label><input id="mealServingGrams" inputmode="decimal" placeholder="Ej: 50"></div>
         </div>
+
+        <div style="margin-top:12px;border-top:1px solid #24435d;padding-top:12px">
+          <div style="font-weight:800;margin-bottom:8px">🍽️ Raciones estilo MFP</div>
+          <div class="row">
+            <div>
+              <label>Raciones enteras</label>
+              <input id="mealServingWhole" type="number" min="0" step="1" value="1" inputmode="numeric">
+            </div>
+            <div>
+              <label>Fracción</label>
+              <select id="mealServingFraction">
+                <option value="0">0</option>
+                <option value="0.25">1/4</option>
+                <option value="0.3333333333">1/3</option>
+                <option value="0.5">1/2</option>
+                <option value="0.6666666667">2/3</option>
+                <option value="0.75">3/4</option>
+              </select>
+            </div>
+          </div>
+          <div id="servingSplitHint" class="hint" style="margin-top:8px">Elegí “porción” como unidad para usar estas raciones.</div>
+        </div>
+
         <div id="portionHint" class="hint" style="margin-top:8px">Escaneá un producto o cargá una equivalencia para usar unidades/rebanadas.</div>
       </div>
 
@@ -239,6 +262,28 @@ function parseServingUnits(servingSize){
   }
   return 0;
 }
+function splitServingNumber(v){
+  const value=Math.max(0,localNum(v));
+  const whole=Math.floor(value+1e-9),frac=value-whole;
+  const options=[0,.25,1/3,.5,2/3,.75];
+  let best=options[0];
+  for(const x of options)if(Math.abs(x-frac)<Math.abs(best-frac))best=x;
+  mealServingWhole.value=whole;
+  mealServingFraction.value=String(best===1/3?'0.3333333333':best===2/3?'0.6666666667':best);
+}
+function applyServingSplit(){
+  if(mealUnit.value!=='porcion')return;
+  const total=Math.max(0,localNum(mealServingWhole.value))+Math.max(0,localNum(mealServingFraction.value));
+  mealQty.value=round1(total);
+  recalcNutrition();
+}
+function updateServingSplitHint(){
+  const total=Math.max(0,localNum(mealServingWhole.value))+Math.max(0,localNum(mealServingFraction.value));
+  const sg=num('mealServingGrams')||baseNutrition?.servingGrams||0;
+  servingSplitHint.innerHTML=sg
+    ? `<strong>${round1(total)} ración${Math.abs(total-1)<0.001?'':'es'}</strong> × ${round1(sg)} g = <strong>${round1(total*sg)} g</strong>`
+    : 'Indicá el tamaño de la porción en gramos para calcular las raciones.';
+}
 function calcFactor(){
   if(!baseNutrition)return 1;
   const qty=num('mealQty'),unit=mealUnit.value;
@@ -264,6 +309,7 @@ function recalcNutrition(){
   mealSatFat.value=round1(baseNutrition.satFat*f);
   mealTransFat.value=round1(baseNutrition.transFat*f);
   const qty=num('mealQty'),unit=mealUnit.value;
+  updateServingSplitHint();
   if(unit==='rebanada'||unit==='unidad'){
     const g=num('mealUnitGrams')||baseNutrition.gramsPerUnit||0;
     portionHint.innerHTML=g?`<strong>${qty} ${unit}${qty===1?'':'s'}</strong> ≈ ${round1(qty*g)} g`:'Cargá los gramos que pesa 1 unidad/rebanada.';
@@ -288,11 +334,14 @@ function setMealFields(f){
   };
   mealUnit.value=f.defaultUnit||f.unit||'g';
   mealQty.value=f.defaultQty||f.basis||100;
+  if(mealUnit.value==='porcion') splitServingNumber(mealQty.value);
+  else { mealServingWhole.value=1; mealServingFraction.value='0'; }
   recalcNutrition();
 }
 function clearMealFields(){
   ['mealName','mealQty','mealUnitGrams','mealServingGrams','mealKcal','mealProtein','mealCarbs','mealFat','mealFiber','mealSatFat','mealTransFat','mealSource'].forEach(id=>document.getElementById(id).value='');
   baseNutrition=null;activeFoodId=null;
+  mealServingWhole.value=1;mealServingFraction.value='0';servingSplitHint.textContent='Elegí “porción” como unidad para usar estas raciones.';
 }
 
 window.useFood=id=>{const f=data.foodLibrary.find(x=>x.id===id);if(f)setMealFields(f)};
@@ -376,7 +425,23 @@ importBtn.onclick=()=>importFile.click();importFile.onchange=e=>{const r=new Fil
 resetBtn.onclick=()=>{if(confirm('¿Borrar todos los datos?')){data=structuredClone(defaultData);save()}};
 
 scanBtn.onclick=startScanner;stopScanBtn.onclick=stopScanner;barcodeManualBtn.onclick=()=>barcodeManualBox.classList.toggle('active');lookupBarcodeBtn.onclick=()=>lookupBarcode(barcodeInput.value);
-mealQty.addEventListener('input',recalcNutrition);mealUnit.addEventListener('change',recalcNutrition);mealUnitGrams.addEventListener('input',recalcNutrition);mealServingGrams.addEventListener('input',recalcNutrition);
+mealQty.addEventListener('input',()=>{if(mealUnit.value==='porcion')splitServingNumber(mealQty.value);recalcNutrition()});
+mealUnit.addEventListener('change',()=>{
+  if(mealUnit.value==='porcion'){
+    const sg=num('mealServingGrams')||baseNutrition?.servingGrams||0;
+    if(sg>0){
+      const currentQty=num('mealQty');
+      const previousGrams=(currentQty>0 && currentQty>10)?currentQty:0;
+      if(previousGrams>0) mealQty.value=round1(previousGrams/sg);
+    }
+    splitServingNumber(mealQty.value||1);
+  }
+  recalcNutrition();
+});
+mealUnitGrams.addEventListener('input',recalcNutrition);
+mealServingGrams.addEventListener('input',()=>{recalcNutrition();updateServingSplitHint()});
+mealServingWhole.addEventListener('input',applyServingSplit);
+mealServingFraction.addEventListener('change',applyServingSplit);
 librarySearch.addEventListener('input',renderFoodLibrary);
 mealName.addEventListener('input',()=>{
   const q=mealName.value.trim().toLowerCase();if(!q){foodSuggestions.classList.remove('show');return}
@@ -387,7 +452,7 @@ mealName.addEventListener('input',()=>{
 document.querySelectorAll('nav button').forEach(b=>b.onclick=async()=>{if(b.dataset.view!=='food')await stopScanner();document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(b.dataset.view).classList.add('active');document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x===b));scrollTo(0,0)});
 
 mealDate.value=progressDate.value=today();
-renderAll();
+renderAll();updateServingSplitHint();
 if(!data.profile.setupDone)onboarding.classList.add('active');
 </script>
 </body>
