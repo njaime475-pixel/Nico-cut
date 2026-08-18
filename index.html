@@ -70,6 +70,23 @@ nav button{background:transparent;color:#9aa9ba;border:1px solid transparent;pad
   .item{padding:10px}.item small{font-size:11.5px;line-height:1.35}
 }
 
+
+/* v0.5.1 — macros en barras horizontales */
+.macro-grid{display:grid!important;grid-template-columns:1fr!important;gap:9px!important}
+.macro{display:grid!important;grid-template-columns:minmax(120px,1.1fr) minmax(150px,2fr) auto!important;align-items:center!important;gap:12px!important;padding:11px 12px!important}
+.macro-name{font-size:13px!important;font-weight:800!important;white-space:normal!important}
+.mini-ring{display:none!important}
+.macro-percent{min-width:48px;text-align:right!important;font-size:13px!important}
+.macro-bar-wrap{height:12px;background:#142638;border:1px solid #24435d;border-radius:999px;overflow:hidden}
+.macro-bar-fill{height:100%;width:0%;border-radius:999px;background:var(--ring)}
+.macro-bar-copy{display:flex;justify-content:space-between;gap:8px;margin-top:5px;font-size:11px;color:#94a3b8}
+@media(max-width:520px){
+  .macro{grid-template-columns:1fr auto!important;gap:7px 10px!important}
+  .macro-name{grid-column:1/2}
+  .macro-percent{grid-column:2/3;grid-row:1}
+  .macro-progress-shell{grid-column:1/-1}
+}
+
 </style>
 </head>
 <body>
@@ -93,7 +110,7 @@ nav button{background:transparent;color:#9aa9ba;border:1px solid transparent;pad
 </div>
 
 <div class="container">
-  <div class="hero"><div><h1>Nico Cut Beta 💪</h1><p>Control simple de definición y déficit semanal</p><div id="profileGreeting" class="hint"></div></div><span class="badge">v0.5.0</span></div>
+  <div class="hero"><div><h1>Nico Cut Beta 💪</h1><p>Control simple de definición y déficit semanal</p><div id="profileGreeting" class="hint"></div></div><span class="badge">v0.5.1</span></div>
 
   <section id="home" class="view active">
     <div class="dashboard">
@@ -107,12 +124,12 @@ nav button{background:transparent;color:#9aa9ba;border:1px solid transparent;pad
       </div>
       <div class="dash-card"><div class="dash-head"><div class="dash-title">◔ Macros de hoy</div><span class="pill">Objetivos</span></div>
         <div class="macro-grid">
-          <div class="macro" style="--ring:#1d9bf0"><div class="macro-name">💪 Proteína</div><div id="proteinRing" class="mini-ring"><div><strong id="proteinToday">0 g</strong><span id="proteinGoalText"></span></div></div><div id="proteinPct" class="macro-percent">0%</div></div>
-          <div class="macro" style="--ring:#70e000"><div class="macro-name">🌾 Carbohidratos</div><div id="carbsRing" class="mini-ring"><div><strong id="carbsToday">0 g</strong><span id="carbsGoalText"></span></div></div><div id="carbsPct" class="macro-percent">0%</div></div>
-          <div class="macro" style="--ring:#ffb000"><div class="macro-name">💧 Grasas</div><div id="fatRing" class="mini-ring"><div><strong id="fatToday">0 g</strong><span id="fatGoalText"></span></div></div><div id="fatPct" class="macro-percent">0%</div></div>
-          <div class="macro" style="--ring:#7c5cff"><div class="macro-name">🍃 Fibra</div><div id="fiberRing" class="mini-ring"><div><strong id="fiberToday">0 g</strong><span id="fiberGoalText"></span></div></div><div id="fiberPct" class="macro-percent">0%</div></div>
-          <div class="macro" style="--ring:#ff6b35"><div class="macro-name">🧡 Saturadas</div><div id="satFatRing" class="mini-ring"><div><strong id="satFatToday">0 g</strong><span id="satFatGoalText"></span></div></div><div id="satFatPct" class="macro-percent">0%</div></div>
-          <div class="macro" style="--ring:#ff453a"><div class="macro-name">⚠️ Trans</div><div id="transFatRing" class="mini-ring"><div><strong id="transFatToday">0 g</strong><span id="transFatGoalText"></span></div></div><div id="transFatPct" class="macro-percent">0%</div></div>
+          <div class="macro" style="--ring:#1d9bf0"><div class="macro-name">💪 Proteína</div><div class="macro-progress-shell"><div class="macro-bar-wrap"><div id="proteinBarFill" class="macro-bar-fill"></div></div><div class="macro-bar-copy"><span id="proteinToday">0 g</span><span id="proteinGoalText"></span></div></div><div id="proteinPct" class="macro-percent">0%</div><div id="proteinRing" hidden></div></div>
+          <div class="macro" style="--ring:#70e000"><div class="macro-name">🌾 Carbohidratos</div><div class="macro-progress-shell"><div class="macro-bar-wrap"><div id="carbsBarFill" class="macro-bar-fill"></div></div><div class="macro-bar-copy"><span id="carbsToday">0 g</span><span id="carbsGoalText"></span></div></div><div id="carbsPct" class="macro-percent">0%</div><div id="carbsRing" hidden></div></div>
+          <div class="macro" style="--ring:#ffb000"><div class="macro-name">💧 Grasas</div><div class="macro-progress-shell"><div class="macro-bar-wrap"><div id="fatBarFill" class="macro-bar-fill"></div></div><div class="macro-bar-copy"><span id="fatToday">0 g</span><span id="fatGoalText"></span></div></div><div id="fatPct" class="macro-percent">0%</div><div id="fatRing" hidden></div></div>
+          <div class="macro" style="--ring:#7c5cff"><div class="macro-name">🍃 Fibra</div><div class="macro-progress-shell"><div class="macro-bar-wrap"><div id="fiberBarFill" class="macro-bar-fill"></div></div><div class="macro-bar-copy"><span id="fiberToday">0 g</span><span id="fiberGoalText"></span></div></div><div id="fiberPct" class="macro-percent">0%</div><div id="fiberRing" hidden></div></div>
+          <div class="macro" style="--ring:#ff6b35"><div class="macro-name">🧡 Saturadas</div><div class="macro-progress-shell"><div class="macro-bar-wrap"><div id="satFatBarFill" class="macro-bar-fill"></div></div><div class="macro-bar-copy"><span id="satFatToday">0 g</span><span id="satFatGoalText"></span></div></div><div id="satFatPct" class="macro-percent">0%</div><div id="satFatRing" hidden></div></div>
+          <div class="macro" style="--ring:#ff453a"><div class="macro-name">⚠️ Trans</div><div class="macro-progress-shell"><div class="macro-bar-wrap"><div id="transFatBarFill" class="macro-bar-fill"></div></div><div class="macro-bar-copy"><span id="transFatToday">0 g</span><span id="transFatGoalText"></span></div></div><div id="transFatPct" class="macro-percent">0%</div><div id="transFatRing" hidden></div></div>
         </div>
       </div>
       <h2 class="section-title">Últimas comidas</h2><div id="recentMeals" class="list"></div>
@@ -268,10 +285,14 @@ function renderHome(){
   dailyGoalBig.textContent=goal;kcalToday.textContent=Math.round(t.kcal);kcalBar.style.width=pct(t.kcal,goal)+'%';kcalRemainingBig.textContent=Math.max(0,Math.round(goal-t.kcal));calorieRing.style.setProperty('--p',pct(t.kcal,goal));
   weekRemaining.textContent=Math.round(weeklyBudget()-weeklyConsumed())+' kcal';weekBudgetText.textContent='de '+weeklyBudget()+' kcal semanales';
   [['protein',t.protein,data.goals.protein],['carbs',t.carbs,data.goals.carbs],['fat',t.fat,data.goals.fat],['fiber',t.fiber,data.goals.fiber],['satFat',t.satFat,data.goals.satFat],['transFat',t.transFat,data.goals.transFat]].forEach(([id,v,g])=>{
+    const percentage=pct(v,g);
     document.getElementById(id+'Today').textContent=round1(v)+' g';
     document.getElementById(id+'GoalText').textContent=(id==='satFat'||id==='transFat'?'límite ':'de ')+g+' g';
-    document.getElementById(id+'Ring').style.setProperty('--p',pct(v,g));
-    document.getElementById(id+'Pct').textContent=pct(v,g)+'%';
+    const ring=document.getElementById(id+'Ring');
+    if(ring)ring.style.setProperty('--p',percentage);
+    const fill=document.getElementById(id+'BarFill');
+    if(fill)fill.style.width=percentage+'%';
+    document.getElementById(id+'Pct').textContent=percentage+'%';
   });
   const recent=[...data.meals].sort((a,b)=>(b.date+b.id).localeCompare(a.date+a.id)).slice(0,5);
   recentMeals.innerHTML=recent.length?recent.map(m=>`<div class="item"><div><strong>${esc(m.name)}</strong><small>${m.date} · ${m.portions?round1(m.portions)+' porciones · ':''}${m.qty} ${esc(m.unit)} · ${Math.round(m.kcal)} kcal</small></div></div>`).join(''):'<div class="card hint">Todavía no cargaste comidas.</div>';
