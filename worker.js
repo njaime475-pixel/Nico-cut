@@ -108,17 +108,41 @@ REGLAS DE SELECCIÓN — MUY IMPORTANTES:
 - Elegí UNA sola estrategia: o devolvés la preparación completa como un único item, o la descomponés en ingredientes. Nunca ambas.
 
 REGLAS NUTRICIONALES:
-- Estimá el peso COMESTIBLE en gramos de cada alimento principal.
-- Calculá kcal, proteína, carbohidratos, grasas y fibra PARA ESA CANTIDAD.
-- Cada item debe tener sus propios macros; no repartas por error los macros totales del plato en un solo alimento.
-- Aplicá coherencia nutricional básica:
-  * carnes, pollo, pescado y huevos simples tienen aproximadamente 0 g de carbohidratos salvo empanado, salsa o preparación que claramente los aporte;
-  * puré, arroz, pasta, papa, batata, pan y cereales aportan principalmente carbohidratos;
-  * aceites y manteca aportan principalmente grasas;
-  * verduras y frutas suelen aportar carbohidratos y fibra, pero cantidades moderadas de proteína y grasa.
-- Si un valor contradice claramente el tipo de alimento, corregilo antes de responder.
-- Comprobá que las kcal sean compatibles con proteína*4 + carbohidratos*4 + grasas*9. Si la diferencia supera aproximadamente 20-25%, corregí los macros o las kcal antes de responder. Por ejemplo, 10 g de carbohidratos no pueden corresponder a solo 25 kcal porque esos carbohidratos ya aportan ~40 kcal.
-- No inventes aceites, salsas, queso, azúcar ni ingredientes ocultos si no son visibles o razonablemente inferibles.
+Seguí ESTE ORDEN y no saltees pasos:
+
+1) IDENTIFICACIÓN
+- Definí primero qué preparación/alimentos principales hay.
+- Si es una preparación compuesta (pizza, hamburguesa, tarta, empanada, sándwich), tratala preferentemente como una sola preparación completa para evitar doble conteo.
+
+2) CANTIDAD VISUAL
+- Estimá el peso COMESTIBLE en gramos de cada alimento principal ANTES de calcular macros.
+- Usá el tamaño aparente relativo al plato como referencia visual, pero no inventes precisión extrema.
+- Redondeá gramos a valores realistas, preferentemente múltiplos de 5 o 10 g.
+- Si el tamaño es muy incierto, elegí una estimación central prudente y bajá confidence.
+
+3) DENSIDAD NUTRICIONAL PLAUSIBLE
+- Aplicá valores típicos por 100 g coherentes con el alimento identificado.
+- No hagas que un alimento sea nutricionalmente "perfecto"; usá perfiles realistas.
+- Referencias generales de coherencia:
+  * pechuga de pollo cocida simple: proteína alta, carbohidratos ~0, grasa baja/moderada;
+  * carne/pescado/huevo simples: carbohidratos ~0 salvo preparación que los aporte;
+  * puré, arroz, pasta, papa, batata, pan y masas: carbohidratos predominantes;
+  * queso: proteína y grasa predominantes, carbohidratos generalmente bajos;
+  * tomate/verduras: pocas kcal, carbohidratos bajos/moderados, algo de fibra;
+  * pizza: la mayor parte de las kcal suele venir de masa + queso; no sobredimensiones proteína ni subestimes grasa.
+- Para preparaciones mixtas, elegí un perfil típico del plato completo en lugar de sumar ingredientes individualmente si eso duplica la preparación.
+
+4) CÁLCULO
+- Calculá kcal, proteína, carbohidratos, grasas y fibra PARA LOS GRAMOS ESTIMADOS.
+- Cada item debe tener sus propios macros.
+- Comprobá que kcal ≈ proteína*4 + carbohidratos*4 + grasas*9.
+- Si la diferencia supera ~15-20%, corregí antes de responder.
+- No devuelvas relaciones físicamente imposibles, por ejemplo macros cuya masa total exceda ampliamente los gramos estimados.
+
+5) CONTROL FINAL
+- Revisá si la proteína, carbohidratos y grasa "tienen sentido" para ese alimento.
+- Evitá estimaciones extremas: si una porción común de pizza aparenta tamaño mediano, no asignes proteína de una pechuga grande salvo evidencia visual.
+- No inventes aceite, manteca, salsas, queso extra o azúcar si no son visibles o razonablemente inferibles.
 - Si no podés distinguir con seguridad dos preparaciones, usá nombres genéricos ("puré", "pollo a la plancha") y confidence baja/media.
 - Si no hay comida principal identificable, devolvé items vacío.
 
@@ -132,7 +156,7 @@ note debe ser breve y aclarar que es una estimación visual y cuál es la mayor 
     messages: [
       {
         role: "system",
-        content: "Sos un asistente de registro nutricional especializado en fotos de platos. Tu prioridad es reconocer solo comida del plato principal, descartar objetos y producir macros fisiológicamente plausibles. Ante duda, omití objetos y bajá la confianza en vez de inventar."
+        content: "Sos un asistente de registro nutricional especializado en estimación visual de platos. Primero identificá la comida, después estimá gramos, recién entonces calculá macros con densidades típicas realistas. Priorizá plausibilidad y consistencia sobre precisión falsa. Ante duda, bajá la confianza en vez de inventar."
       },
       { role: "user", content: prompt }
     ],
@@ -209,20 +233,28 @@ function plausibilityFix(item) {
     x.fiber = 0;
   }
 
-  // Valores imposibles por 1 g o cantidades grotescas: limitar a algo físicamente posible.
+  // Valores físicamente imposibles: limitar a algo compatible con los gramos estimados.
   const g = Math.max(0, Number(x.grams) || 0);
   if (g > 0) {
-    x.protein = Math.min(x.protein, g);
-    x.carbs = Math.min(x.carbs, g);
-    x.fat = Math.min(x.fat, g);
-    x.fiber = Math.min(x.fiber, g);
+    x.protein = Math.min(x.protein, g * 0.65);
+    x.carbs = Math.min(x.carbs, g * 0.90);
+    x.fat = Math.min(x.fat, g * 0.60);
+    x.fiber = Math.min(x.fiber, g * 0.25);
   }
 
-  // Recalcular kcal cuando la incoherencia supera ~25%.
+  // Recalcular kcal cuando la incoherencia supera ~20%.
   const macroKcal = x.protein * 4 + x.carbs * 4 + x.fat * 9;
-  if (macroKcal > 0 && (x.kcal < macroKcal * 0.75 || x.kcal > macroKcal * 1.25)) {
+  if (macroKcal > 0 && (x.kcal < macroKcal * 0.80 || x.kcal > macroKcal * 1.20)) {
     x.kcal = Math.round(macroKcal);
   }
+
+  // Redondeos suaves para no fingir una precisión que la foto no puede dar.
+  x.grams = Math.round(x.grams / 5) * 5;
+  x.kcal = Math.round(x.kcal);
+  x.protein = Math.round(x.protein * 10) / 10;
+  x.carbs = Math.round(x.carbs * 10) / 10;
+  x.fat = Math.round(x.fat * 10) / 10;
+  x.fiber = Math.round(x.fiber * 10) / 10;
 
   return x;
 }
@@ -293,7 +325,7 @@ export default {
       return json({
         ok: true,
         service: "nico-cut-ai",
-        version: "0.3.5-photo-fix",
+        version: "0.3.6-photo-precision",
         ai: Boolean(env.AI),
         assets: Boolean(env.ASSETS)
       });
