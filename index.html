@@ -66,7 +66,7 @@ nav{position:fixed;left:0;right:0;bottom:0;background:rgba(10,18,32,.96);backdro
   </div>
 </div>
 <div class="container">
-  <div class="hero"><div><h1>Nico Cut Beta 💪</h1><p>Control simple de definición y déficit semanal</p><div id="profileGreeting" class="profile-greeting"></div></div><span class="badge">v0.3.2</span></div>
+  <div class="hero"><div><h1>Nico Cut Beta 💪</h1><p>Control simple de definición y déficit semanal</p><div id="profileGreeting" class="profile-greeting"></div></div><span class="badge">v0.3.3</span></div>
 
   <section id="home" class="view active">
     <div class="grid">
@@ -441,7 +441,7 @@ platePhotoInput.onchange=async(e)=>{
     photoPanel.classList.add('show'); aiResult.classList.remove('show');
     const image=await imageFileToDataUrl(file);
     platePreview.src=image;
-    setPhotoStatus('🤖 Analizando el plato… puede tardar unos segundos.');
+    setPhotoStatus('🤖 Analizando la foto y estimando macros… puede tardar unos segundos.');
     photoAnalyzeBtn.disabled=true;
     const res=await fetch(`${AI_API_BASE}/api/analyze`,{
       method:'POST',

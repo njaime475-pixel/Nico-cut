@@ -1,4 +1,4 @@
-const MODEL = "@cf/meta/llama-3.2-11b-vision-instruct";
+const TEXT_MODEL = "@cf/meta/llama-3.1-8b-instruct-fast";
 
 const CORS = {
   "access-control-allow-origin": "*",
@@ -43,24 +43,78 @@ const ANALYSIS_SCHEMA = {
   required: ["items","confidence","note"]
 };
 
-async function runVision(env, image) {
-  const prompt = `Analizá esta foto para registrar una comida.
-Identificá solamente alimentos razonablemente visibles.
-Estimá el peso comestible en gramos de cada alimento y sus macronutrientes para esa cantidad.
-La estimación es visual: no inventes ingredientes ocultos, aceite o salsas que no sean evidentes.
-Si ves un producto envasado pero no podés leer la etiqueta, estimá por el alimento visible y aclaralo.
-Si la imagen no contiene comida o no permite una estimación razonable, devolvé items vacío.
-protein, carbs, fat y fiber se expresan en gramos; kcal en kilocalorías.`;
+function dataUrlToBlob(dataUrl) {
+  const match = /^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/.exec(dataUrl);
+  if (!match) throw new Error("Formato de imagen no válido.");
 
-  return await env.AI.run(MODEL, {
+  const mime = match[1];
+  const b64 = match[2];
+  const binary = atob(b64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+
+  return new Blob([bytes], { type: mime });
+}
+
+function extFromMime(mime) {
+  if (mime === "image/png") return "png";
+  if (mime === "image/webp") return "webp";
+  if (mime === "image/gif") return "gif";
+  return "jpg";
+}
+
+async function describeImage(env, dataUrl) {
+  const blob = dataUrlToBlob(dataUrl);
+  const ext = extFromMime(blob.type);
+
+  const result = await env.AI.toMarkdown(
+    {
+      name: `meal.${ext}`,
+      blob
+    },
+    {
+      conversionOptions: {
+        output: { format: "text" },
+        image: { descriptionLanguage: "es" }
+      }
+    }
+  );
+
+  if (!result || result.format === "error") {
+    throw new Error(result?.error || "No pude interpretar la imagen.");
+  }
+
+  const description = String(result.data || "").trim();
+  if (!description) throw new Error("La imagen no produjo una descripción útil.");
+
+  return description;
+}
+
+async function estimateMacros(env, description) {
+  const prompt = `A partir de esta descripción automática de una foto de comida:
+
+"${description}"
+
+Generá una estimación nutricional VISUAL y conservadora.
+
+Reglas:
+- Identificá únicamente alimentos razonablemente presentes en la descripción.
+- Estimá el peso COMESTIBLE en gramos de cada alimento.
+- Calculá kcal, proteína, carbohidratos, grasas y fibra para esa cantidad.
+- Si hay un envase o producto cuya etiqueta no se puede leer con precisión, usá valores típicos y aclaralo.
+- No inventes aceites, salsas ni ingredientes ocultos.
+- Si no hay comida o no se puede hacer una estimación razonable, devolvé items vacío.
+- confidence debe ser "alta", "media" o "baja".
+- note debe recordar que es una estimación visual y qué parte genera más incertidumbre.`;
+
+  return await env.AI.run(TEXT_MODEL, {
     messages: [
       {
         role: "system",
-        content: "Sos un asistente de registro nutricional. Priorizá estimaciones conservadoras y aclaraciones breves."
+        content: "Sos un asistente de registro nutricional. Priorizá valores plausibles y conservadores. No exageres la precisión."
       },
       { role: "user", content: prompt }
     ],
-    image,
     max_tokens: 900,
     temperature: 0.1,
     response_format: {
@@ -91,18 +145,18 @@ function normalizeAnalysis(result) {
 
   analysis.items = analysis.items.slice(0, 12).map((x) => ({
     name: String(x?.name || "Alimento").slice(0, 80),
-    grams: Number(x?.grams) || 0,
-    kcal: Number(x?.kcal) || 0,
-    protein: Number(x?.protein) || 0,
-    carbs: Number(x?.carbs) || 0,
-    fat: Number(x?.fat) || 0,
-    fiber: Number(x?.fiber) || 0
+    grams: Math.max(0, Number(x?.grams) || 0),
+    kcal: Math.max(0, Number(x?.kcal) || 0),
+    protein: Math.max(0, Number(x?.protein) || 0),
+    carbs: Math.max(0, Number(x?.carbs) || 0),
+    fat: Math.max(0, Number(x?.fat) || 0),
+    fiber: Math.max(0, Number(x?.fiber) || 0)
   }));
 
   analysis.confidence = String(analysis.confidence || "media").slice(0, 20);
   analysis.note = String(
     analysis.note || "Estimación visual; corregí cantidades si conocés el peso real."
-  ).slice(0, 300);
+  ).slice(0, 400);
 
   return analysis;
 }
@@ -119,7 +173,7 @@ export default {
       return json({
         ok: true,
         service: "nico-cut-ai",
-        version: "0.3.2",
+        version: "0.3.3",
         ai: Boolean(env.AI),
         assets: Boolean(env.ASSETS)
       });
@@ -146,18 +200,24 @@ export default {
           return json({ ok: false, error: "El binding de IA no está disponible." }, 500);
         }
 
-        const result = await runVision(env, body.image);
-        const analysis = normalizeAnalysis(result);
+        const description = await describeImage(env, body.image);
+        const raw = await estimateMacros(env, description);
+        const analysis = normalizeAnalysis(raw);
 
         if (!analysis.items.length) {
           return json({
             ok: false,
             error: analysis.note || "No pude identificar alimentos con suficiente seguridad.",
+            description,
             analysis
           }, 422);
         }
 
-        return json({ ok: true, analysis });
+        return json({
+          ok: true,
+          description,
+          analysis
+        });
       } catch (err) {
         console.error("analyze error", err);
         return json({
