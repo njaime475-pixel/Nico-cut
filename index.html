@@ -13,7 +13,7 @@
 .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.card{background:rgba(17,24,39,.94);border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:0 8px 30px rgba(0,0,0,.18)}.metric .value{font-size:26px;font-weight:800;margin-top:5px}.metric .label{font-size:12px;color:var(--muted)}.metric .sub{font-size:12px;margin-top:4px;color:#cbd5e1}.wide{grid-column:1/-1}
 .progress{height:10px;background:#0b1322;border-radius:999px;overflow:hidden;border:1px solid #203047;margin-top:9px}.bar{height:100%;background:linear-gradient(90deg,#38bdf8,#22c55e);width:0%}.bar.limit{background:linear-gradient(90deg,#22c55e,#f59e0b,#ef4444)}
 .section-title{font-size:17px;margin:20px 2px 9px}.row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}.row3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.formgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.row>div,.row3>div,.formgrid>div{min-width:0}
-input,select,textarea,button{width:100%;min-width:0;max-width:100%;border-radius:12px;border:1px solid #2a3950;background:#0c1626;color:var(--text);padding:12px;font-size:15px}input[type="date"]{font-size:14px}textarea{min-height:74px;resize:vertical}label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}button{background:#0ea5e9;border:none;font-weight:800;cursor:pointer}button.secondary{background:#1f2937;color:#e2e8f0;border:1px solid #334155}button.danger{background:#7f1d1d}.actions{display:flex;gap:8px;flex-wrap:wrap}.actions button{width:auto;flex:1;min-width:130px}
+input,select,textarea,button{width:100%;min-width:0;max-width:100%;border-radius:12px;border:1px solid #2a3950;background:#0c1626;color:var(--text);padding:12px;font-size:15px}input[type="date"]{font-size:14px;width:100%;max-width:100%;min-width:0;box-sizing:border-box;display:block;-webkit-appearance:none;appearance:none}textarea{min-height:74px;resize:vertical}label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}button{background:#0ea5e9;border:none;font-weight:800;cursor:pointer}button.secondary{background:#1f2937;color:#e2e8f0;border:1px solid #334155}button.danger{background:#7f1d1d}.actions{display:flex;gap:8px;flex-wrap:wrap}.actions button{width:auto;flex:1;min-width:130px}
 .list{display:flex;flex-direction:column;gap:8px}.item{display:flex;justify-content:space-between;align-items:center;gap:10px;background:#0d1727;border:1px solid #23324a;padding:11px;border-radius:12px}.item strong{display:block}.item small{color:var(--muted)}.item button{width:auto;padding:8px 10px;background:#3f1d24;color:#fecaca}.item .mini-actions{display:flex;gap:6px;flex-shrink:0}.item .mini-actions button{background:#172033;color:#dbeafe;border:1px solid #334155}.item .mini-actions button.danger{background:#3f1d24;color:#fecaca}
 canvas{width:100%;height:170px;background:#0c1626;border-radius:12px;border:1px solid #24334a}.hint{font-size:12px;color:var(--muted);line-height:1.45}.ok{color:#86efac}.warn{color:#fbbf24}.bad{color:#fca5a5}.footer{color:#64748b;font-size:11px;text-align:center;margin-top:22px}
 nav{position:fixed;left:0;right:0;bottom:0;background:rgba(10,18,32,.96);backdrop-filter:blur(12px);border-top:1px solid #25334a;padding:9px max(10px,env(safe-area-inset-right)) calc(9px + env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left));display:grid;grid-template-columns:repeat(4,1fr);gap:7px;z-index:20}nav button{background:#111827;padding:9px 4px;font-size:12px;border:1px solid #263247}.view{display:none}.view.active{display:block}.scan-tools{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}.scan-panel{display:none;margin:10px 0}.scan-panel.active{display:block}.reader-wrap{background:#050b14;border:1px solid #263247;border-radius:14px;padding:8px;overflow:hidden}.reader-wrap video{border-radius:10px}.statusbox{display:none;margin-top:10px;padding:10px 12px;border-radius:12px;background:#0c1626;border:1px solid #263247;font-size:13px;line-height:1.4}.statusbox.show{display:block}
@@ -24,7 +24,7 @@ nav{position:fixed;left:0;right:0;bottom:0;background:rgba(10,18,32,.96);backdro
 /* iOS: evita que los controles nativos de fecha/select invadan la columna vecina */
 .row>div,.row3>div,.formgrid>div{min-width:0;overflow:hidden}
 .row input,.row select,.row3 input,.row3 select,.formgrid input,.formgrid select{display:block;width:100%;min-width:0;max-width:100%;box-sizing:border-box}
-input[type="date"]{width:100%;min-width:0;max-width:100%;font-size:13px;padding-left:9px;padding-right:9px}
+input[type="date"]{display:block;width:100%!important;min-width:0!important;max-width:100%!important;box-sizing:border-box!important;font-size:13px;padding-left:9px;padding-right:9px;-webkit-appearance:none;appearance:none}
 .ai-item-grid{grid-template-columns:1fr 1fr}.ai-item-grid>div:first-child{grid-column:1/-1}.row3{grid-template-columns:1fr 1fr}.row3>div:last-child{grid-column:1/-1}.scan-tools{grid-template-columns:1fr}.library-tools{grid-template-columns:1fr}.library-tools button{width:100%}}
 @media(min-width:700px){.grid{grid-template-columns:repeat(4,1fr)}.metric.wide{grid-column:auto}.formgrid{grid-template-columns:repeat(3,1fr)}.container{padding-bottom:40px}nav{position:sticky;top:0;bottom:auto;margin:-18px -14px 16px;padding:10px 14px;background:#0b1220}.hero{margin-top:10px}}
 
@@ -84,6 +84,23 @@ body{background:radial-gradient(circle at 50% -12%,#102536 0,#071018 34%,#050b11
 .nc-section-head{display:flex;justify-content:space-between;align-items:center;margin:23px 3px 9px}.nc-section-head h2{margin:0;font-size:21px}.nc-link{width:auto;background:transparent!important;color:var(--nc-green);border:0;padding:6px;font-size:13px}.nc-meal-card{background:#0c1823;border:1px solid var(--nc-line);border-radius:22px;overflow:hidden}.nc-meal-row{display:grid;grid-template-columns:42px 1fr auto;gap:11px;align-items:center;padding:13px 14px;border-bottom:1px solid #1d2d39}.nc-meal-row:last-child{border:0}.nc-meal-icon{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:#173324}.nc-meal-row:nth-child(2) .nc-meal-icon{background:#18363d}.nc-meal-row:nth-child(3) .nc-meal-icon{background:#351b42}.nc-meal-copy strong,.nc-meal-copy small{display:block}.nc-meal-copy strong{font-size:15px}.nc-meal-copy small{color:#86939e;font-size:11px;margin-top:3px}.nc-meal-kcal{text-align:right}.nc-meal-kcal strong,.nc-meal-kcal small{display:block}.nc-meal-kcal small{font-size:10px;color:#7f8c97}.nc-add{margin-top:11px;background:transparent;border:1px solid #4c9763;color:var(--nc-green);border-radius:18px;padding:15px;font-size:15px}.nc-add span{margin-left:4px}.nc-mini-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.nc-mini-row>div{background:#0b1721;border:1px solid #1e3040;border-radius:17px;padding:12px;min-width:0}.nc-mini-row span,.nc-mini-row small,.nc-mini-row strong{display:block}.nc-mini-row span{color:#7f8f9b;font-size:11px}.nc-mini-row strong{margin-top:5px}.nc-mini-row small{color:#73818c;font-size:10px;margin-top:4px;line-height:1.3}.weight-mini{height:38px!important}
 nav{left:10px;right:10px;bottom:10px;border:1px solid #223544;border-radius:22px;padding:7px calc(7px + env(safe-area-inset-right)) calc(7px + env(safe-area-inset-bottom)) calc(7px + env(safe-area-inset-left));background:rgba(10,20,29,.95)}nav button{font-size:11px;border-radius:16px}nav button.active{background:#172f26;color:var(--nc-green);border-color:#285a3a}
 @media(max-width:520px){.container{padding:12px 10px 105px}.nc-summary-main{grid-template-columns:128px 1fr;gap:14px}.nc-cal-ring{width:126px;height:126px}.nc-cal-ring:before{width:103px;height:103px}.nc-cal-ring strong{font-size:28px}.nc-macro{padding:0 8px}.nc-macro strong{font-size:16px}.nc-macro small{display:block}.nc-date{font-size:29px}}
+
+/* v0.4.2 iPhone date width fix */
+@media(max-width:520px){
+  #food #mealDate,
+  #progressView #progressDate{
+    display:block!important;
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    box-sizing:border-box!important;
+    margin:0!important;
+  }
+  #food .row>div,
+  #progressView .row>div{
+    max-width:100%!important;
+  }
+}
 </style>
 </head>
 <body>
