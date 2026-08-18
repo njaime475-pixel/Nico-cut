@@ -104,6 +104,8 @@ REGLAS DE SELECCIÓN — MUY IMPORTANTES:
 - Si un elemento tiene 0 kcal y 0 macronutrientes, NO lo incluyas como item.
 - No conviertas objetos visibles en "alimentos" solo porque aparezcan en la descripción.
 - Preferí 1 a 4 alimentos principales plausibles antes que una lista larga de objetos.
+- MUY IMPORTANTE: evitá el doble conteo. Si identificás una preparación completa (por ejemplo pizza, hamburguesa, sándwich, empanada, tarta, tortilla rellena), NO agregues además como items separados sus ingredientes visibles (queso, tomate, aceituna, pan, salsa, etc.) salvo que estén claramente servidos aparte como acompañamiento.
+- Elegí UNA sola estrategia: o devolvés la preparación completa como un único item, o la descomponés en ingredientes. Nunca ambas.
 
 REGLAS NUTRICIONALES:
 - Estimá el peso COMESTIBLE en gramos de cada alimento principal.
@@ -115,7 +117,7 @@ REGLAS NUTRICIONALES:
   * aceites y manteca aportan principalmente grasas;
   * verduras y frutas suelen aportar carbohidratos y fibra, pero cantidades moderadas de proteína y grasa.
 - Si un valor contradice claramente el tipo de alimento, corregilo antes de responder.
-- Comprobá que las kcal sean aproximadamente compatibles con proteína*4 + carbohidratos*4 + grasas*9. No hace falta que coincida exacto por fibra/redondeos.
+- Comprobá que las kcal sean compatibles con proteína*4 + carbohidratos*4 + grasas*9. Si la diferencia supera aproximadamente 20-25%, corregí los macros o las kcal antes de responder. Por ejemplo, 10 g de carbohidratos no pueden corresponder a solo 25 kcal porque esos carbohidratos ya aportan ~40 kcal.
 - No inventes aceites, salsas, queso, azúcar ni ingredientes ocultos si no son visibles o razonablemente inferibles.
 - Si no podés distinguir con seguridad dos preparaciones, usá nombres genéricos ("puré", "pollo a la plancha") y confidence baja/media.
 - Si no hay comida principal identificable, devolvé items vacío.
@@ -158,6 +160,36 @@ const SIMPLE_ANIMAL_PROTEINS = [
   "merluza","salmón","salmon","atún","atun","huevo","huevos","pavo"
 ];
 
+
+const COMPOSITE_DISH_INGREDIENTS = {
+  "pizza": ["tomate","queso","mozzarella","aceituna","salsa","masa","jamón","jamon","cebolla","morron","morrón"],
+  "hamburguesa": ["pan","queso","tomate","lechuga","cebolla","salsa","carne"],
+  "sandwich": ["pan","queso","jamón","jamon","tomate","lechuga","mayonesa"],
+  "sándwich": ["pan","queso","jamón","jamon","tomate","lechuga","mayonesa"],
+  "empanada": ["masa","carne","pollo","queso","cebolla"],
+  "tarta": ["masa","queso","verdura","cebolla","huevo"],
+  "tortilla rellena": ["queso","jamón","jamon","verdura","huevo","pan","masa"]
+};
+
+function removeDoubleCountedIngredients(items) {
+  const names = items.map(x => String(x.name || "").toLowerCase());
+  const composites = Object.keys(COMPOSITE_DISH_INGREDIENTS).filter(dish =>
+    names.some(n => n.includes(dish))
+  );
+  if (!composites.length) return items;
+
+  const forbidden = new Set();
+  for (const dish of composites) {
+    for (const ing of COMPOSITE_DISH_INGREDIENTS[dish]) forbidden.add(ing);
+  }
+
+  return items.filter(item => {
+    const name = String(item.name || "").toLowerCase();
+    if (composites.some(dish => name.includes(dish))) return true;
+    return ![...forbidden].some(ing => name.includes(ing));
+  });
+}
+
 function containsAny(name, terms) {
   const s = String(name || "").toLowerCase();
   return terms.some(t => s.includes(t));
@@ -186,9 +218,9 @@ function plausibilityFix(item) {
     x.fiber = Math.min(x.fiber, g);
   }
 
-  // Recalcular kcal solo si hay una incoherencia enorme.
+  // Recalcular kcal cuando la incoherencia supera ~25%.
   const macroKcal = x.protein * 4 + x.carbs * 4 + x.fat * 9;
-  if (macroKcal > 0 && (x.kcal < macroKcal * 0.55 || x.kcal > macroKcal * 1.65)) {
+  if (macroKcal > 0 && (x.kcal < macroKcal * 0.75 || x.kcal > macroKcal * 1.25)) {
     x.kcal = Math.round(macroKcal);
   }
 
@@ -234,7 +266,9 @@ function normalizeAnalysis(result) {
       if (containsAny(x.name, ZERO_VALUE_NOISE)) return false;
       return true;
     })
-    .map(plausibilityFix)
+    .map(plausibilityFix);
+
+  analysis.items = removeDoubleCountedIngredients(analysis.items)
     // Evita items residuales sin cantidad ni aporte.
     .filter((x) => x.grams > 0 && (x.kcal > 0 || x.protein > 0 || x.carbs > 0 || x.fat > 0))
     .slice(0, 6);
@@ -259,7 +293,7 @@ export default {
       return json({
         ok: true,
         service: "nico-cut-ai",
-        version: "0.3.4-photo-fix",
+        version: "0.3.5-photo-fix",
         ai: Boolean(env.AI),
         assets: Boolean(env.ASSETS)
       });
