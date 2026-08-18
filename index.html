@@ -49,6 +49,28 @@ nav{border-top:1px solid #173a58;background:rgba(5,13,23,.94);box-shadow:0 -12px
 .streak-card{display:flex;align-items:center;justify-content:space-between;gap:12px}.streak-main{min-width:0}.streak-flame{width:72px;height:72px;border-radius:50%;display:grid;place-items:center;font-size:35px;background:radial-gradient(circle,rgba(255,107,53,.25),rgba(255,107,53,.05) 60%,transparent 61%);border:1px solid #24435d;flex:0 0 auto}
 .ring-inner span:not(.muted){display:block;line-height:1.1}.ring-inner small{display:block;margin-top:3px}
 @media(max-width:520px){.today-secondary{grid-template-columns:1fr 1.2fr}.tip-card:after{width:48px;height:48px;font-size:28px;right:10px}.tip-copy{padding-right:48px}.streak-flame{width:60px;height:60px}}
+
+/* iPhone layout fix: stack paired native controls to prevent overlap */
+@media(max-width:520px){
+  #food .row,
+  #progressView .row{
+    grid-template-columns:1fr !important;
+    gap:12px !important;
+  }
+  #food .row > *,
+  #progressView .row > *{
+    min-width:0 !important;
+    width:100% !important;
+    overflow:visible !important;
+  }
+  #food input, #food select, #food textarea,
+  #progressView input, #progressView select, #progressView textarea{
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    box-sizing:border-box !important;
+  }
+}
 </style>
 </head>
 <body>
