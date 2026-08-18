@@ -1,76 +1,167 @@
 const MODEL = "@cf/meta/llama-3.2-11b-vision-instruct";
 
-function json(data, status=200){
-  return new Response(JSON.stringify(data),{
+function json(data, status = 200) {
+  return new Response(JSON.stringify(data), {
     status,
-    headers:{"content-type":"application/json; charset=utf-8","cache-control":"no-store"}
+    headers: {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "no-store"
+    }
   });
 }
 
-async function runVision(env, image){
-  const prompt = `Analizá la foto de este plato para registrar nutrición.
-Identificá SOLO alimentos razonablemente visibles. Estimá gramos y macros de cada alimento.
-No afirmes precisión: una foto no permite conocer peso, aceite, salsas ni ingredientes ocultos exactamente.
-Respondé SOLO JSON válido, sin markdown:
-{"items":[{"name":"alimento","grams":150,"kcal":250,"protein":30,"carbs":20,"fat":6,"fiber":2}],"confidence":"alta|media|baja","note":"aclaración breve"}
-Usá números, no strings. Si no es una comida o la imagen no permite estimar, devolvé items vacío y explicalo en note.`;
+const ANALYSIS_SCHEMA = {
+  type: "object",
+  properties: {
+    items: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          name: { type: "string" },
+          grams: { type: "number" },
+          kcal: { type: "number" },
+          protein: { type: "number" },
+          carbs: { type: "number" },
+          fat: { type: "number" },
+          fiber: { type: "number" }
+        },
+        required: ["name", "grams", "kcal", "protein", "carbs", "fat", "fiber"]
+      }
+    },
+    confidence: { type: "string" },
+    note: { type: "string" }
+  },
+  required: ["items", "confidence", "note"]
+};
+
+async function runVision(env, image) {
+  const prompt = `Analizá esta foto para registrar una comida.
+Identificá solamente alimentos razonablemente visibles. Estimá el peso en gramos de cada alimento y sus macronutrientes para esa cantidad.
+La estimación es visual: no inventes ingredientes ocultos y mantené valores conservadores.
+Si ves un producto envasado pero no podés leer su etiqueta nutricional, estimá por el alimento visible y aclaralo.
+Si la imagen no contiene comida o no permite una estimación razonable, devolvé items vacío.
+protein, carbs, fat y fiber se expresan en gramos; kcal en kilocalorías.`;
 
   const args = {
-    messages:[
-      {role:"system",content:"Sos un asistente de registro nutricional. Priorizá estimaciones conservadoras y explícitamente aproximadas."},
-      {role:"user",content:prompt}
+    messages: [
+      {
+        role: "system",
+        content: "Sos un asistente de registro nutricional. Respondé de forma estructurada, aproximada y conservadora."
+      },
+      { role: "user", content: prompt }
     ],
     image,
-    max_tokens:700,
-    temperature:0.1
+    max_tokens: 900,
+    temperature: 0.1,
+    response_format: {
+      type: "json_schema",
+      json_schema: ANALYSIS_SCHEMA
+    }
   };
 
-  try{
-    return await env.AI.run(MODEL,args);
-  }catch(err){
-    const msg=String(err?.message||err);
-    if(/agree|license|acceptable use/i.test(msg)){
-      await env.AI.run(MODEL,{prompt:"agree"});
-      return await env.AI.run(MODEL,args);
+  try {
+    return await env.AI.run(MODEL, args);
+  } catch (err) {
+    const msg = String(err?.message || err);
+    if (/5016|agreement|agree|license|acceptable use/i.test(msg)) {
+      await env.AI.run(MODEL, { prompt: "agree" });
+      return await env.AI.run(MODEL, args);
     }
     throw err;
   }
 }
 
-export default {
-  async fetch(request, env){
-    const url=new URL(request.url);
+function normalizeAnalysis(result) {
+  let value = result?.response ?? result?.result ?? result;
 
-    if(url.pathname==="/api/health"){
-      return json({ok:true,service:"nico-cut-ai",ai:!!env.AI});
+  if (typeof value === "string") {
+    const cleaned = value
+      .replace(/^```json\s*/i, "")
+      .replace(/^```\s*/i, "")
+      .replace(/\s*```$/, "")
+      .trim();
+    value = JSON.parse(cleaned);
+  }
+
+  if (!value || typeof value !== "object") {
+    throw new Error("La IA devolvió una respuesta sin estructura válida.");
+  }
+
+  const analysis = value;
+  if (!Array.isArray(analysis.items)) analysis.items = [];
+
+  analysis.items = analysis.items.slice(0, 12).map((x) => ({
+    name: String(x?.name || "Alimento").slice(0, 80),
+    grams: Number(x?.grams) || 0,
+    kcal: Number(x?.kcal) || 0,
+    protein: Number(x?.protein) || 0,
+    carbs: Number(x?.carbs) || 0,
+    fat: Number(x?.fat) || 0,
+    fiber: Number(x?.fiber) || 0
+  }));
+
+  analysis.confidence = String(analysis.confidence || "media").slice(0, 20);
+  analysis.note = String(
+    analysis.note || "Estimación visual; ajustá cantidades si conocés el peso real."
+  ).slice(0, 300);
+
+  return analysis;
+}
+
+export default {
+  async fetch(request, env) {
+    const url = new URL(request.url);
+
+    if (url.pathname === "/api/health") {
+      return json({
+        ok: true,
+        service: "nico-cut-ai",
+        version: "0.3.1",
+        ai: Boolean(env.AI),
+        assets: Boolean(env.ASSETS)
+      });
     }
 
-    if(url.pathname==="/api/analyze"){
-      if(request.method!=="POST") return json({ok:false,error:"Usá POST."},405);
-      try{
-        const body=await request.json();
-        if(!body?.image || typeof body.image!=="string") return json({ok:false,error:"Falta la imagen."},400);
-        if(body.image.length>9_000_000) return json({ok:false,error:"La foto es demasiado grande."},413);
+    if (url.pathname === "/api/analyze") {
+      if (request.method !== "POST") {
+        return json({ ok: false, error: "Usá POST para analizar una imagen." }, 405);
+      }
 
-        const result=await runVision(env,body.image);
-        let text=result?.response ?? result?.result ?? result;
-        if(typeof text!=="string") text=JSON.stringify(text);
-        text=text.replace(/^```json\s*/i,"").replace(/^```\s*/i,"").replace(/\s*```$/,"").trim();
+      try {
+        const body = await request.json();
 
-        let analysis;
-        try{analysis=JSON.parse(text)}
-        catch{ return json({ok:false,error:"La IA respondió, pero no pude interpretar la estimación.",raw:text},502); }
+        if (!body?.image || typeof body.image !== "string") {
+          return json({ ok: false, error: "Falta la imagen." }, 400);
+        }
+        if (!body.image.startsWith("data:image/")) {
+          return json({ ok: false, error: "Formato de imagen no válido." }, 400);
+        }
+        if (body.image.length > 9_000_000) {
+          return json({ ok: false, error: "La foto es demasiado grande. Probá con otra imagen." }, 413);
+        }
+        if (!env.AI) {
+          return json({ ok: false, error: "El binding de IA no está disponible." }, 500);
+        }
 
-        if(!Array.isArray(analysis.items)) analysis.items=[];
-        analysis.items=analysis.items.slice(0,12).map(x=>({
-          name:String(x.name||"Alimento").slice(0,80),
-          grams:Number(x.grams)||0,kcal:Number(x.kcal)||0,
-          protein:Number(x.protein)||0,carbs:Number(x.carbs)||0,
-          fat:Number(x.fat)||0,fiber:Number(x.fiber)||0
-        }));
-        return json({ok:true,analysis});
-      }catch(err){
-        return json({ok:false,error:String(err?.message||"Error analizando la foto.")},500);
+        const result = await runVision(env, body.image);
+        const analysis = normalizeAnalysis(result);
+
+        if (!analysis.items.length) {
+          return json({
+            ok: false,
+            error: analysis.note || "No pude identificar alimentos con suficiente seguridad.",
+            analysis
+          }, 422);
+        }
+
+        return json({ ok: true, analysis });
+      } catch (err) {
+        console.error("analyze error", err);
+        return json({
+          ok: false,
+          error: String(err?.message || err || "Error analizando la foto.")
+        }, 500);
       }
     }
 
