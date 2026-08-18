@@ -1,0 +1,16 @@
+{
+  "name": "nico-cut-ai",
+  "main": "worker.js",
+  "compatibility_date": "2026-08-17",
+  "ai": {
+    "binding": "AI"
+  },
+  "assets": {
+    "directory": ".",
+    "binding": "ASSETS",
+    "run_worker_first": [
+      "/api/*"
+    ],
+    "not_found_handling": "single-page-application"
+  }
+}
