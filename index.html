@@ -71,7 +71,7 @@ nav button{background:transparent;color:#9aa9ba;border:1px solid transparent;pad
 </div>
 
 <div class="container">
-  <div class="hero"><div><h1>Nico Cut Beta 💪</h1><p>Control simple de definición y déficit semanal</p><div id="profileGreeting" class="hint"></div></div><span class="badge">v0.4.4</span></div>
+  <div class="hero"><div><h1>Nico Cut Beta 💪</h1><p>Control simple de definición y déficit semanal</p><div id="profileGreeting" class="hint"></div></div><span class="badge">v0.4.5</span></div>
 
   <section id="home" class="view active">
     <div class="dashboard">
@@ -112,41 +112,59 @@ nav button{background:transparent;color:#9aa9ba;border:1px solid transparent;pad
       <div class="row"><div><label>Fecha</label><input id="mealDate" type="date"></div><div><label>Comida</label><select id="mealType"><option>Desayuno</option><option>Almuerzo</option><option>Merienda</option><option>Cena</option><option>Snack</option></select></div></div>
       <div class="food-search" style="margin-top:10px"><label>Alimento / producto</label><input id="mealName" autocomplete="off"><div id="foodSuggestions" class="suggestions"></div></div>
 
-      <div class="row3" style="margin-top:10px">
-        <div><label>Cantidad</label><input id="mealQty" inputmode="decimal"></div>
-        <div><label>Unidad</label><select id="mealUnit"><option value="g">g</option><option value="ml">ml</option><option value="porcion">porción</option><option value="rebanada">rebanada</option><option value="unidad">unidad</option></select></div>
-        <div><label>Estado</label><select id="mealState"><option>Cocido</option><option>Crudo</option><option>Envasado</option><option>Unidad</option></select></div>
-      </div>
+      <div id="portionControls" class="portion-box" style="margin-top:10px">
+        <div style="font-weight:800;font-size:16px;margin-bottom:10px">Elegir porción</div>
 
-      <div id="portionControls" class="portion-box">
         <div class="row">
-          <div><label id="equivLabel">Equivalencia (g por unidad)</label><input id="mealUnitGrams" inputmode="decimal" placeholder="Ej: 33,3"></div>
-          <div><label>Porción del envase (g)</label><input id="mealServingGrams" inputmode="decimal" placeholder="Ej: 50"></div>
-        </div>
-
-        <div style="margin-top:12px;border-top:1px solid #24435d;padding-top:12px">
-          <div style="font-weight:800;margin-bottom:8px">🍽️ Raciones estilo MFP</div>
-          <div class="row">
-            <div>
-              <label>Raciones enteras</label>
-              <input id="mealServingWhole" type="number" min="0" step="1" value="1" inputmode="numeric">
-            </div>
-            <div>
-              <label>Fracción</label>
-              <select id="mealServingFraction">
-                <option value="0">0</option>
-                <option value="0.25">1/4</option>
-                <option value="0.3333333333">1/3</option>
-                <option value="0.5">1/2</option>
-                <option value="0.6666666667">2/3</option>
-                <option value="0.75">3/4</option>
-              </select>
+          <div>
+            <label>Porciones enteras</label>
+            <div style="display:grid;grid-template-columns:52px 1fr 52px;gap:0">
+              <button id="servingMinusBtn" type="button" class="secondary" style="border-radius:12px 0 0 12px">−</button>
+              <input id="mealServingWhole" type="number" min="0" step="1" value="1" inputmode="numeric" style="text-align:center;border-radius:0">
+              <button id="servingPlusBtn" type="button" class="secondary" style="border-radius:0 12px 12px 0">＋</button>
             </div>
           </div>
-          <div id="servingSplitHint" class="hint" style="margin-top:8px">Elegí “porción” como unidad para usar estas raciones.</div>
+          <div>
+            <label>Fracción</label>
+            <select id="mealServingFraction">
+              <option value="0">0</option>
+              <option value="0.25">1/4</option>
+              <option value="0.3333333333">1/3</option>
+              <option value="0.5">1/2</option>
+              <option value="0.6666666667">2/3</option>
+              <option value="0.75">3/4</option>
+            </select>
+          </div>
         </div>
 
-        <div id="portionHint" class="hint" style="margin-top:8px">Escaneá un producto o cargá una equivalencia para usar unidades/rebanadas.</div>
+        <div id="servingSplitHint" style="margin-top:10px;padding:10px 12px;border-radius:12px;background:#0b1d31;border:1px solid #24435d;text-align:center">
+          <div style="color:#38bdf8;font-weight:800">1 porción</div>
+          <div class="hint" style="margin-top:3px">Equivale a 0 g</div>
+        </div>
+      </div>
+
+      <div class="portion-box" style="margin-top:10px">
+        <div style="font-weight:800;margin-bottom:8px">Información de referencia del producto</div>
+        <div class="row">
+          <div>
+            <label>Tamaño de la porción</label>
+            <div style="display:grid;grid-template-columns:1fr 82px;gap:8px">
+              <input id="mealQty" inputmode="decimal" placeholder="Ej: 50">
+              <select id="mealUnit"><option value="g">g</option><option value="ml">ml</option></select>
+            </div>
+          </div>
+          <div>
+            <label>Equivalencia por unidad (opcional)</label>
+            <input id="mealUnitGrams" inputmode="decimal" placeholder="Ej: 33,3">
+          </div>
+        </div>
+        <input id="mealServingGrams" type="hidden">
+        <div id="portionHint" class="hint" style="margin-top:8px">La porción escaneada queda como referencia. Las porciones de arriba son las que cambian el total.</div>
+      </div>
+
+      <div style="margin-top:10px">
+        <label>Estado</label>
+        <select id="mealState"><option>Cocido</option><option>Crudo</option><option>Envasado</option><option>Unidad</option></select>
       </div>
 
       <div class="formgrid" style="margin-top:10px">
@@ -220,11 +238,11 @@ function renderHome(){
     document.getElementById(id+'Pct').textContent=pct(v,g)+'%';
   });
   const recent=[...data.meals].sort((a,b)=>(b.date+b.id).localeCompare(a.date+a.id)).slice(0,5);
-  recentMeals.innerHTML=recent.length?recent.map(m=>`<div class="item"><div><strong>${esc(m.name)}</strong><small>${m.date} · ${m.qty} ${esc(m.unit)} · ${Math.round(m.kcal)} kcal</small></div></div>`).join(''):'<div class="card hint">Todavía no cargaste comidas.</div>';
+  recentMeals.innerHTML=recent.length?recent.map(m=>`<div class="item"><div><strong>${esc(m.name)}</strong><small>${m.date} · ${m.portions?round1(m.portions)+' porciones · ':''}${m.qty} ${esc(m.unit)} · ${Math.round(m.kcal)} kcal</small></div></div>`).join(''):'<div class="card hint">Todavía no cargaste comidas.</div>';
 }
 function renderMeals(){
   const arr=[...data.meals].sort((a,b)=>(b.date+b.id).localeCompare(a.date+a.id));
-  mealList.innerHTML=arr.length?arr.map(m=>`<div class="item"><div><strong>${esc(m.name)}</strong><small>${m.date} · ${m.type} · ${m.qty} ${esc(m.unit)} · P ${round1(m.protein)} / C ${round1(m.carbs)} / G ${round1(m.fat)} / Fib ${round1(m.fiber)} · ${Math.round(m.kcal)} kcal</small></div><button class="danger" onclick="delMeal('${m.id}')">Eliminar</button></div>`).join(''):'<div class="card hint">Sin comidas registradas.</div>';
+  mealList.innerHTML=arr.length?arr.map(m=>`<div class="item"><div><strong>${esc(m.name)}</strong><small>${m.date} · ${m.type} · ${m.portions?round1(m.portions)+' porciones · ':''}${m.qty} ${esc(m.unit)} · P ${round1(m.protein)} / C ${round1(m.carbs)} / G ${round1(m.fat)} / Fib ${round1(m.fiber)} · ${Math.round(m.kcal)} kcal</small></div><button class="danger" onclick="delMeal('${m.id}')">Eliminar</button></div>`).join(''):'<div class="card hint">Sin comidas registradas.</div>';
 }
 function renderProgress(){
   const arr=[...data.progress].sort((a,b)=>b.date.localeCompare(a.date));
@@ -262,6 +280,7 @@ function parseServingUnits(servingSize){
   }
   return 0;
 }
+
 function splitServingNumber(v){
   const value=Math.max(0,localNum(v));
   const whole=Math.floor(value+1e-9),frac=value-whole;
@@ -271,35 +290,29 @@ function splitServingNumber(v){
   mealServingWhole.value=whole;
   mealServingFraction.value=String(best===1/3?'0.3333333333':best===2/3?'0.6666666667':best);
 }
+function selectedServings(){
+  return Math.max(0,localNum(mealServingWhole.value))+Math.max(0,localNum(mealServingFraction.value));
+}
+function servingUnitSize(){
+  return Math.max(0,num('mealQty') || baseNutrition?.servingGrams || baseNutrition?.basis || 100);
+}
 function applyServingSplit(){
-  if(mealUnit.value!=='porcion')return;
-  const total=Math.max(0,localNum(mealServingWhole.value))+Math.max(0,localNum(mealServingFraction.value));
-  mealQty.value=round1(total);
   recalcNutrition();
 }
 function updateServingSplitHint(){
-  const total=Math.max(0,localNum(mealServingWhole.value))+Math.max(0,localNum(mealServingFraction.value));
-  const sg=num('mealServingGrams')||baseNutrition?.servingGrams||0;
-  servingSplitHint.innerHTML=sg
-    ? `<strong>${round1(total)} ración${Math.abs(total-1)<0.001?'':'es'}</strong> × ${round1(sg)} g = <strong>${round1(total*sg)} g</strong>`
-    : 'Indicá el tamaño de la porción en gramos para calcular las raciones.';
+  const total=selectedServings(),sg=servingUnitSize(),unit=mealUnit.value||'g';
+  const grams=total*sg;
+  servingSplitHint.innerHTML=
+    `<div style="color:#38bdf8;font-weight:800">${round1(total)} porción${Math.abs(total-1)<0.001?'':'es'}</div>`+
+    `<div style="color:#86efac;margin-top:3px">Equivale a ${round1(grams)} ${unit}</div>`;
 }
 function calcFactor(){
   if(!baseNutrition)return 1;
-  const qty=num('mealQty'),unit=mealUnit.value;
-  if(unit==='g'||unit==='ml') return qty/(baseNutrition.basis||100);
-  if(unit==='porcion'){
-    const sg=num('mealServingGrams')||baseNutrition.servingGrams||0;
-    return sg>0 ? (qty*sg)/(baseNutrition.basis||100) : qty;
-  }
-  if(unit==='rebanada'||unit==='unidad'){
-    const ug=num('mealUnitGrams')||baseNutrition.gramsPerUnit||0;
-    return ug>0 ? (qty*ug)/(baseNutrition.basis||100) : qty;
-  }
-  return 1;
+  const totalAmount=selectedServings()*servingUnitSize();
+  return totalAmount/(baseNutrition.basis||100);
 }
 function recalcNutrition(){
-  if(!baseNutrition)return;
+  if(!baseNutrition){updateServingSplitHint();return}
   const f=calcFactor();
   mealKcal.value=round1(baseNutrition.kcal*f);
   mealProtein.value=round1(baseNutrition.protein*f);
@@ -308,40 +321,34 @@ function recalcNutrition(){
   mealFiber.value=round1(baseNutrition.fiber*f);
   mealSatFat.value=round1(baseNutrition.satFat*f);
   mealTransFat.value=round1(baseNutrition.transFat*f);
-  const qty=num('mealQty'),unit=mealUnit.value;
+  mealServingGrams.value=servingUnitSize();
   updateServingSplitHint();
-  if(unit==='rebanada'||unit==='unidad'){
-    const g=num('mealUnitGrams')||baseNutrition.gramsPerUnit||0;
-    portionHint.innerHTML=g?`<strong>${qty} ${unit}${qty===1?'':'s'}</strong> ≈ ${round1(qty*g)} g`:'Cargá los gramos que pesa 1 unidad/rebanada.';
-  }else if(unit==='porcion'){
-    const g=num('mealServingGrams')||baseNutrition.servingGrams||0;
-    portionHint.innerHTML=g?`<strong>${qty} porción${qty===1?'':'es'}</strong> = ${round1(qty*g)} g`:'Cargá los gramos de una porción.';
-  }else{
-    portionHint.innerHTML=`Calculando desde la base nutricional de <strong>${baseNutrition.basis||100} g</strong>.`;
-  }
+  portionHint.innerHTML=`Base nutricional: <strong>${baseNutrition.basis||100} ${mealUnit.value||'g'}</strong>. Tamaño de porción: <strong>${round1(servingUnitSize())} ${mealUnit.value||'g'}</strong>.`;
 }
 function setMealFields(f){
   activeFoodId=f.id||null;
   mealName.value=f.name||'';
   mealState.value=f.state||'Envasado';
   mealSource.value=f.source||'';
-  mealServingGrams.value=f.servingGrams||'';
+  const servingSize=n(f.servingGrams)||n(f.defaultQty)||n(f.basis)||100;
+  mealQty.value=servingSize;
+  mealServingGrams.value=servingSize;
+  mealUnit.value=f.measureUnit||f.unit||'g';
   mealUnitGrams.value=f.gramsPerUnit||'';
   baseNutrition={
     basis:f.basis||100,
     kcal:n(f.baseKcal??f.kcal),protein:n(f.baseProtein??f.protein),carbs:n(f.baseCarbs??f.carbs),fat:n(f.baseFat??f.fat),fiber:n(f.baseFiber??f.fiber),
-    satFat:n(f.baseSatFat??f.satFat),transFat:n(f.baseTransFat??f.transFat),servingGrams:n(f.servingGrams),gramsPerUnit:n(f.gramsPerUnit)
+    satFat:n(f.baseSatFat??f.satFat),transFat:n(f.baseTransFat??f.transFat),servingGrams:servingSize,gramsPerUnit:n(f.gramsPerUnit)
   };
-  mealUnit.value=f.defaultUnit||f.unit||'g';
-  mealQty.value=f.defaultQty||f.basis||100;
-  if(mealUnit.value==='porcion') splitServingNumber(mealQty.value);
-  else { mealServingWhole.value=1; mealServingFraction.value='0'; }
+  mealServingWhole.value=1;
+  mealServingFraction.value='0';
   recalcNutrition();
 }
 function clearMealFields(){
-  ['mealName','mealQty','mealUnitGrams','mealServingGrams','mealKcal','mealProtein','mealCarbs','mealFat','mealFiber','mealSatFat','mealTransFat','mealSource'].forEach(id=>document.getElementById(id).value='');
+  ['mealName','mealQty','mealUnitGrams','mealKcal','mealProtein','mealCarbs','mealFat','mealFiber','mealSatFat','mealTransFat','mealSource'].forEach(id=>document.getElementById(id).value='');
   baseNutrition=null;activeFoodId=null;
-  mealServingWhole.value=1;mealServingFraction.value='0';servingSplitHint.textContent='Elegí “porción” como unidad para usar estas raciones.';
+  mealServingWhole.value=1;mealServingFraction.value='0';mealUnit.value='g';
+  updateServingSplitHint();
 }
 
 window.useFood=id=>{const f=data.foodLibrary.find(x=>x.id===id);if(f)setMealFields(f)};
@@ -354,26 +361,39 @@ async function lookupBarcode(code){
   scanStatus.textContent='Buscando producto…';scanStatus.className='statusbox show';
   try{
     const r=await fetch(`https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(code)}.json?fields=code,product_name,brands,serving_size,serving_quantity,nutriments`);
-    const j=await r.json();if(j.status!==1){scanStatus.textContent='Producto no encontrado.';return}
+    const j=await r.json();
+    if(j.status!==1){scanStatus.textContent='Producto no encontrado.';scanStatus.className='statusbox show warn';return}
     const p=j.product,nu=p.nutriments||{};
-    const servingGrams=n(p.serving_quantity)||fractionTextToNumber(p.serving_size);
+    const servingText=String(p.serving_size||'').toLowerCase();
+    const measureUnit=/ml\b/.test(servingText)?'ml':'g';
+    const servingSize=n(p.serving_quantity)||fractionTextToNumber(p.serving_size)||100;
     const servingUnits=parseServingUnits(p.serving_size);
-    const gramsPerUnit=servingGrams>0&&servingUnits>0?servingGrams/servingUnits:0;
+    const gramsPerUnit=measureUnit==='g'&&servingSize>0&&servingUnits>0?servingSize/servingUnits:0;
+
+    const baseKcal=n(nu['energy-kcal_100g'])||n(nu['energy-kcal_100ml'])||(n(nu.energy_100g)?n(nu.energy_100g)/4.184:0);
+    const pick=(name)=>n(nu[`${name}_100g`])||n(nu[`${name}_100ml`]);
+
     const f={
-      id:crypto.randomUUID(),barcode:code,name:[p.product_name,p.brands].filter(Boolean).join(' · ')||`Producto ${code}`,
-      state:'Envasado',basis:100,defaultQty:servingGrams||100,defaultUnit:servingGrams?'g':'g',
-      servingGrams,gramsPerUnit,
-      baseKcal:n(nu['energy-kcal_100g'])||(n(nu.energy_100g)?n(nu.energy_100g)/4.184:0),
-      baseProtein:n(nu.proteins_100g),baseCarbs:n(nu.carbohydrates_100g),baseFat:n(nu.fat_100g),baseFiber:n(nu.fiber_100g),
-      baseSatFat:n(nu['saturated-fat_100g']),baseTransFat:n(nu['trans-fat_100g']),
+      id:crypto.randomUUID(),barcode:code,
+      name:[p.product_name,p.brands].filter(Boolean).join(' · ')||`Producto ${code}`,
+      state:'Envasado',basis:100,servingGrams:servingSize,defaultQty:servingSize,
+      measureUnit,gramsPerUnit,
+      baseKcal,baseProtein:pick('proteins'),baseCarbs:pick('carbohydrates'),baseFat:pick('fat'),baseFiber:pick('fiber'),
+      baseSatFat:pick('saturated-fat'),baseTransFat:pick('trans-fat'),
       source:'Open Food Facts'
     };
     f.kcal=f.baseKcal;f.protein=f.baseProtein;f.carbs=f.baseCarbs;f.fat=f.baseFat;f.fiber=f.baseFiber;f.satFat=f.baseSatFat;f.transFat=f.baseTransFat;
-    const old=data.foodLibrary.findIndex(x=>x.barcode===code); if(old>=0){f.id=data.foodLibrary[old].id;data.foodLibrary[old]=f}else data.foodLibrary.unshift(f);
+
+    const old=data.foodLibrary.findIndex(x=>x.barcode===code);
+    if(old>=0){f.id=data.foodLibrary[old].id;data.foodLibrary[old]=f}else data.foodLibrary.unshift(f);
     save();setMealFields(f);
-    scanStatus.textContent=gramsPerUnit?`✅ Producto encontrado · ${round1(gramsPerUnit)} g por unidad/rebanada detectados`:'✅ Producto encontrado · podés usar gramos o cargar equivalencia por unidad';
+
+    scanStatus.textContent=`✅ Producto encontrado · porción base ${round1(servingSize)} ${measureUnit}`;
     scanStatus.className='statusbox show ok';
-  }catch(e){scanStatus.textContent='No pude consultar la base.';scanStatus.className='statusbox show warn'}
+  }catch(e){
+    scanStatus.textContent='No pude consultar la base.';
+    scanStatus.className='statusbox show warn';
+  }
 }
 async function startScanner(){scanPanel.classList.add('active');if(typeof Html5Qrcode==='undefined')return;scanner=new Html5Qrcode('reader');scannerRunning=true;await scanner.start({facingMode:'environment'},{fps:10,qrbox:{width:280,height:140}},async text=>{await stopScanner();barcodeInput.value=text;lookupBarcode(text)},()=>{})}
 async function stopScanner(){if(scanner&&scannerRunning){try{await scanner.stop()}catch{}try{await scanner.clear()}catch{}}scannerRunning=false;scanner=null;scanPanel.classList.remove('active')}
@@ -402,13 +422,14 @@ platePhotoInput.onchange=e=>{
 
 addMealBtn.onclick=()=>{
   if(!mealName.value.trim()||!num('mealKcal'))return alert('Cargá alimento y calorías.');
-  data.meals.push({id:crypto.randomUUID(),date:mealDate.value||today(),type:mealType.value,name:mealName.value.trim(),qty:num('mealQty'),unit:mealUnit.value,state:mealState.value,kcal:num('mealKcal'),protein:num('mealProtein'),carbs:num('mealCarbs'),fat:num('mealFat'),fiber:num('mealFiber'),satFat:num('mealSatFat'),transFat:num('mealTransFat'),source:mealSource.value.trim()});
+  const portions=selectedServings(),actualQty=round1(portions*servingUnitSize());
+  data.meals.push({id:crypto.randomUUID(),date:mealDate.value||today(),type:mealType.value,name:mealName.value.trim(),qty:actualQty,unit:mealUnit.value,portions,servingSize:servingUnitSize(),state:mealState.value,kcal:num('mealKcal'),protein:num('mealProtein'),carbs:num('mealCarbs'),fat:num('mealFat'),fiber:num('mealFiber'),satFat:num('mealSatFat'),transFat:num('mealTransFat'),source:mealSource.value.trim()});
   clearMealFields();save();
 };
 saveFoodBtn.onclick=()=>{
   if(!mealName.value.trim())return alert('Escribí el nombre del alimento.');
   const b=baseNutrition||{basis:num('mealQty')||100,kcal:num('mealKcal'),protein:num('mealProtein'),carbs:num('mealCarbs'),fat:num('mealFat'),fiber:num('mealFiber'),satFat:num('mealSatFat'),transFat:num('mealTransFat')};
-  const f={id:activeFoodId||crypto.randomUUID(),name:mealName.value.trim(),state:mealState.value,basis:b.basis||100,defaultQty:num('mealQty')||b.basis||100,defaultUnit:mealUnit.value,servingGrams:num('mealServingGrams')||b.servingGrams||0,gramsPerUnit:num('mealUnitGrams')||b.gramsPerUnit||0,
+  const f={id:activeFoodId||crypto.randomUUID(),name:mealName.value.trim(),state:mealState.value,basis:b.basis||100,defaultQty:servingUnitSize()||b.basis||100,servingGrams:servingUnitSize()||b.servingGrams||0,measureUnit:mealUnit.value,gramsPerUnit:num('mealUnitGrams')||b.gramsPerUnit||0,
     baseKcal:b.kcal,baseProtein:b.protein,baseCarbs:b.carbs,baseFat:b.fat,baseFiber:b.fiber,baseSatFat:b.satFat,baseTransFat:b.transFat,
     kcal:b.kcal,protein:b.protein,carbs:b.carbs,fat:b.fat,fiber:b.fiber,satFat:b.satFat,transFat:b.transFat,source:mealSource.value.trim()};
   const i=data.foodLibrary.findIndex(x=>x.id===f.id);i>=0?data.foodLibrary[i]=f:data.foodLibrary.unshift(f);activeFoodId=f.id;save();
@@ -425,23 +446,13 @@ importBtn.onclick=()=>importFile.click();importFile.onchange=e=>{const r=new Fil
 resetBtn.onclick=()=>{if(confirm('¿Borrar todos los datos?')){data=structuredClone(defaultData);save()}};
 
 scanBtn.onclick=startScanner;stopScanBtn.onclick=stopScanner;barcodeManualBtn.onclick=()=>barcodeManualBox.classList.toggle('active');lookupBarcodeBtn.onclick=()=>lookupBarcode(barcodeInput.value);
-mealQty.addEventListener('input',()=>{if(mealUnit.value==='porcion')splitServingNumber(mealQty.value);recalcNutrition()});
-mealUnit.addEventListener('change',()=>{
-  if(mealUnit.value==='porcion'){
-    const sg=num('mealServingGrams')||baseNutrition?.servingGrams||0;
-    if(sg>0){
-      const currentQty=num('mealQty');
-      const previousGrams=(currentQty>0 && currentQty>10)?currentQty:0;
-      if(previousGrams>0) mealQty.value=round1(previousGrams/sg);
-    }
-    splitServingNumber(mealQty.value||1);
-  }
-  recalcNutrition();
-});
+mealQty.addEventListener('input',()=>{mealServingGrams.value=mealQty.value;recalcNutrition()});
+mealUnit.addEventListener('change',recalcNutrition);
 mealUnitGrams.addEventListener('input',recalcNutrition);
-mealServingGrams.addEventListener('input',()=>{recalcNutrition();updateServingSplitHint()});
 mealServingWhole.addEventListener('input',applyServingSplit);
 mealServingFraction.addEventListener('change',applyServingSplit);
+servingMinusBtn.addEventListener('click',()=>{mealServingWhole.value=Math.max(0,localNum(mealServingWhole.value)-1);applyServingSplit()});
+servingPlusBtn.addEventListener('click',()=>{mealServingWhole.value=Math.max(0,localNum(mealServingWhole.value)+1);applyServingSplit()});
 librarySearch.addEventListener('input',renderFoodLibrary);
 mealName.addEventListener('input',()=>{
   const q=mealName.value.trim().toLowerCase();if(!q){foodSuggestions.classList.remove('show');return}
