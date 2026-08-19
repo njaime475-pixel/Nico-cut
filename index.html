@@ -163,12 +163,19 @@ nav{left:10px;right:10px;bottom:10px;border:1px solid #223544;border-radius:22px
 .weekly-goal-track{height:9px;border-radius:999px;background:#1d2a35;overflow:hidden;margin-top:9px}.weekly-goal-track i{display:block;height:100%;width:0;border-radius:999px;background:var(--nc-green)}
 .weekly-goal-left{margin-top:8px;font-size:12px;font-weight:750;color:#dbeafe}.weekly-goal-left.done{color:#86efac}.weekly-goal-left.over{color:#fbbf24}
 .weekly-current-kicker{font-size:11px;color:#78e694;font-weight:800;margin-top:8px}
+
+.weekly-budget-primary{margin-top:12px;padding:14px;border-radius:16px;background:#091625;border:1px solid #285a3a}
+.weekly-budget-label{font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.04em}.weekly-budget-left{font-size:30px;font-weight:900;color:#86efac;line-height:1.1;margin-top:5px}.weekly-budget-sub{font-size:11px;color:#94a3b8;margin-top:5px;line-height:1.45}
+.weekly-budget-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.weekly-budget-mini{background:#0b1721;border:1px solid #1e3040;border-radius:13px;padding:10px}.weekly-budget-mini span{display:block;font-size:10px;color:#7f8e9a}.weekly-budget-mini b{display:block;font-size:15px;margin-top:4px}
+.weekly-budget-track{height:9px;border-radius:999px;background:#1d2a35;overflow:hidden;margin-top:12px}.weekly-budget-track i{display:block;height:100%;border-radius:999px;background:var(--nc-green);width:0}
+.weekly-deficit-secondary{margin-top:12px;padding:12px;border-radius:14px;background:#0b1721;border:1px solid #1e3040}.weekly-deficit-secondary .value{font-size:22px;font-weight:850;margin-top:4px}.weekly-deficit-secondary .value.good{color:#86efac}.weekly-deficit-secondary .value.bad{color:#fca5a5}
+.weekly-warning{margin-top:10px;padding:9px 10px;border-radius:11px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25);color:#fbbf24;font-size:10px;line-height:1.45}
 @media(max-width:520px){nav button{font-size:10px;padding-left:2px;padding-right:2px}.weekly-hero-grid{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
 <div id="onboarding" class="onboarding" aria-modal="true" role="dialog"><div class="onboarding-card"><h2>👋 Bienvenida/o a Nico Cut</h2><p class="welcome-sub">Configuramos lo básico una sola vez. Después podés cambiarlo cuando quieras desde Ajustes.</p><div><label>¿Cómo te llamás?</label><input id="onboardName" autocomplete="name" placeholder="Ej: Cande"></div><div style="margin-top:12px"><label>¿Cuál es tu objetivo?</label><div class="goal-options"><label class="goal-option"><input type="radio" name="onboardGoal" value="lose" checked><span>🔥 Perder grasa</span></label><label class="goal-option"><input type="radio" name="onboardGoal" value="maintain"><span>⚖️ Mantener</span></label><label class="goal-option"><input type="radio" name="onboardGoal" value="gain"><span>💪 Ganar músculo</span></label></div></div><div class="row" style="margin-top:12px"><div><label>Edad</label><input id="onboardAge" type="number" inputmode="numeric" placeholder="Ej: 27"></div><div><label>Estatura (cm)</label><input id="onboardHeight" type="number" inputmode="numeric" placeholder="Ej: 165"></div></div><div class="row" style="margin-top:12px"><div><label>Peso actual (kg)</label><input id="onboardWeight" type="text" inputmode="decimal" placeholder="Ej: 62"></div><div><label>Sexo para el cálculo</label><select id="onboardSex"><option value="female">Mujer</option><option value="male">Hombre</option></select></div></div><div style="margin-top:12px"><label>Nivel de actividad habitual</label><select id="onboardActivity"><option value="sedentary">Sedentaria/o · poco ejercicio</option><option value="light">Ligera · 1–3 días/semana</option><option value="moderate" selected>Moderada · 3–5 días/semana</option><option value="high">Alta · 6–7 días/semana</option></select></div><button id="calculateTargetsBtn" class="secondary" style="margin-top:12px">🧮 Calcular mis objetivos</button><div id="calorieEstimateBox" class="statusbox" style="margin-top:10px"></div><div class="row" style="margin-top:12px"><div><label>Calorías objetivo</label><input id="onboardCalories" type="number" inputmode="numeric"></div><div><label>Proteína objetivo (g)</label><input id="onboardProtein" type="number" inputmode="numeric"></div></div><div style="margin-top:12px"><label>Pasos diarios</label><input id="onboardSteps" type="number" inputmode="numeric" placeholder="Ej: 8000"></div><button id="finishOnboardingBtn" style="margin-top:16px">Empezar 🚀</button><p class="hint" style="margin-bottom:0">Si elegís “Perder grasa”, Nico Cut estima tu mantenimiento y resta 500 kcal/día. Los demás macros se calculan automáticamente y después podés editarlos.</p></div></div>
-<div class="container"><div class="hero"><div><h1>Nico Cut Beta 💪</h1><p>Control simple de definición y déficit semanal</p><div id="profileGreeting" class="profile-greeting"></div></div><span class="badge">v0.4.12</span></div>
+<div class="container"><div class="hero"><div><h1>Nico Cut Beta 💪</h1><p>Control simple de definición y déficit semanal</p><div id="profileGreeting" class="profile-greeting"></div></div><span class="badge">v0.4.14</span></div>
 <section id="home" class="view active">
   <div class="nc-topbar">
     <div><div class="nc-hello">Hola, <span id="homeName">Nico</span> 👋</div><div class="nc-date" id="homeDateTitle">Hoy</div></div>
@@ -302,17 +309,21 @@ function weeklyProgressRows(){
  while(localDateString(cursor)<=currentWeek&&guard++<520){
    const ws=localDateString(cursor),dates=weekDates(ws),isCurrent=ws===currentWeek,elapsedDates=dates.filter(d=>!isCurrent||d<=today());
    const loggedDates=elapsedDates.filter(d=>data.meals.some(m=>m.date===d));
-   const consumed=loggedDates.reduce((sum,d)=>sum+dailyTotals(d).kcal,0);
+   const consumedAll=dates.reduce((sum,d)=>sum+dailyTotals(d).kcal,0);
+   const consumedLogged=loggedDates.reduce((sum,d)=>sum+dailyTotals(d).kcal,0);
    const maintenanceLogged=loggedDates.reduce((sum,d)=>sum+maintenanceForDate(d),0);
-   const deficit=maintenanceLogged-consumed;
+   const deficit=maintenanceLogged-consumedLogged;
    const fullMaintenance=dates.reduce((sum,d)=>sum+maintenanceForDate(d),0);
    const fullGoalBudget=dates.reduce((sum,d)=>sum+goalForDate(d),0);
    const targetDeficit=Math.max(0,fullMaintenance-fullGoalBudget);
-   const remainingDeficit=Math.max(0,targetDeficit-Math.max(0,deficit));
-   const goalProgress=targetDeficit?Math.min(100,Math.max(0,deficit)/targetDeficit*100):(deficit>=0?100:0);
+   const available=Math.max(0,fullGoalBudget-consumedAll);
+   const overBudget=Math.max(0,consumedAll-fullGoalBudget);
+   const budgetUsedPct=fullGoalBudget?Math.min(100,Math.max(0,consumedAll/fullGoalBudget*100)):0;
+   const missingElapsed=Math.max(0,elapsedDates.length-loggedDates.length);
+   const remainingCalendarDays=isCurrent?dates.filter(d=>d>=today()).length:0;
+   const avgAvailablePerRemaining=remainingCalendarDays?available/remainingCalendarDays:0;
    const complete=loggedDates.length===elapsedDates.length&&(!isCurrent||elapsedDates.length===7);
-   const balanceLogged=loggedDates.reduce((sum,d)=>sum+(goalForDate(d)-dailyTotals(d).kcal),0);
-   rows.push({ws,isCurrent,days:elapsedDates.length,loggedDays:loggedDates.length,complete,consumed,maintenance:maintenanceLogged,deficit,targetDeficit,remainingDeficit,goalProgress,balanceLogged,fullGoalBudget});
+   rows.push({ws,isCurrent,days:elapsedDates.length,loggedDays:loggedDates.length,missingElapsed,complete,consumedAll,consumedLogged,maintenance:maintenanceLogged,deficit,targetDeficit,fullGoalBudget,available,overBudget,budgetUsedPct,remainingCalendarDays,avgAvailablePerRemaining});
    cursor.setDate(cursor.getDate()+7);
  }
  return rows.reverse();
@@ -325,25 +336,34 @@ function renderWeeklyProgress(){
  if(note)note.textContent=`${completeRows.length} semana${completeRows.length===1?'':'s'} completa${completeRows.length===1?'':'s'} sumada${completeRows.length===1?'':'s'}`;
  if(!rows.length){list.innerHTML='<div class="card hint">Cuando tengas comidas registradas, acá va a aparecer tu historial semanal.</div>';return}
  list.innerHTML=rows.map(r=>{
+   const status=r.isCurrent?'Semana en curso':(r.complete?'Semana completa':'Registro incompleto');
+   const budgetHeadline=r.overBudget>0?`Te pasaste ${Math.round(r.overBudget).toLocaleString('es-AR')} kcal`:`${Math.round(r.available).toLocaleString('es-AR')} kcal`;
+   const budgetCaption=r.overBudget>0?'por encima del presupuesto semanal':'disponibles para comer hasta el domingo';
    const deficitPositive=r.deficit>=0, deficitText=(deficitPositive?'−':'＋')+Math.abs(Math.round(r.deficit)).toLocaleString('es-AR')+' kcal';
-   const cls=deficitPositive?'positive':'negative',status=r.isCurrent?'Semana en curso':(r.complete?'Semana completa':'Registro incompleto');
-   const comp=r.complete?`${r.loggedDays}/${r.days} días registrados · se suma al lifetime`:`${r.loggedDays}/${r.days} días registrados${r.isCurrent?' hasta hoy':' · no se suma al lifetime'}`;
-   let leftText='',leftClass='';
-   if(r.targetDeficit<=0){leftText='No hay un objetivo de déficit configurado para esta semana.'}
-   else if(r.deficit>=r.targetDeficit){leftText=`✅ Objetivo de déficit alcanzado (${Math.round(r.targetDeficit).toLocaleString('es-AR')} kcal)`;leftClass='done'}
-   else if(r.deficit<0){leftText=`Estás ${Math.abs(Math.round(r.deficit)).toLocaleString('es-AR')} kcal en superávit en los días registrados.`;leftClass='over'}
-   else{leftText=`Te faltan ${Math.round(r.remainingDeficit).toLocaleString('es-AR')} kcal de déficit para el objetivo semanal.`}
+   const targetTxt=r.targetDeficit>0?`${Math.round(r.targetDeficit).toLocaleString('es-AR')} kcal`:'—';
+   const comp=r.complete?`${r.loggedDays}/${r.days} días registrados · se suma al lifetime`:`${r.loggedDays}/${r.days} días transcurridos con registro${r.isCurrent?'':' · no se suma al lifetime'}`;
+   const warning=r.missingElapsed>0?`⚠️ Tenés ${r.missingElapsed} día${r.missingElapsed===1?'':'s'} transcurrido${r.missingElapsed===1?'':'s'} sin cargar. El presupuesto disponible puede verse más alto hasta completar esos días.`:'';
+   const avgLine=r.isCurrent&&r.remainingCalendarDays>0?`Promedio orientativo: ${Math.round(r.avgAvailablePerRemaining).toLocaleString('es-AR')} kcal por día desde hoy hasta el domingo.`:'';
    return `<div class="weekly-history-card" style="margin-bottom:10px">
      <div class="weekly-history-top"><strong>${weekLabel(r.ws)}</strong><span>${status}</span></div>
      ${r.isCurrent?'<div class="weekly-current-kicker">ESTA SEMANA</div>':''}
-     <div class="weekly-deficit ${cls}">${deficitText}</div>
-     <div class="hint">${deficitPositive?'déficit registrado':'superávit registrado'} · solo días con comidas cargadas</div>
-     <div class="weekly-goal-box">
-       <div class="weekly-goal-head"><div><span>PROGRESO AL OBJETIVO</span><b>${Math.max(0,Math.round(r.deficit)).toLocaleString('es-AR')} / ${Math.round(r.targetDeficit).toLocaleString('es-AR')} kcal</b></div><div><span>AVANCE</span><b>${Math.round(r.goalProgress)}%</b></div></div>
-       <div class="weekly-goal-track"><i style="width:${r.goalProgress}%"></i></div>
-       <div class="weekly-goal-left ${leftClass}">${leftText}</div>
+     <div class="weekly-budget-primary">
+       <div class="weekly-budget-label">🍽️ PRESUPUESTO SEMANAL</div>
+       <div class="weekly-budget-left" style="${r.overBudget>0?'color:#fca5a5':''}">${budgetHeadline}</div>
+       <div class="weekly-budget-sub">${budgetCaption}</div>
+       <div class="weekly-budget-track"><i style="width:${r.budgetUsedPct}%"></i></div>
+       <div class="weekly-budget-row">
+         <div class="weekly-budget-mini"><span>Consumidas esta semana</span><b>${Math.round(r.consumedAll).toLocaleString('es-AR')} kcal</b></div>
+         <div class="weekly-budget-mini"><span>Presupuesto total</span><b>${Math.round(r.fullGoalBudget).toLocaleString('es-AR')} kcal</b></div>
+       </div>
+       ${avgLine?`<div class="weekly-budget-sub">${avgLine}</div>`:''}
+       ${warning?`<div class="weekly-warning">${warning}</div>`:''}
      </div>
-     <div class="weekly-history-meta"><div><span>Consumidas registradas</span><b>${Math.round(r.consumed).toLocaleString('es-AR')} kcal</b></div><div><span>Mantenimiento (días registrados)</span><b>${Math.round(r.maintenance).toLocaleString('es-AR')} kcal</b></div><div><span>Margen vs objetivo diario</span><b>${r.balanceLogged>=0?'+':''}${Math.round(r.balanceLogged).toLocaleString('es-AR')} kcal</b></div><div><span>Objetivo kcal semana</span><b>${Math.round(r.fullGoalBudget).toLocaleString('es-AR')} kcal</b></div></div>
+     <div class="weekly-deficit-secondary">
+       <div class="weekly-budget-label">🔥 DÉFICIT ESTIMADO REGISTRADO</div>
+       <div class="value ${deficitPositive?'good':'bad'}">${deficitText}</div>
+       <div class="weekly-budget-sub">Calculado solo con los ${r.loggedDays} día${r.loggedDays===1?'':'s'} que tienen comidas cargadas. Objetivo teórico semanal: ${targetTxt}.</div>
+     </div>
      <div class="weekly-completeness ${r.complete?'':'warn'}">${comp}</div>
    </div>`
  }).join('');
