@@ -158,6 +158,11 @@ nav{left:10px;right:10px;bottom:10px;border:1px solid #223544;border-radius:22px
 .weekly-deficit{font-size:25px;font-weight:850;margin-top:9px}.weekly-deficit.positive{color:#86efac}.weekly-deficit.negative{color:#fca5a5}
 .weekly-history-meta{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-top:10px}.weekly-history-meta div{background:#091625;border-radius:11px;padding:8px}.weekly-history-meta span,.weekly-history-meta small{display:block;font-size:10px;color:#7f8e9a}.weekly-history-meta b{display:block;font-size:13px;margin-top:3px}
 .weekly-completeness{margin-top:9px;font-size:10px;color:#94a3b8;line-height:1.4}.weekly-completeness.warn{color:#fbbf24}
+ .weekly-goal-box{margin-top:12px;padding:12px;background:#091625;border:1px solid #1e3040;border-radius:14px}
+.weekly-goal-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-end}.weekly-goal-head span{font-size:10px;color:#7f8e9a}.weekly-goal-head b{font-size:13px}
+.weekly-goal-track{height:9px;border-radius:999px;background:#1d2a35;overflow:hidden;margin-top:9px}.weekly-goal-track i{display:block;height:100%;width:0;border-radius:999px;background:var(--nc-green)}
+.weekly-goal-left{margin-top:8px;font-size:12px;font-weight:750;color:#dbeafe}.weekly-goal-left.done{color:#86efac}.weekly-goal-left.over{color:#fbbf24}
+.weekly-current-kicker{font-size:11px;color:#78e694;font-weight:800;margin-top:8px}
 @media(max-width:520px){nav button{font-size:10px;padding-left:2px;padding-right:2px}.weekly-hero-grid{grid-template-columns:1fr 1fr}}
 </style>
 </head>
@@ -231,7 +236,7 @@ nav{left:10px;right:10px;bottom:10px;border:1px solid #223544;border-radius:22px
         <div class="weekly-stat"><span>Déficit acumulado estimado</span><strong id="lifetimeDeficit">0 kcal</strong><small id="lifetimeDeficitNote">vs. mantenimiento estimado</small></div>
         <div class="weekly-stat"><span>Equivalente teórico</span><strong id="lifetimeFatEq">0 kg</strong><small>usando 7.700 kcal ≈ 1 kg de grasa</small></div>
       </div>
-      <p class="hint" style="margin:12px 0 0">El déficit es una estimación: compara tus calorías registradas con tu mantenimiento calculado. Las semanas con días sin comidas registradas se marcan como incompletas y no se suman al acumulado.</p>
+      <p class="hint" style="margin:12px 0 0">Solo calculamos déficit en los días donde cargaste comidas. Así, un día sin registrar nunca cuenta como si hubieras comido 0 kcal. El objetivo semanal se calcula comparando tu mantenimiento estimado con tus calorías objetivo.</p>
     </div>
     <div id="weeklyProgressList"></div>
   </div>
@@ -290,8 +295,59 @@ function estimatedTDEEForWeight(weight){const p=data.profile||{},w=Math.max(0,n(
 function weightForDate(ds){const pts=[...data.progress].filter(p=>n(p.weight)>0&&p.date<=ds).sort((a,b)=>a.date.localeCompare(b.date));return pts.length?n(pts.at(-1).weight):n(data.profile.weight)}
 function maintenanceForDate(ds){return estimatedTDEEForWeight(weightForDate(ds))}
 function weekLabel(ds){const dates=weekDates(ds),months=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'],a=new Date(dates[0]+'T12:00:00'),b=new Date(dates[6]+'T12:00:00');return `${a.getDate()} ${months[a.getMonth()]} – ${b.getDate()} ${months[b.getMonth()]}`}
-function weeklyProgressRows(){if(!data.meals.length)return[];const first=[...data.meals].map(m=>m.date).sort()[0],firstWeek=weekStart(first),currentWeek=weekStart(today()),rows=[];let cursor=new Date(firstWeek+'T12:00:00'),guard=0;while(localDateString(cursor)<=currentWeek&&guard++<520){const ws=localDateString(cursor),dates=weekDates(ws),isCurrent=ws===currentWeek,elapsedDates=dates.filter(d=>!isCurrent||d<=today()),consumed=elapsedDates.reduce((sum,d)=>sum+dailyTotals(d).kcal,0),maintenance=elapsedDates.reduce((sum,d)=>sum+maintenanceForDate(d),0),goalBudget=elapsedDates.reduce((sum,d)=>sum+goalForDate(d),0),loggedDays=elapsedDates.filter(d=>data.meals.some(m=>m.date===d)).length,complete=elapsedDates.length>0&&loggedDays===elapsedDates.length,deficit=maintenance-consumed,balance=goalBudget-consumed;rows.push({ws,isCurrent,days:elapsedDates.length,loggedDays,complete,consumed,maintenance,goalBudget,deficit,balance});cursor.setDate(cursor.getDate()+7)}return rows.reverse()}
-function renderWeeklyProgress(){const list=document.getElementById('weeklyProgressList');if(!list)return;const rows=weeklyProgressRows(),completeRows=rows.filter(r=>r.complete),life=completeRows.reduce((s,r)=>s+r.deficit,0),lifeEl=document.getElementById('lifetimeDeficit'),fatEl=document.getElementById('lifetimeFatEq'),note=document.getElementById('lifetimeDeficitNote');if(lifeEl)lifeEl.textContent=(life>=0?'':'−')+Math.abs(Math.round(life)).toLocaleString('es-AR')+' kcal';if(fatEl)fatEl.textContent=(life/7700).toFixed(2)+' kg';if(note)note.textContent=`${completeRows.length} semana${completeRows.length===1?'':'s'} completa${completeRows.length===1?'':'s'} sumada${completeRows.length===1?'':'s'}`;if(!rows.length){list.innerHTML='<div class="card hint">Cuando tengas comidas registradas, acá va a aparecer tu historial semanal.</div>';return}list.innerHTML=rows.map(r=>{const deficitText=(r.deficit>=0?'−':'＋')+Math.abs(Math.round(r.deficit)).toLocaleString('es-AR')+' kcal',cls=r.deficit>=0?'positive':'negative',status=r.isCurrent?'Semana en curso':(r.complete?'Semana completa':'Registro incompleto'),comp=r.complete?`${r.loggedDays}/${r.days} días registrados`:`${r.loggedDays}/${r.days} días con comidas · no se suma al lifetime`;return `<div class="weekly-history-card" style="margin-bottom:10px"><div class="weekly-history-top"><strong>${weekLabel(r.ws)}</strong><span>${status}</span></div><div class="weekly-deficit ${cls}">${deficitText}</div><div class="hint">${r.deficit>=0?'déficit estimado':'superávit estimado'} vs. mantenimiento</div><div class="weekly-history-meta"><div><span>Consumidas</span><b>${Math.round(r.consumed).toLocaleString('es-AR')} kcal</b></div><div><span>Mantenimiento est.</span><b>${Math.round(r.maintenance).toLocaleString('es-AR')} kcal</b></div><div><span>Balance vs objetivo</span><b>${r.balance>=0?'+':''}${Math.round(r.balance).toLocaleString('es-AR')} kcal</b></div><div><span>Objetivo del período</span><b>${Math.round(r.goalBudget).toLocaleString('es-AR')} kcal</b></div></div><div class="weekly-completeness ${r.complete?'':'warn'}">${comp}</div></div>`}).join('')}
+function weeklyProgressRows(){
+ if(!data.meals.length)return[];
+ const first=[...data.meals].map(m=>m.date).sort()[0],firstWeek=weekStart(first),currentWeek=weekStart(today()),rows=[];
+ let cursor=new Date(firstWeek+'T12:00:00'),guard=0;
+ while(localDateString(cursor)<=currentWeek&&guard++<520){
+   const ws=localDateString(cursor),dates=weekDates(ws),isCurrent=ws===currentWeek,elapsedDates=dates.filter(d=>!isCurrent||d<=today());
+   const loggedDates=elapsedDates.filter(d=>data.meals.some(m=>m.date===d));
+   const consumed=loggedDates.reduce((sum,d)=>sum+dailyTotals(d).kcal,0);
+   const maintenanceLogged=loggedDates.reduce((sum,d)=>sum+maintenanceForDate(d),0);
+   const deficit=maintenanceLogged-consumed;
+   const fullMaintenance=dates.reduce((sum,d)=>sum+maintenanceForDate(d),0);
+   const fullGoalBudget=dates.reduce((sum,d)=>sum+goalForDate(d),0);
+   const targetDeficit=Math.max(0,fullMaintenance-fullGoalBudget);
+   const remainingDeficit=Math.max(0,targetDeficit-Math.max(0,deficit));
+   const goalProgress=targetDeficit?Math.min(100,Math.max(0,deficit)/targetDeficit*100):(deficit>=0?100:0);
+   const complete=loggedDates.length===elapsedDates.length&&(!isCurrent||elapsedDates.length===7);
+   const balanceLogged=loggedDates.reduce((sum,d)=>sum+(goalForDate(d)-dailyTotals(d).kcal),0);
+   rows.push({ws,isCurrent,days:elapsedDates.length,loggedDays:loggedDates.length,complete,consumed,maintenance:maintenanceLogged,deficit,targetDeficit,remainingDeficit,goalProgress,balanceLogged,fullGoalBudget});
+   cursor.setDate(cursor.getDate()+7);
+ }
+ return rows.reverse();
+}
+function renderWeeklyProgress(){
+ const list=document.getElementById('weeklyProgressList');if(!list)return;
+ const rows=weeklyProgressRows(),completeRows=rows.filter(r=>r.complete),life=completeRows.reduce((s,r)=>s+r.deficit,0),lifeEl=document.getElementById('lifetimeDeficit'),fatEl=document.getElementById('lifetimeFatEq'),note=document.getElementById('lifetimeDeficitNote');
+ if(lifeEl)lifeEl.textContent=(life>=0?'':'−')+Math.abs(Math.round(life)).toLocaleString('es-AR')+' kcal';
+ if(fatEl)fatEl.textContent=(life/7700).toFixed(2)+' kg';
+ if(note)note.textContent=`${completeRows.length} semana${completeRows.length===1?'':'s'} completa${completeRows.length===1?'':'s'} sumada${completeRows.length===1?'':'s'}`;
+ if(!rows.length){list.innerHTML='<div class="card hint">Cuando tengas comidas registradas, acá va a aparecer tu historial semanal.</div>';return}
+ list.innerHTML=rows.map(r=>{
+   const deficitPositive=r.deficit>=0, deficitText=(deficitPositive?'−':'＋')+Math.abs(Math.round(r.deficit)).toLocaleString('es-AR')+' kcal';
+   const cls=deficitPositive?'positive':'negative',status=r.isCurrent?'Semana en curso':(r.complete?'Semana completa':'Registro incompleto');
+   const comp=r.complete?`${r.loggedDays}/${r.days} días registrados · se suma al lifetime`:`${r.loggedDays}/${r.days} días registrados${r.isCurrent?' hasta hoy':' · no se suma al lifetime'}`;
+   let leftText='',leftClass='';
+   if(r.targetDeficit<=0){leftText='No hay un objetivo de déficit configurado para esta semana.'}
+   else if(r.deficit>=r.targetDeficit){leftText=`✅ Objetivo de déficit alcanzado (${Math.round(r.targetDeficit).toLocaleString('es-AR')} kcal)`;leftClass='done'}
+   else if(r.deficit<0){leftText=`Estás ${Math.abs(Math.round(r.deficit)).toLocaleString('es-AR')} kcal en superávit en los días registrados.`;leftClass='over'}
+   else{leftText=`Te faltan ${Math.round(r.remainingDeficit).toLocaleString('es-AR')} kcal de déficit para el objetivo semanal.`}
+   return `<div class="weekly-history-card" style="margin-bottom:10px">
+     <div class="weekly-history-top"><strong>${weekLabel(r.ws)}</strong><span>${status}</span></div>
+     ${r.isCurrent?'<div class="weekly-current-kicker">ESTA SEMANA</div>':''}
+     <div class="weekly-deficit ${cls}">${deficitText}</div>
+     <div class="hint">${deficitPositive?'déficit registrado':'superávit registrado'} · solo días con comidas cargadas</div>
+     <div class="weekly-goal-box">
+       <div class="weekly-goal-head"><div><span>PROGRESO AL OBJETIVO</span><b>${Math.max(0,Math.round(r.deficit)).toLocaleString('es-AR')} / ${Math.round(r.targetDeficit).toLocaleString('es-AR')} kcal</b></div><div><span>AVANCE</span><b>${Math.round(r.goalProgress)}%</b></div></div>
+       <div class="weekly-goal-track"><i style="width:${r.goalProgress}%"></i></div>
+       <div class="weekly-goal-left ${leftClass}">${leftText}</div>
+     </div>
+     <div class="weekly-history-meta"><div><span>Consumidas registradas</span><b>${Math.round(r.consumed).toLocaleString('es-AR')} kcal</b></div><div><span>Mantenimiento (días registrados)</span><b>${Math.round(r.maintenance).toLocaleString('es-AR')} kcal</b></div><div><span>Margen vs objetivo diario</span><b>${r.balanceLogged>=0?'+':''}${Math.round(r.balanceLogged).toLocaleString('es-AR')} kcal</b></div><div><span>Objetivo kcal semana</span><b>${Math.round(r.fullGoalBudget).toLocaleString('es-AR')} kcal</b></div></div>
+     <div class="weekly-completeness ${r.complete?'':'warn'}">${comp}</div>
+   </div>`
+ }).join('');
+}
 function renderAll(){renderHome();renderMinimalHome();renderMeals();renderProgress();renderWeeklyProgress();renderSettings();renderFoodLibrary()}renderAll();showOnboardingIfNeeded();
 </script>
 </body></html>
