@@ -77,7 +77,7 @@ nav{border-top:1px solid #173a58;background:rgba(5,13,23,.94);box-shadow:0 -12px
 body{background:radial-gradient(circle at 50% -12%,#102536 0,#071018 34%,#050b11 100%)}
 #home{padding-top:2px}.hero{display:none}.container{padding-top:18px}
 .nc-topbar{display:flex;justify-content:space-between;align-items:center;padding:2px 4px 10px}.nc-hello{color:#aeb9c3;font-size:14px}.nc-hello span{color:var(--nc-green);font-weight:800}.nc-date{font-size:31px;font-weight:850;letter-spacing:-1px;margin-top:3px}.nc-bolt{font-weight:800;color:#d9e2e8}.nc-bolt:first-letter{color:var(--nc-green)}
-.nc-week{display:grid;grid-template-columns:repeat(7,1fr);gap:7px;margin:8px 0 18px}.nc-day{text-align:center;color:#81909d;font-size:11px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none}.nc-day b{display:grid;place-items:center;width:35px;height:35px;border-radius:50%;margin:7px auto 0;background:#111e29;color:#c3cbd2;font-size:16px}.nc-day.active{color:var(--nc-green)}.nc-day.active b{background:#2b6744;color:#dfffea;box-shadow:0 0 0 5px rgba(120,230,148,.08)}
+.nc-week{display:grid;grid-template-columns:repeat(7,1fr);gap:7px;margin:8px 0 18px}.nc-day{appearance:none;-webkit-appearance:none;width:100%;min-width:0;padding:0;border:0;background:transparent;text-align:center;color:#81909d;font-size:11px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;touch-action:manipulation}.nc-day b{display:grid;place-items:center;width:35px;height:35px;border-radius:50%;margin:7px auto 0;background:#111e29;color:#c3cbd2;font-size:16px;pointer-events:none}.nc-day span{pointer-events:none}.nc-day.active{color:var(--nc-green)}.nc-day.active b{background:#2b6744;color:#dfffea;box-shadow:0 0 0 5px rgba(120,230,148,.08)}
 .nc-summary{background:linear-gradient(155deg,rgba(14,29,42,.98),rgba(8,18,27,.98));border:1px solid var(--nc-line);border-radius:25px;padding:17px;box-shadow:0 18px 45px rgba(0,0,0,.24)}.nc-summary-head{display:flex;justify-content:space-between;align-items:center;gap:8px}.nc-summary-head strong{font-size:17px}.nc-goal-chip{font-size:11px;color:#b8c3cc;border:1px solid #31414e;padding:7px 9px;border-radius:999px;white-space:nowrap}.nc-summary-main{display:grid;grid-template-columns:150px 1fr;gap:20px;align-items:center;padding:20px 4px}.nc-cal-ring{--p:0;width:145px;height:145px;border-radius:50%;background:conic-gradient(var(--nc-green) calc(var(--p)*1%),#1b2935 0);display:grid;place-items:center;position:relative}.nc-cal-ring:before{content:"";position:absolute;width:119px;height:119px;border-radius:50%;background:#0a151f}.nc-cal-ring>div{z-index:1;text-align:center}.nc-cal-ring strong{display:block;font-size:31px;line-height:1}.nc-cal-ring span,.nc-cal-ring small{display:block;color:#c5ced6}.nc-cal-ring small{font-size:11px;margin-top:3px}.nc-remain{font-size:15px;color:#b9c4cd}.nc-remain strong{font-size:20px;color:#fff}.nc-track,.nc-macro>div{height:8px;border-radius:999px;background:#1d2a35;overflow:hidden;margin-top:14px}.nc-track i,.nc-macro i,.nc-extra-macros i{display:block;height:100%;border-radius:999px;background:var(--nc-green);width:0}.nc-remain small{display:block;margin-top:9px;color:#8796a3}
 .nc-macros{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid #20303c;padding-top:16px}.nc-macro{padding:0 13px;border-right:1px solid #20303c}.nc-macro:last-child{border:0}.nc-macro span{display:block;font-size:12px;color:#cad3da}.nc-macro strong{font-size:18px;display:inline-block;margin-top:7px}.nc-macro small{font-size:11px;color:#7f8e9a}.nc-macro.carb i{background:var(--nc-teal)}.nc-macro.fat i{background:var(--nc-purple)}.nc-macro.protein i{background:var(--nc-yellow)}
 .nc-extra-macros{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.nc-extra-macros>div{background:#0b1721;border:1px solid #1e3040;border-radius:15px;padding:10px}.nc-extra-macros span,.nc-extra-macros small{display:block;color:#83919d;font-size:10px}.nc-extra-macros strong{display:block;font-size:15px;margin:4px 0}.nc-extra-macros i{height:5px;background:#8e9aa4;margin-top:7px}
@@ -92,7 +92,7 @@ nav{left:10px;right:10px;bottom:10px;border:1px solid #223544;border-radius:22px
 </head>
 <body>
 <div id="onboarding" class="onboarding" aria-modal="true" role="dialog"><div class="onboarding-card"><h2>👋 Bienvenida/o a Nico Cut</h2><p class="welcome-sub">Configuramos lo básico una sola vez. Después podés cambiarlo cuando quieras desde Ajustes.</p><div><label>¿Cómo te llamás?</label><input id="onboardName" autocomplete="name" placeholder="Ej: Cande"></div><div style="margin-top:12px"><label>¿Cuál es tu objetivo?</label><div class="goal-options"><label class="goal-option"><input type="radio" name="onboardGoal" value="lose" checked><span>🔥 Perder grasa</span></label><label class="goal-option"><input type="radio" name="onboardGoal" value="maintain"><span>⚖️ Mantener</span></label><label class="goal-option"><input type="radio" name="onboardGoal" value="gain"><span>💪 Ganar músculo</span></label></div></div><div class="row" style="margin-top:12px"><div><label>Edad</label><input id="onboardAge" type="number" inputmode="numeric" placeholder="Ej: 27"></div><div><label>Estatura (cm)</label><input id="onboardHeight" type="number" inputmode="numeric" placeholder="Ej: 165"></div></div><div class="row" style="margin-top:12px"><div><label>Peso actual (kg)</label><input id="onboardWeight" type="text" inputmode="decimal" placeholder="Ej: 62"></div><div><label>Sexo para el cálculo</label><select id="onboardSex"><option value="female">Mujer</option><option value="male">Hombre</option></select></div></div><div style="margin-top:12px"><label>Nivel de actividad habitual</label><select id="onboardActivity"><option value="sedentary">Sedentaria/o · poco ejercicio</option><option value="light">Ligera · 1–3 días/semana</option><option value="moderate" selected>Moderada · 3–5 días/semana</option><option value="high">Alta · 6–7 días/semana</option></select></div><button id="calculateTargetsBtn" class="secondary" style="margin-top:12px">🧮 Calcular mis objetivos</button><div id="calorieEstimateBox" class="statusbox" style="margin-top:10px"></div><div class="row" style="margin-top:12px"><div><label>Calorías objetivo</label><input id="onboardCalories" type="number" inputmode="numeric"></div><div><label>Proteína objetivo (g)</label><input id="onboardProtein" type="number" inputmode="numeric"></div></div><div style="margin-top:12px"><label>Pasos diarios</label><input id="onboardSteps" type="number" inputmode="numeric" placeholder="Ej: 8000"></div><button id="finishOnboardingBtn" style="margin-top:16px">Empezar 🚀</button><p class="hint" style="margin-bottom:0">Si elegís “Perder grasa”, Nico Cut estima tu mantenimiento y resta 500 kcal/día. Los demás macros se calculan automáticamente y después podés editarlos.</p></div></div>
-<div class="container"><div class="hero"><div><h1>Nico Cut Beta 💪</h1><p>Control simple de definición y déficit semanal</p><div id="profileGreeting" class="profile-greeting"></div></div><span class="badge">v0.5.1</span></div>
+<div class="container"><div class="hero"><div><h1>Nico Cut Beta 💪</h1><p>Control simple de definición y déficit semanal</p><div id="profileGreeting" class="profile-greeting"></div></div><span class="badge">v0.5.2</span></div>
 <section id="home" class="view active">
   <div class="nc-topbar">
     <div><div class="nc-hello">Hola, <span id="homeName">Nico</span> 👋</div><div class="nc-date" id="homeDateTitle">Hoy</div></div>
@@ -204,18 +204,35 @@ function renderMinimalHome(){
  const monday=new Date(selected);monday.setDate(selected.getDate()-((selected.getDay()+6)%7));
  weekStrip.innerHTML='';
  for(let i=0;i<7;i++){
-   const d=new Date(monday);d.setDate(monday.getDate()+i);const key=localDateKey(d);
-   const el=document.createElement('div');
+   const d=new Date(monday); d.setDate(monday.getDate()+i); const key=localDateKey(d);
+   const el=document.createElement('button');
+   el.type='button';
    el.className='nc-day'+(key===selectedHomeDate?' active':'');
-   el.setAttribute('role','button');el.setAttribute('tabindex','0');el.setAttribute('aria-label',(key===currentKey?'Hoy, ':'')+names[d.getDay()]+' '+d.getDate());
+   el.dataset.date=key;
+   el.setAttribute('aria-label',(key===currentKey?'Hoy, ':'')+names[d.getDay()]+' '+d.getDate());
    el.innerHTML='<span>'+names[d.getDay()]+'</span><b>'+d.getDate()+'</b>';
-   const choose=()=>{selectedHomeDate=key;renderHome();renderMinimalHome();};
-   el.onclick=choose;el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();choose()}};
-   weekStrip.appendChild(el)
+   weekStrip.appendChild(el);
  }
  const t=dailyTotals(selectedHomeDate),goal=goalForDate(selectedHomeDate),pct=Math.min(100,goal?t.kcal/goal*100:0);kcalGoalText.textContent=Math.round(pct)+'% del objetivo';
  const types=[['Desayuno','☀️'],['Almuerzo','🍴'],['Cena','☾']];homeMeals.innerHTML=types.map(([type,icon])=>{const ms=data.meals.filter(m=>m.date===selectedHomeDate&&m.type===type),sum=ms.reduce((a,m)=>a+n(m.kcal),0),desc=ms.length?ms.slice(0,2).map(m=>esc(m.name)).join(' · ')+(ms.length>2?' y '+(ms.length-2)+' más':''):'Agrega tu comida';return `<div class="nc-meal-row"><div class="nc-meal-icon">${icon}</div><div class="nc-meal-copy"><strong>${type}</strong><small>${desc}</small></div><div class="nc-meal-kcal"><strong>${Math.round(sum)}</strong><small>kcal</small></div></div>`}).join('');
 }
+// Selector semanal robusto para iOS/Safari: un solo listener, no se pierde al re-renderizar.
+weekStrip.addEventListener('click',function(e){
+ const btn=e.target.closest('.nc-day[data-date]');
+ if(!btn||!weekStrip.contains(btn))return;
+ selectedHomeDate=btn.dataset.date;
+ renderHome();
+ renderMinimalHome();
+});
+// Siempre arrancar en el día local actual. Si la app vuelve del background en otro día, actualizarlo.
+selectedHomeDate=today();
+document.addEventListener('visibilitychange',()=>{
+ if(document.visibilityState==='visible'){
+   const realToday=today();
+   if(selectedHomeDate!==realToday){selectedHomeDate=realToday;renderHome();renderMinimalHome();}
+ }
+});
+
 function openFoodView(){mealDate.value=selectedHomeDate||today();const b=document.querySelector('nav button[data-view="food"]');if(b)b.click()}
 homeAddFood.onclick=openFoodView;viewDiaryBtn.onclick=openFoodView;
 function renderAll(){renderHome();renderMinimalHome();renderMeals();renderProgress();renderSettings();renderFoodLibrary();renderTraining()}renderAll();showOnboardingIfNeeded();
