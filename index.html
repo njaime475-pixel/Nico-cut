@@ -170,6 +170,16 @@ nav{left:10px;right:10px;bottom:10px;border:1px solid #223544;border-radius:22px
 .weekly-budget-track{height:9px;border-radius:999px;background:#1d2a35;overflow:hidden;margin-top:12px}.weekly-budget-track i{display:block;height:100%;border-radius:999px;background:var(--nc-green);width:0}
 .weekly-deficit-secondary{margin-top:12px;padding:12px;border-radius:14px;background:#0b1721;border:1px solid #1e3040}.weekly-deficit-secondary .value{font-size:22px;font-weight:850;margin-top:4px}.weekly-deficit-secondary .value.good{color:#86efac}.weekly-deficit-secondary .value.bad{color:#fca5a5}
 .weekly-warning{margin-top:10px;padding:9px 10px;border-radius:11px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25);color:#fbbf24;font-size:10px;line-height:1.45}
+.weekly-simple{margin-top:12px;display:grid;gap:10px}
+.weekly-simple-main{padding:14px;border-radius:16px;background:#091625;border:1px solid #285a3a}
+.weekly-simple-label{font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.04em}
+.weekly-simple-value{font-size:30px;font-weight:900;line-height:1.1;margin-top:5px;color:#86efac}
+.weekly-simple-sub{font-size:11px;color:#94a3b8;margin-top:5px;line-height:1.45}
+.weekly-simple-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.weekly-simple-card{background:#0b1721;border:1px solid #1e3040;border-radius:14px;padding:12px;min-width:0}
+.weekly-simple-card span{display:block;font-size:10px;color:#7f8e9a}.weekly-simple-card b{display:block;font-size:18px;margin-top:5px}
+.weekly-final{margin-top:10px;padding:14px;border-radius:16px;background:#0b1721;border:1px solid #1e3040}
+.weekly-final .value{font-size:27px;font-weight:900;margin-top:5px}.weekly-final .value.good{color:#86efac}.weekly-final .value.pending{color:#fbbf24}.weekly-final .value.bad{color:#fca5a5}
 @media(max-width:520px){nav button{font-size:10px;padding-left:2px;padding-right:2px}.weekly-hero-grid{grid-template-columns:1fr 1fr}}
 </style>
 </head>
@@ -330,41 +340,42 @@ function weeklyProgressRows(){
 }
 function renderWeeklyProgress(){
  const list=document.getElementById('weeklyProgressList');if(!list)return;
- const rows=weeklyProgressRows(),completeRows=rows.filter(r=>r.complete),life=completeRows.reduce((s,r)=>s+r.deficit,0),lifeEl=document.getElementById('lifetimeDeficit'),fatEl=document.getElementById('lifetimeFatEq'),note=document.getElementById('lifetimeDeficitNote');
+ const rows=weeklyProgressRows(),completeRows=rows.filter(r=>r.complete),life=completeRows.reduce((s,r)=>s+(r.fullMaintenance-r.consumedAll),0),lifeEl=document.getElementById('lifetimeDeficit'),fatEl=document.getElementById('lifetimeFatEq'),note=document.getElementById('lifetimeDeficitNote');
  if(lifeEl)lifeEl.textContent=(life>=0?'':'−')+Math.abs(Math.round(life)).toLocaleString('es-AR')+' kcal';
  if(fatEl)fatEl.textContent=(life/7700).toFixed(2)+' kg';
  if(note)note.textContent=`${completeRows.length} semana${completeRows.length===1?'':'s'} completa${completeRows.length===1?'':'s'} sumada${completeRows.length===1?'':'s'}`;
  if(!rows.length){list.innerHTML='<div class="card hint">Cuando tengas comidas registradas, acá va a aparecer tu historial semanal.</div>';return}
  list.innerHTML=rows.map(r=>{
    const status=r.isCurrent?'Semana en curso':(r.complete?'Semana completa':'Registro incompleto');
-   const budgetHeadline=r.overBudget>0?`Te pasaste ${Math.round(r.overBudget).toLocaleString('es-AR')} kcal`:`${Math.round(r.available).toLocaleString('es-AR')} kcal`;
-   const budgetCaption=r.overBudget>0?'por encima del presupuesto semanal':'disponibles para comer hasta el domingo';
-   const deficitPositive=r.deficit>=0, deficitText=(deficitPositive?'−':'＋')+Math.abs(Math.round(r.deficit)).toLocaleString('es-AR')+' kcal';
-   const targetTxt=r.targetDeficit>0?`${Math.round(r.targetDeficit).toLocaleString('es-AR')} kcal`:'—';
-   const comp=r.complete?`${r.loggedDays}/${r.days} días registrados · se suma al lifetime`:`${r.loggedDays}/${r.days} días transcurridos con registro${r.isCurrent?'':' · no se suma al lifetime'}`;
-   const warning=r.missingElapsed>0?`⚠️ Tenés ${r.missingElapsed} día${r.missingElapsed===1?'':'s'} transcurrido${r.missingElapsed===1?'':'s'} sin cargar. El presupuesto disponible puede verse más alto hasta completar esos días.`:'';
-   const avgLine=r.isCurrent&&r.remainingCalendarDays>0?`Promedio orientativo: ${Math.round(r.avgAvailablePerRemaining).toLocaleString('es-AR')} kcal por día desde hoy hasta el domingo.`:'';
+   const targetDeficit=Math.max(0,r.targetDeficit);
+   const finalDeficit=r.fullMaintenance-r.consumedAll;
+   const finalReady=r.complete;
+   const targetText=Math.round(targetDeficit).toLocaleString('es-AR')+' kcal';
+   const consumedText=Math.round(r.consumedAll).toLocaleString('es-AR')+' kcal';
+   const finalText=finalReady?((finalDeficit>=0?'−':'＋')+Math.abs(Math.round(finalDeficit)).toLocaleString('es-AR')+' kcal'):'Pendiente';
+   const finalClass=finalReady?(finalDeficit>=0?'good':'bad'):'pending';
+   const finalSub=finalReady?'Este es el déficit real con el que terminaste esa semana.':`Se calcula al cerrar la semana. Hasta ahora hay ${r.loggedDays} día${r.loggedDays===1?'':'s'} con comidas cargadas.`;
+   const missing=r.missingElapsed>0?`⚠️ Falta cargar ${r.missingElapsed} día${r.missingElapsed===1?'':'s'} transcurrido${r.missingElapsed===1?'':'s'}; no lo contamos como 0 kcal.`:'';
    return `<div class="weekly-history-card" style="margin-bottom:10px">
      <div class="weekly-history-top"><strong>${weekLabel(r.ws)}</strong><span>${status}</span></div>
      ${r.isCurrent?'<div class="weekly-current-kicker">ESTA SEMANA</div>':''}
-     <div class="weekly-budget-primary">
-       <div class="weekly-budget-label">🍽️ PRESUPUESTO SEMANAL</div>
-       <div class="weekly-budget-left" style="${r.overBudget>0?'color:#fca5a5':''}">${budgetHeadline}</div>
-       <div class="weekly-budget-sub">${budgetCaption}</div>
-       <div class="weekly-budget-track"><i style="width:${r.budgetUsedPct}%"></i></div>
-       <div class="weekly-budget-row">
-         <div class="weekly-budget-mini"><span>Consumidas esta semana</span><b>${Math.round(r.consumedAll).toLocaleString('es-AR')} kcal</b></div>
-         <div class="weekly-budget-mini"><span>Presupuesto total</span><b>${Math.round(r.fullGoalBudget).toLocaleString('es-AR')} kcal</b></div>
+     <div class="weekly-simple">
+       <div class="weekly-simple-main">
+         <div class="weekly-simple-label">🔥 TU DÉFICIT SEMANAL OBJETIVO</div>
+         <div class="weekly-simple-value">−${targetText}</div>
+         <div class="weekly-simple-sub">Es el déficit previsto si terminás la semana dentro de tus calorías objetivo.</div>
        </div>
-       ${avgLine?`<div class="weekly-budget-sub">${avgLine}</div>`:''}
-       ${warning?`<div class="weekly-warning">${warning}</div>`:''}
+       <div class="weekly-simple-grid">
+         <div class="weekly-simple-card"><span>🍽️ Llevás consumidas</span><b>${consumedText}</b></div>
+         <div class="weekly-simple-card"><span>🎯 Objetivo de comida semanal</span><b>${Math.round(r.fullGoalBudget).toLocaleString('es-AR')} kcal</b></div>
+       </div>
+       <div class="weekly-final">
+         <div class="weekly-simple-label">🏁 DÉFICIT FINAL DE LA SEMANA</div>
+         <div class="value ${finalClass}">${finalText}</div>
+         <div class="weekly-simple-sub">${finalSub}</div>
+       </div>
+       ${missing?`<div class="weekly-warning">${missing}</div>`:''}
      </div>
-     <div class="weekly-deficit-secondary">
-       <div class="weekly-budget-label">🔥 DÉFICIT ESTIMADO REGISTRADO</div>
-       <div class="value ${deficitPositive?'good':'bad'}">${deficitText}</div>
-       <div class="weekly-budget-sub">Calculado solo con los ${r.loggedDays} día${r.loggedDays===1?'':'s'} que tienen comidas cargadas. Objetivo teórico semanal: ${targetTxt}.</div>
-     </div>
-     <div class="weekly-completeness ${r.complete?'':'warn'}">${comp}</div>
    </div>`
  }).join('');
 }
