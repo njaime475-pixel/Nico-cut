@@ -196,23 +196,65 @@ function setMealFields(f){
 async function lookupBarcode(code){
  code=String(code||'').replace(/\D/g,'');
  if(!code)return;
- const local=data.foodLibrary.find(f=>f.barcode===code);
- if(local){setMealFields(local);scanStatus.textContent='✅ Producto encontrado en Mis alimentos';scanStatus.className='statusbox show ok';return}
+
+ // No reutilizar automáticamente fichas antiguas de Open Food Facts:
+ // una ficha vieja pudo quedar guardada con nombre/macros incorrectos.
+ const local=data.foodLibrary.find(f=>f.barcode===code && f.source!=='Open Food Facts');
+ if(local){
+   setMealFields(local);
+   scanStatus.textContent='✅ Producto encontrado en Mis alimentos';
+   scanStatus.className='statusbox show ok';
+   return;
+ }
+
  scanStatus.textContent='Buscando producto…';
  scanStatus.className='statusbox show';
+
  try{
-  const fields='code,product_name,product_name_es,generic_name,generic_name_es,brands,nutriments';
+  const fields='code,product_name,product_name_es,generic_name,generic_name_es,brands,serving_size,serving_quantity,nutriments';
   const r=await fetch(`https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(code)}.json?fields=${fields}`);
   if(!r.ok)throw new Error('OFF HTTP '+r.status);
   const j=await r.json();
+
   if(j.status!==1||!j.product){
    scanStatus.textContent='⚠️ Código leído, pero el producto no está en Open Food Facts.';
    scanStatus.className='statusbox show warn';
    return;
   }
+
   const p=j.product,nu=p.nutriments||{};
-  const productName=[p.product_name_es,p.product_name,p.generic_name_es,p.generic_name].map(x=>String(x||'').trim()).find(Boolean)||'';
+  const productName=[p.product_name_es,p.product_name,p.generic_name_es,p.generic_name]
+    .map(x=>String(x||'').trim()).find(Boolean)||'';
   const brands=String(p.brands||'').trim();
+
+  // Valores base por 100 g.
+  const kcal100=n(nu['energy-kcal_100g'])||(n(nu.energy_100g)?n(nu.energy_100g)/4.184:0);
+  const protein100=n(nu.proteins_100g);
+  const carbs100=n(nu.carbohydrates_100g);
+  const fat100=n(nu.fat_100g);
+  const fiber100=n(nu.fiber_100g);
+  const satFat100=n(nu['saturated-fat_100g']);
+  const transFat100=n(nu['trans-fat_100g']);
+
+  // Si OFF informa porción, usarla como cantidad predeterminada.
+  let servingQty=localNum(p.serving_quantity);
+  if(!servingQty){
+    const m=String(p.serving_size||'').replace(',','.').match(/(\d+(?:\.\d+)?)\s*g/i);
+    if(m)servingQty=localNum(m[1]);
+  }
+  if(!(servingQty>0&&servingQty<=500))servingQty=100;
+
+  // Control de coherencia para evitar fichas comunitarias rotas.
+  const macroKcal=protein100*4+carbs100*4+fat100*9;
+  const hasMacros=(protein100+carbs100+fat100+fiber100)>0;
+  const impossible=[kcal100,protein100,carbs100,fat100,fiber100,satFat100,transFat100]
+    .some(v=>!Number.isFinite(v)||v<0||v>1000)
+    || protein100>100 || carbs100>100 || fat100>100 || fiber100>100
+    || satFat100>100 || transFat100>100;
+
+  // Tolerancia amplia porque redondeos/azúcares/fibra pueden generar diferencias.
+  const energyMismatch=kcal100>0&&macroKcal>0&&(macroKcal>kcal100*1.75||macroKcal<kcal100*0.25);
+
   if(!productName){
    clearMealFields();
    barcodeInput.value=code;
@@ -221,18 +263,7 @@ async function lookupBarcode(code){
    return;
   }
 
-  const kcal=n(nu['energy-kcal_100g'])||(n(nu.energy_100g)?n(nu.energy_100g)/4.184:0);
-  const protein=n(nu.proteins_100g),carbs=n(nu.carbohydrates_100g),fat=n(nu.fat_100g),fiber=n(nu.fiber_100g);
-  const satFat=n(nu['saturated-fat_100g']),transFat=n(nu['trans-fat_100g']);
-
-  // Control de coherencia: evita fichas comunitarias evidentemente rotas.
-  const macroKcal=protein*4+carbs*4+fat*9;
-  const hasMacros=(protein+carbs+fat+fiber)>0;
-  const impossible=[kcal,protein,carbs,fat,fiber,satFat,transFat].some(v=>!Number.isFinite(v)||v<0||v>1000)
-    || protein>100 || carbs>100 || fat>100 || fiber>100 || satFat>100 || transFat>100;
-  const energyMismatch=kcal>0&&macroKcal>0&&(macroKcal>kcal*1.65||macroKcal<kcal*0.35);
-
-  if(impossible||energyMismatch||(!kcal&&!hasMacros)){
+  if(impossible||energyMismatch||(!kcal100&&!hasMacros)){
    clearMealFields();
    barcodeInput.value=code;
    mealName.value=[productName,brands].filter(Boolean).join(' · ');
@@ -242,16 +273,37 @@ async function lookupBarcode(code){
    return;
   }
 
+  // Eliminar del cache local cualquier ficha vieja del MISMO código proveniente de OFF.
+  data.foodLibrary=data.foodLibrary.filter(f=>!(f.barcode===code&&f.source==='Open Food Facts'));
+
   const f={
-   id:crypto.randomUUID(),barcode:code,
+   id:crypto.randomUUID(),
+   barcode:code,
    name:[productName,brands].filter(Boolean).join(' · '),
-   unit:'g',state:'Envasado',basis:100,defaultQty:100,
-   kcal,protein,carbs,fat,fiber,satFat,transFat,
-   source:'Open Food Facts',updatedAt:new Date().toISOString()
+   unit:'g',
+   state:'Envasado',
+   basis:100,
+   defaultQty:servingQty,
+   kcal:kcal100,
+   protein:protein100,
+   carbs:carbs100,
+   fat:fat100,
+   fiber:fiber100,
+   satFat:satFat100,
+   transFat:transFat100,
+   source:'Open Food Facts',
+   updatedAt:new Date().toISOString()
   };
-  data.foodLibrary.unshift(f);save();setMealFields(f);
-  scanStatus.textContent='✅ Producto encontrado';
+
+  data.foodLibrary.unshift(f);
+  save();
+  setMealFields(f);
+
+  scanStatus.textContent=servingQty!==100
+    ? `✅ Producto encontrado · porción ${round1(servingQty)} g`
+    : '✅ Producto encontrado';
   scanStatus.className='statusbox show ok';
+
  }catch(err){
   scanStatus.textContent='⚠️ No pude consultar Open Food Facts. No cargué datos parciales.';
   scanStatus.className='statusbox show warn';
@@ -324,7 +376,7 @@ function updateActivityEstimate(){if(!activityEstimate)return;const kcal=estimat
 function renderActivityHistory(){if(!activityHistory)return;const hist=[...(data.activities||[])].sort((a,b)=>(b.createdAt||b.date||'').localeCompare(a.createdAt||a.date||'')).slice(0,8);activityHistory.innerHTML=hist.length?hist.map(a=>`<div class="activity-history"><strong>${esc(a.type)}</strong><small>${esc(a.date)} · ${n(a.minutes)} min · ${esc(a.intensityLabel||a.intensity)} · 🔥 ${Math.round(n(a.kcal))} kcal${a.source==='watch'?' · reloj':' · estimadas'}</small></div>`).join(''):'<div class="empty-train">Todavía no registraste actividades.</div>'}
 function saveActivity(){const minutes=n(activityMinutes.value),weight=currentActivityWeight();if(!weight)return alert('Cargá tu peso en Perfil o Progreso para estimar calorías.');if(!minutes)return alert('Ingresá la duración de la actividad.');const watch=n(activityWatchKcal.value),useWatch=activityWatchBox.classList.contains('show')&&watch>0,kcal=useWatch?Math.round(watch):estimatedActivityKcal(),labels={light:'Suave',moderate:'Moderada',vigorous:'Fuerte'};data.activities.push({id:crypto.randomUUID(),date:activityDate.value||today(),type:activityType.value,minutes,intensity:activityIntensity.value,intensityLabel:labels[activityIntensity.value],kcal,source:useWatch?'watch':'estimate',weight,createdAt:new Date().toISOString()});activityWatchKcal.value='';activityWatchBox.classList.remove('show');save();alert(`✅ ${activityType.value} guardado · ${kcal} kcal`)}
 activityType?.addEventListener('change',updateActivityEstimate);activityMinutes?.addEventListener('input',updateActivityEstimate);activityIntensity?.addEventListener('change',updateActivityEstimate);toggleWatchKcalBtn?.addEventListener('click',()=>activityWatchBox.classList.toggle('show'));saveActivityBtn?.addEventListener('click',saveActivity);
-function activityFactor(x){return ({sedentary:1.2,light:1.375,moderate:1.55,high:1.725})[x]||1.55}function estimateTargets(age,height,weight,sex,activity,goal){const bmr=10*weight+6.25*height-5*age+(sex==='male'?5:-161),tdee=bmr*activityFactor(activity),calories=Math.round(goal==='lose'?tdee-500:goal==='gain'?tdee+250:tdee),protein=Math.round(weight*(goal==='maintain'?1.6:1.8));return {tdee:Math.round(tdee),calories,protein,...macroTargets(calories,protein)}}function calcOnboardTargets(){const r=estimateTargets(+onboardAge.value,+onboardHeight.value,localNum(onboardWeight.value),onboardSex.value,onboardActivity.value,document.querySelector('input[name="onboardGoal"]:checked')?.value||'lose');onboardCalories.value=r.calories;onboardProtein.value=r.protein;calorieEstimateBox.innerHTML=`Mantenimiento: <strong>${r.tdee} kcal</strong><br>Objetivo: <strong>${r.calories} kcal</strong> · P ${r.protein} · C ${r.carbs} · G ${r.fat} · Fibra ${r.fiber}`;calorieEstimateBox.className='statusbox show';return r}calculateTargetsBtn.onclick=calcOnboardTargets;function showOnboardingIfNeeded(){if(!data.profile.setupDone){onboardName.value=data.profile.name||'';onboardAge.value=data.profile.age||'';onboardHeight.value=data.profile.height||'';onboardWeight.value=data.profile.weight||'';onboardCalories.value=data.goals.weekday;onboardProtein.value=data.goals.protein;onboardSteps.value=data.goals.steps;onboarding.classList.add('active')}}finishOnboardingBtn.onclick=()=>{const r=calcOnboardTargets(),goal=document.querySelector('input[name="onboardGoal"]:checked')?.value||'lose';data.profile={name:onboardName.value.trim(),goal,setupDone:true,age:+onboardAge.value,height:+onboardHeight.value,weight:localNum(onboardWeight.value),sex:onboardSex.value,activity:onboardActivity.value};data.goals={...data.goals,weekday:+onboardCalories.value,saturday:+onboardCalories.value,sunday:+onboardCalories.value,protein:+onboardProtein.value,carbs:r.carbs,fat:r.fat,fiber:r.fiber,transFat:r.transFat,steps:+onboardSteps.value};localStorage.setItem(KEY,JSON.stringify(data));onboarding.classList.remove('active');renderAll()};saveProfileBtn.onclick=()=>{data.profile={...data.profile,name:profileName.value.trim(),goal:profileGoal.value,age:+profileAge.value,height:+profileHeight.value,weight:localNum(profileWeight.value),sex:profileSex.value,activity:profileActivity.value,setupDone:true};save()};recalcTargetsBtn.onclick=()=>{const r=estimateTargets(+profileAge.value,+profileHeight.value,localNum(profileWeight.value),profileSex.value,profileActivity.value,profileGoal.value);goalWeekday.value=goalSaturday.value=goalSunday.value=r.calories;goalProtein.value=r.protein;goalCarbs.value=r.carbs;goalFat.value=r.fat;goalFiber.value=r.fiber;goalTransFat.value=r.transFat};saveGoalsBtn.onclick=()=>{data.goals={...data.goals,weekday:num('goalWeekday'),saturday:num('goalSaturday'),sunday:num('goalSunday'),protein:num('goalProtein'),carbs:num('goalCarbs'),fat:num('goalFat'),fiber:num('goalFiber'),satFat:num('goalSatFat'),transFat:num('goalTransFat'),steps:num('goalSteps'),weeklyLoss:Number(goalWeeklyLoss.value)||-.3};save()};exportBtn.onclick=()=>{const b=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='nico-cut-respaldo.json';a.click()};importBtn.onclick=()=>importFile.click();importFile.onchange=e=>{const r=new FileReader();r.onload=()=>{data=normalizeData(JSON.parse(r.result));save()};r.readAsText(e.target.files[0])};resetBtn.onclick=()=>{if(confirm('¿Borrar todos los datos?')){data=structuredClone(defaultData);save()}};scanBtn.onclick=startScanner;stopScanBtn.onclick=stopScanner;mealQty.addEventListener('input',()=>{if(baseNutrition)applyBaseNutrition()});barcodeManualBtn.onclick=()=>barcodeManualBox.classList.toggle('active');lookupBarcodeBtn.onclick=()=>lookupBarcode(barcodeInput.value);mealName.addEventListener('input',showSuggestions);librarySearch.addEventListener('input',renderFoodLibrary);clearFoodFormBtn.onclick=clearMealFields;document.querySelectorAll('nav button').forEach(b=>b.onclick=async()=>{if(b.dataset.view!=='food')await stopScanner();if(b.dataset.view==='home'){selectedHomeDate=today();renderHome();renderMinimalHome()}document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(b.dataset.view).classList.add('active');document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x===b));scrollTo(0,0)});mealDate.value=progressDate.value=today();if(activityDate)activityDate.value=today();
+function activityFactor(x){return ({sedentary:1.2,light:1.375,moderate:1.55,high:1.725})[x]||1.55}function estimateTargets(age,height,weight,sex,activity,goal){const bmr=10*weight+6.25*height-5*age+(sex==='male'?5:-161),tdee=bmr*activityFactor(activity),calories=Math.round(goal==='lose'?tdee-500:goal==='gain'?tdee+250:tdee),protein=Math.round(weight*(goal==='maintain'?1.6:1.8));return {tdee:Math.round(tdee),calories,protein,...macroTargets(calories,protein)}}function calcOnboardTargets(){const r=estimateTargets(+onboardAge.value,+onboardHeight.value,localNum(onboardWeight.value),onboardSex.value,onboardActivity.value,document.querySelector('input[name="onboardGoal"]:checked')?.value||'lose');onboardCalories.value=r.calories;onboardProtein.value=r.protein;calorieEstimateBox.innerHTML=`Mantenimiento: <strong>${r.tdee} kcal</strong><br>Objetivo: <strong>${r.calories} kcal</strong> · P ${r.protein} · C ${r.carbs} · G ${r.fat} · Fibra ${r.fiber}`;calorieEstimateBox.className='statusbox show';return r}calculateTargetsBtn.onclick=calcOnboardTargets;function showOnboardingIfNeeded(){if(!data.profile.setupDone){onboardName.value=data.profile.name||'';onboardAge.value=data.profile.age||'';onboardHeight.value=data.profile.height||'';onboardWeight.value=data.profile.weight||'';onboardCalories.value=data.goals.weekday;onboardProtein.value=data.goals.protein;onboardSteps.value=data.goals.steps;onboarding.classList.add('active')}}finishOnboardingBtn.onclick=()=>{const r=calcOnboardTargets(),goal=document.querySelector('input[name="onboardGoal"]:checked')?.value||'lose';data.profile={name:onboardName.value.trim(),goal,setupDone:true,age:+onboardAge.value,height:+onboardHeight.value,weight:localNum(onboardWeight.value),sex:onboardSex.value,activity:onboardActivity.value};data.goals={...data.goals,weekday:+onboardCalories.value,saturday:+onboardCalories.value,sunday:+onboardCalories.value,protein:+onboardProtein.value,carbs:r.carbs,fat:r.fat,fiber:r.fiber,transFat:r.transFat,steps:+onboardSteps.value};localStorage.setItem(KEY,JSON.stringify(data));onboarding.classList.remove('active');renderAll()};saveProfileBtn.onclick=()=>{data.profile={...data.profile,name:profileName.value.trim(),goal:profileGoal.value,age:+profileAge.value,height:+profileHeight.value,weight:localNum(profileWeight.value),sex:profileSex.value,activity:profileActivity.value,setupDone:true};save()};recalcTargetsBtn.onclick=()=>{const r=estimateTargets(+profileAge.value,+profileHeight.value,localNum(profileWeight.value),profileSex.value,profileActivity.value,profileGoal.value);goalWeekday.value=goalSaturday.value=goalSunday.value=r.calories;goalProtein.value=r.protein;goalCarbs.value=r.carbs;goalFat.value=r.fat;goalFiber.value=r.fiber;goalTransFat.value=r.transFat};saveGoalsBtn.onclick=()=>{data.goals={...data.goals,weekday:num('goalWeekday'),saturday:num('goalSaturday'),sunday:num('goalSunday'),protein:num('goalProtein'),carbs:num('goalCarbs'),fat:num('goalFat'),fiber:num('goalFiber'),satFat:num('goalSatFat'),transFat:num('goalTransFat'),steps:num('goalSteps'),weeklyLoss:Number(goalWeeklyLoss.value)||-.3};save()};exportBtn.onclick=()=>{const b=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='nico-cut-respaldo.json';a.click()};importBtn.onclick=()=>importFile.click();importFile.onchange=e=>{const r=new FileReader();r.onload=()=>{data=normalizeData(JSON.parse(r.result));save()};r.readAsText(e.target.files[0])};resetBtn.onclick=()=>{if(confirm('¿Borrar todos los datos?')){data=structuredClone(defaultData);save()}};scanBtn.onclick=startScanner;stopScanBtn.onclick=stopScanner;mealQty.addEventListener('input',()=>{if(baseNutrition)applyBaseNutrition()});mealQty.addEventListener('change',()=>{if(baseNutrition)applyBaseNutrition()});barcodeManualBtn.onclick=()=>barcodeManualBox.classList.toggle('active');lookupBarcodeBtn.onclick=()=>lookupBarcode(barcodeInput.value);mealName.addEventListener('input',showSuggestions);librarySearch.addEventListener('input',renderFoodLibrary);clearFoodFormBtn.onclick=clearMealFields;document.querySelectorAll('nav button').forEach(b=>b.onclick=async()=>{if(b.dataset.view!=='food')await stopScanner();if(b.dataset.view==='home'){selectedHomeDate=today();renderHome();renderMinimalHome()}document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(b.dataset.view).classList.add('active');document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x===b));scrollTo(0,0)});mealDate.value=progressDate.value=today();if(activityDate)activityDate.value=today();
 function renderMinimalHome(){
  const names=['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'], months=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
  const currentKey=today();
