@@ -183,14 +183,13 @@ nav{left:10px;right:10px;bottom:10px;border:1px solid #223544;border-radius:22px
         <strong id="weeklyRemainingNow">0 kcal</strong>
         <small id="weeklyRemainingSub">para terminar la semana</small>
       </div>
-      <div class="nc-weekly-stat" id="weeklyDailyAvailableStat">
-        <span>Disponible por día</span>
-        <strong id="weeklyDailyAvailable">0 kcal</strong>
-        <small id="weeklyDaysRemaining">0 días restantes</small>
+      <div class="nc-weekly-stat" id="weeklyUsedStat">
+        <span>Presupuesto utilizado</span>
+        <strong id="weeklyUsedPct">0%</strong>
+        <small>del objetivo semanal</small>
       </div>
     </div>
 
-    <div class="nc-weekly-note" id="weeklyNote">Se calcula solo con tus objetivos de calorías configurados. No usa mantenimiento.</div>
   </div>
 
   <div class="nc-section-head"><h2>Comidas</h2><button id="viewDiaryBtn" class="nc-link">Ver diario</button></div>
@@ -262,17 +261,6 @@ function renderWeeklySummary(ds=today()){
  const remaining=weeklyBudgetValue-consumed;
  const usedPct=weeklyBudgetValue>0?(consumed/weeklyBudgetValue)*100:0;
 
- let daysForAverage=0;
- if(realToday<start){
-   daysForAverage=7;
- }else if(realToday>end){
-   daysForAverage=0;
- }else{
-   const todayIndex=dates.indexOf(realToday);
-   daysForAverage=7-todayIndex;
- }
-
- const dailyAvailable=remaining>0 && daysForAverage>0 ? remaining/daysForAverage : 0;
 
  const fmt=v=>Math.round(v).toLocaleString('es-AR')+' kcal';
  const fmtDate=x=>new Date(x+'T12:00:00').toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit'});
@@ -283,14 +271,12 @@ function renderWeeklySummary(ds=today()){
  const remainingLabel=document.getElementById('weeklyRemainingLabel');
  const remainingSub=document.getElementById('weeklyRemainingSub');
  const remainingStat=document.getElementById('weeklyRemainingStat');
- const dailyEl=document.getElementById('weeklyDailyAvailable');
- const daysRemainingEl=document.getElementById('weeklyDaysRemaining');
+ const usedPctEl=document.getElementById('weeklyUsedPct');
  const rangeEl=document.getElementById('weeklyRangeText');
  const consumedDaysEl=document.getElementById('weeklyConsumedDays');
  const bar=document.getElementById('weeklyBudgetBar');
  const progressText=document.getElementById('weeklyProgressText');
  const hero=document.getElementById('weeklyRemainingHero');
- const note=document.getElementById('weeklyNote');
 
  if(!budgetEl||!consumedEl||!remainingEl)return;
 
@@ -338,28 +324,11 @@ function renderWeeklySummary(ds=today()){
    }
  }
 
- if(dailyEl){
-   dailyEl.textContent=remaining>0 && daysForAverage>0 ? fmt(dailyAvailable) : remaining<0 ? '0 kcal' : '—';
- }
-
- if(daysRemainingEl){
-   if(realToday>end){
-     daysRemainingEl.textContent='semana finalizada';
-   }else if(realToday<start){
-     daysRemainingEl.textContent='7 días disponibles';
-   }else{
-     daysRemainingEl.textContent=daysForAverage===1?'hoy es el último día':daysForAverage+' días contando hoy';
-   }
- }
-
- if(note){
-   if(remaining<0){
-     note.textContent='Superaste tu presupuesto semanal por '+fmt(Math.abs(remaining))+'. El mantenimiento no participa de este cálculo.';
-   }else if(daysForAverage>0){
-     note.textContent='Podés consumir en promedio '+fmt(dailyAvailable)+' por día de acá al domingo y seguir dentro de tu presupuesto semanal.';
-   }else{
-     note.textContent='Semana cerrada. Resultado: '+fmt(consumed)+' consumidas sobre '+fmt(weeklyBudgetValue)+' de presupuesto.';
-   }
+ if(usedPctEl){
+   usedPctEl.textContent=Math.round(usedPct)+'%';
+   const usedStat=document.getElementById('weeklyUsedStat');
+   usedStat?.classList.remove('good','warning','over');
+   usedStat?.classList.add(usedPct>100?'over':usedPct>=85?'warning':'good');
  }
 }
 
