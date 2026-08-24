@@ -98,6 +98,21 @@ nav{left:10px;right:10px;bottom:10px;border:1px solid #223544;border-radius:22px
 .nc-weekly-note{margin-top:10px;color:#83919d;font-size:10px;line-height:1.4}
 @media(max-width:520px){.nc-weekly-grid{grid-template-columns:1fr 1fr}.nc-weekly-stat:last-child{grid-column:1/-1}}
 
+/* Nico Cut Weekly Budget v1 */
+.nc-weekly-progress{background:#09151f;border:1px solid #1e3040;border-radius:16px;padding:12px;margin-bottom:10px}
+.nc-weekly-progress-copy{display:flex;justify-content:space-between;align-items:flex-end;gap:10px}
+.nc-weekly-progress-copy span{color:#83919d;font-size:11px}
+.nc-weekly-progress-copy strong{font-size:16px;color:var(--nc-green);text-align:right}
+.nc-weekly-track{height:9px;border-radius:999px;background:#1d2a35;overflow:hidden;margin-top:10px}
+.nc-weekly-track i{display:block;height:100%;width:0;border-radius:999px;background:var(--nc-green);transition:width .25s ease,background .25s ease}
+.nc-weekly-track i.warning{background:#f0b429}
+.nc-weekly-track i.over{background:#ff7b72}
+.nc-weekly-grid-v2{grid-template-columns:repeat(2,1fr)}
+.nc-weekly-stat.good strong{color:var(--nc-green)}
+.nc-weekly-stat.warning strong{color:#f0b429}
+.nc-weekly-stat.over strong{color:#ff7b72}
+@media(max-width:520px){.nc-weekly-grid-v2{grid-template-columns:1fr 1fr}.nc-weekly-grid-v2 .nc-weekly-stat:last-child{grid-column:auto}.nc-weekly-progress-copy{align-items:flex-start;flex-direction:column}.nc-weekly-progress-copy strong{text-align:left}}
+
 
 /* Nico Cut v0.5 · Entrenamiento */
 .train-hero{background:linear-gradient(145deg,#10251b,#0b1712);border:1px solid #285a3a;border-radius:20px;padding:16px;margin-bottom:12px}.train-hero h2{margin:0 0 5px;font-size:22px}.train-meta{display:flex;gap:8px;flex-wrap:wrap;color:#a9b8ad;font-size:12px}.train-chip{background:#16291f;border:1px solid #285a3a;color:#86efac;padding:5px 8px;border-radius:999px}.exercise-card{background:#0d1713;border:1px solid #223c2d;border-radius:18px;padding:14px;margin:10px 0}.exercise-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.exercise-head h3{margin:0;font-size:17px}.exercise-head small{display:block;color:#8ca096;margin-top:3px}.set-table{display:grid;grid-template-columns:36px 1fr 70px 62px 56px 42px;gap:6px;align-items:center;margin-top:12px;font-size:12px}.set-table .th{color:#7f9489;text-align:center;font-weight:700}.set-table input{padding:8px 5px;text-align:center;border-radius:10px}.set-num{text-align:center;color:#aab8b0;font-weight:700}.set-done{width:38px;height:38px;padding:0;border-radius:12px}.set-done.done{background:#1f6f3d;border-color:#3f9e60}.train-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.train-actions button{flex:1;min-width:120px}.rest-timer{position:sticky;top:8px;z-index:8;background:#10251b;border:1px solid #2f6942;border-radius:16px;padding:11px 13px;margin:10px 0;display:none;align-items:center;justify-content:space-between;box-shadow:0 10px 28px rgba(0,0,0,.32)}.rest-timer.show{display:flex}.rest-timer strong{font-size:22px;color:#86efac}.rest-controls{display:flex;gap:6px}.rest-controls button{padding:7px 9px;min-width:0}.workout-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}.workout-summary>div{background:#101d17;border:1px solid #223c2d;border-radius:14px;padding:11px;text-align:center}.workout-summary strong{display:block;font-size:18px}.workout-summary small{color:#84978c}.history-workout{background:#0d1713;border:1px solid #223c2d;border-radius:15px;padding:12px;margin:8px 0}.history-workout small{color:#87998f;display:block;margin-top:4px}.empty-train{color:#8b9c92;text-align:center;padding:22px 8px}.routine-picker{display:grid;grid-template-columns:1fr auto;gap:8px;margin-bottom:10px}.exercise-last{color:#86efac!important}.train-note{width:100%;margin-top:8px}.train-pr{font-size:11px;color:#fbbf24;margin-top:4px}.train-header-row{display:flex;justify-content:space-between;align-items:center;gap:8px}.train-header-row button{width:auto;padding:8px 10px}.routine-editor{display:none;margin-top:12px}.routine-editor.show{display:block}.routine-ex-item{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:7px}.routine-ex-item button{width:auto;padding:8px 10px}.workout-finish{background:#1f6f3d!important}.workout-finish:disabled{opacity:.5}.training-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}.training-stats .card{margin:0}.training-stats strong{font-size:20px;display:block}.training-stats small{color:#83968c}
@@ -139,13 +154,43 @@ nav{left:10px;right:10px;bottom:10px;border:1px solid #223544;border-radius:22px
   <div hidden><span id="proteinPct"></span><span id="carbsPct"></span><span id="fatPct"></span><span id="fiberPct"></span><span id="satFatPct"></span><span id="transFatPct"></span><span id="dailyGoalSide"></span><span id="weekRemaining"></span><span id="weekBudgetText"></span><div id="proteinRing"></div><div id="carbsRing"></div><div id="fatRing"></div><div id="fiberRing"></div><div id="satFatRing"></div><div id="transFatRing"></div></div>
 
   <div class="nc-weekly-summary" id="weeklySummaryCard">
-    <div class="nc-weekly-head"><strong>Resumen semanal</strong><small id="weeklyRangeText">Lun–Dom</small></div>
-    <div class="nc-weekly-grid">
-      <div class="nc-weekly-stat deficit" id="weeklyDeficitStat"><span>Tu déficit semanal es</span><strong id="weeklyDeficitNow">0 kcal</strong><small>acumulado hasta hoy</small></div>
-      <div class="nc-weekly-stat"><span>Llevás consumidas</span><strong id="weeklyConsumedNow">0 kcal</strong><small id="weeklyConsumedDays">esta semana</small></div>
-      <div class="nc-weekly-stat deficit" id="weeklyProjectedStat"><span>Final de semana</span><strong id="weeklyProjectedDeficit">0 kcal</strong><small>déficit proyectado</small></div>
+    <div class="nc-weekly-head">
+      <strong>Presupuesto semanal</strong>
+      <small id="weeklyRangeText">Lun–Dom</small>
     </div>
-    <div class="nc-weekly-note">Proyección: calorías reales hasta hoy + tus objetivos configurados para los días restantes.</div>
+
+    <div class="nc-weekly-progress">
+      <div class="nc-weekly-progress-copy">
+        <span id="weeklyProgressText">0 de 0 kcal</span>
+        <strong id="weeklyRemainingHero">0 kcal disponibles</strong>
+      </div>
+      <div class="nc-weekly-track"><i id="weeklyBudgetBar"></i></div>
+    </div>
+
+    <div class="nc-weekly-grid nc-weekly-grid-v2">
+      <div class="nc-weekly-stat">
+        <span>Objetivo semanal</span>
+        <strong id="weeklyBudgetNow">0 kcal</strong>
+        <small>Tu presupuesto total</small>
+      </div>
+      <div class="nc-weekly-stat">
+        <span>Llevás consumidas</span>
+        <strong id="weeklyConsumedNow">0 kcal</strong>
+        <small id="weeklyConsumedDays">esta semana</small>
+      </div>
+      <div class="nc-weekly-stat" id="weeklyRemainingStat">
+        <span id="weeklyRemainingLabel">Te quedan</span>
+        <strong id="weeklyRemainingNow">0 kcal</strong>
+        <small id="weeklyRemainingSub">para terminar la semana</small>
+      </div>
+      <div class="nc-weekly-stat" id="weeklyDailyAvailableStat">
+        <span>Disponible por día</span>
+        <strong id="weeklyDailyAvailable">0 kcal</strong>
+        <small id="weeklyDaysRemaining">0 días restantes</small>
+      </div>
+    </div>
+
+    <div class="nc-weekly-note" id="weeklyNote">Se calcula solo con tus objetivos de calorías configurados. No usa mantenimiento.</div>
   </div>
 
   <div class="nc-section-head"><h2>Comidas</h2><button id="viewDiaryBtn" class="nc-link">Ver diario</button></div>
@@ -204,42 +249,118 @@ function estimatedDailyMaintenance(){
  return p.goal==='lose'?base+500:p.goal==='gain'?Math.max(0,base-250):base;
 }
 function renderWeeklySummary(ds=today()){
- const dates=weekDates(ds),start=dates[0],end=dates[6],realToday=today();
- let cutoff=realToday<start?-1:realToday>end?6:dates.indexOf(realToday);
- if(cutoff<0&&realToday>=start)cutoff=0;
+ const dates=weekDates(ds);
+ const start=dates[0], end=dates[6];
+ const realToday=today();
 
- const elapsedDates=cutoff>=0?dates.slice(0,cutoff+1):[];
- const elapsedSet=new Set(elapsedDates);
- const consumedToDate=data.meals.filter(m=>elapsedSet.has(m.date)).reduce((s,m)=>s+n(m.kcal),0);
- const maintenance=estimatedDailyMaintenance();
- const deficitNow=maintenance*elapsedDates.length-consumedToDate;
+ const weeklyBudgetValue=dates.reduce((sum,date)=>sum+goalForDate(date),0);
+ const weekSet=new Set(dates);
+ const consumed=data.meals
+   .filter(m=>weekSet.has(m.date))
+   .reduce((sum,m)=>sum+n(m.kcal),0);
 
- const futureDates=cutoff<6?dates.slice(Math.max(0,cutoff+1)):[];
- const futureGoals=futureDates.reduce((s,d)=>s+goalForDate(d),0);
- const projectedDeficit=maintenance*7-(consumedToDate+futureGoals);
+ const remaining=weeklyBudgetValue-consumed;
+ const usedPct=weeklyBudgetValue>0?(consumed/weeklyBudgetValue)*100:0;
 
- const fmtAbs=v=>Math.abs(Math.round(v)).toLocaleString('es-AR')+' kcal';
- const deficitEl=document.getElementById('weeklyDeficitNow');
- const consumedEl=document.getElementById('weeklyConsumedNow');
- const projectedEl=document.getElementById('weeklyProjectedDeficit');
- if(!deficitEl||!consumedEl||!projectedEl)return;
+ let daysForAverage=0;
+ if(realToday<start){
+   daysForAverage=7;
+ }else if(realToday>end){
+   daysForAverage=0;
+ }else{
+   const todayIndex=dates.indexOf(realToday);
+   daysForAverage=7-todayIndex;
+ }
 
- deficitEl.textContent=(deficitNow>=0?'− ':'+ ')+fmtAbs(deficitNow);
- consumedEl.textContent=Math.round(consumedToDate).toLocaleString('es-AR')+' kcal';
- projectedEl.textContent=(projectedDeficit>=0?'− ':'+ ')+fmtAbs(projectedDeficit);
+ const dailyAvailable=remaining>0 && daysForAverage>0 ? remaining/daysForAverage : 0;
 
- const deficitStat=document.getElementById('weeklyDeficitStat');
- const projectedStat=document.getElementById('weeklyProjectedStat');
- deficitStat?.classList.toggle('deficit',deficitNow>=0);
- deficitStat?.classList.toggle('over',deficitNow<0);
- projectedStat?.classList.toggle('deficit',projectedDeficit>=0);
- projectedStat?.classList.toggle('over',projectedDeficit<0);
-
+ const fmt=v=>Math.round(v).toLocaleString('es-AR')+' kcal';
  const fmtDate=x=>new Date(x+'T12:00:00').toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit'});
+
+ const budgetEl=document.getElementById('weeklyBudgetNow');
+ const consumedEl=document.getElementById('weeklyConsumedNow');
+ const remainingEl=document.getElementById('weeklyRemainingNow');
+ const remainingLabel=document.getElementById('weeklyRemainingLabel');
+ const remainingSub=document.getElementById('weeklyRemainingSub');
+ const remainingStat=document.getElementById('weeklyRemainingStat');
+ const dailyEl=document.getElementById('weeklyDailyAvailable');
+ const daysRemainingEl=document.getElementById('weeklyDaysRemaining');
  const rangeEl=document.getElementById('weeklyRangeText');
- const daysEl=document.getElementById('weeklyConsumedDays');
- if(rangeEl)rangeEl.textContent=fmtDate(start)+'–'+fmtDate(end);
- if(daysEl)daysEl.textContent=elapsedDates.length===1?'1 día transcurrido':elapsedDates.length+' días transcurridos';
+ const consumedDaysEl=document.getElementById('weeklyConsumedDays');
+ const bar=document.getElementById('weeklyBudgetBar');
+ const progressText=document.getElementById('weeklyProgressText');
+ const hero=document.getElementById('weeklyRemainingHero');
+ const note=document.getElementById('weeklyNote');
+
+ if(!budgetEl||!consumedEl||!remainingEl)return;
+
+ budgetEl.textContent=fmt(weeklyBudgetValue);
+ consumedEl.textContent=fmt(consumed);
+
+ if(rangeEl) rangeEl.textContent=fmtDate(start)+'–'+fmtDate(end);
+
+ const loadedDays=new Set(data.meals.filter(m=>weekSet.has(m.date)).map(m=>m.date)).size;
+ if(consumedDaysEl){
+   consumedDaysEl.textContent=loadedDays===1?'1 día con registros':loadedDays+' días con registros';
+ }
+
+ if(progressText){
+   progressText.textContent=Math.round(consumed).toLocaleString('es-AR')+' de '+Math.round(weeklyBudgetValue).toLocaleString('es-AR')+' kcal';
+ }
+
+ if(bar){
+   bar.style.width=Math.min(100,Math.max(0,usedPct))+'%';
+   bar.classList.remove('warning','over');
+   if(usedPct>100) bar.classList.add('over');
+   else if(usedPct>=85) bar.classList.add('warning');
+ }
+
+ if(remaining>=0){
+   remainingLabel.textContent='Te quedan';
+   remainingEl.textContent=fmt(remaining);
+   remainingSub.textContent='para terminar la semana';
+   remainingStat?.classList.remove('over','warning');
+   remainingStat?.classList.add(usedPct>=85?'warning':'good');
+   if(hero){
+     hero.textContent=fmt(remaining)+' disponibles';
+     hero.style.color=usedPct>=85?'#f0b429':'var(--nc-green)';
+   }
+ }else{
+   const over=Math.abs(remaining);
+   remainingLabel.textContent='Exceso semanal';
+   remainingEl.textContent='+'+fmt(over);
+   remainingSub.textContent='sobre tu objetivo semanal';
+   remainingStat?.classList.remove('good','warning');
+   remainingStat?.classList.add('over');
+   if(hero){
+     hero.textContent='+'+fmt(over)+' sobre objetivo';
+     hero.style.color='#ff7b72';
+   }
+ }
+
+ if(dailyEl){
+   dailyEl.textContent=remaining>0 && daysForAverage>0 ? fmt(dailyAvailable) : remaining<0 ? '0 kcal' : '—';
+ }
+
+ if(daysRemainingEl){
+   if(realToday>end){
+     daysRemainingEl.textContent='semana finalizada';
+   }else if(realToday<start){
+     daysRemainingEl.textContent='7 días disponibles';
+   }else{
+     daysRemainingEl.textContent=daysForAverage===1?'hoy es el último día':daysForAverage+' días contando hoy';
+   }
+ }
+
+ if(note){
+   if(remaining<0){
+     note.textContent='Superaste tu presupuesto semanal por '+fmt(Math.abs(remaining))+'. El mantenimiento no participa de este cálculo.';
+   }else if(daysForAverage>0){
+     note.textContent='Podés consumir en promedio '+fmt(dailyAvailable)+' por día de acá al domingo y seguir dentro de tu presupuesto semanal.';
+   }else{
+     note.textContent='Semana cerrada. Resultado: '+fmt(consumed)+' consumidas sobre '+fmt(weeklyBudgetValue)+' de presupuesto.';
+   }
+ }
 }
 
 function renderHome(){const homeDay=selectedHomeDate||today(),t=dailyTotals(homeDay),goal=goalForDate(homeDay);kcalToday.textContent=Math.round(t.kcal);kcalGoalText.textContent=`de ${goal} kcal`;kcalBar.style.width=Math.min(100,t.kcal/goal*100)+'%';setMetric('protein',t.protein,data.goals.protein);setMetric('carbs',t.carbs,data.goals.carbs);setMetric('fat',t.fat,data.goals.fat);setMetric('fiber',t.fiber,data.goals.fiber);transFatToday.textContent=round1(t.transFat)+' g';transFatGoalText.textContent=`límite ${data.goals.transFat} g`;transFatBar.style.width=Math.min(100,data.goals.transFat?t.transFat/data.goals.transFat*100:0)+'%';const lp=latestProgress();weightNow.textContent=lp?.weight?lp.weight.toFixed(1)+' kg':'—';const ps=[...data.progress].filter(p=>p.weight).sort((a,b)=>a.date.localeCompare(b.date));let trend='Sin datos';if(ps.length>=2){const recent=avg(ps.slice(-7).map(p=>p.weight)),prev=avg(ps.slice(-14,-7).map(p=>p.weight));trend=prev?`${recent-prev>=0?'+':''}${(recent-prev).toFixed(2)} kg vs 7d prev`:`Prom. reciente ${recent.toFixed(2)} kg`}weightTrend.textContent=trend;const rem=weeklyBudget()-weeklyConsumed();weekRemaining.textContent=Math.round(rem)+' kcal';weekBudgetText.textContent=`de ${weeklyBudget()} kcal semanales`;let tipLeadText='Sumá proteína en cada comida.',tipText='Te ayuda a mantener la masa muscular y sentirte lleno por más tiempo.';if(t.transFat>data.goals.transFat){tipLeadText='Hoy priorizá alimentos frescos.';tipText='Ya superaste el límite de grasas trans. Elegí opciones menos procesadas para el resto del día.'}else if(t.fiber<data.goals.fiber*.35&&t.kcal>goal*.45){tipLeadText='Dale un empujón a la fibra.';tipText='Frutas, verduras, legumbres o cereales integrales pueden ayudarte a acercarte a tu objetivo diario.'}else if(t.protein<data.goals.protein*.45&&t.kcal>goal*.5){tipLeadText='Te falta proteína para lo que ya comiste.';tipText='Intentá que la próxima comida tenga una fuente proteica clara para equilibrar el día.'}else if(t.fat>data.goals.fat*.85){tipLeadText='Las grasas ya vienen bastante altas.';tipText='En las próximas comidas podés priorizar proteínas magras y preparaciones con menos aceite o queso.'}else if(t.kcal>goal){tipLeadText='Objetivo diario superado.';tipText='No hace falta compensar de forma agresiva: mirá la tendencia semanal y retomá tu objetivo normalmente.'}else if(t.protein>=data.goals.protein*.8){tipLeadText='Muy buen ritmo de proteína 💪';tipText='Vas bien encaminado para proteger masa muscular. Seguí distribuyéndola entre tus comidas.'}else if(t.kcal===0){tipLeadText='Empezá el día con una buena base.';tipText='Cuando cargues tu primera comida, el tip se va a adaptar automáticamente a tus macros.'}tipLead.textContent=tipLeadText;dayStatus.textContent=tipText;dayStatus.className='status-lines muted';const recent=[...data.meals].sort((a,b)=>(b.date+b.id).localeCompare(a.date+a.id)).slice(0,5);recentMeals.innerHTML=recent.length?recent.map(m=>`<div class="item"><div><strong>${esc(m.name)}</strong><small>${m.date} · ${m.type} · ${m.qty}${esc(m.unit)} · ${Math.round(m.kcal)} kcal</small></div></div>`).join(''):'<div class="card hint">Todavía no cargaste comidas.</div>';const pct=(v,g)=>g?Math.min(100,Math.round(v/g*100)):0;dailyGoalBig.textContent=goal;dailyGoalSide.textContent=goal+' kcal';kcalRemainingBig.textContent=Math.max(0,Math.round(goal-t.kcal));calorieRing.style.setProperty('--p',pct(t.kcal,goal));[['protein',t.protein,data.goals.protein],['carbs',t.carbs,data.goals.carbs],['fat',t.fat,data.goals.fat],['fiber',t.fiber,data.goals.fiber],['satFat',t.satFat,data.goals.satFat],['transFat',t.transFat,data.goals.transFat]].forEach(([id,v,g])=>{const ring=document.getElementById(id+'Ring'),pe=document.getElementById(id+'Pct');if(ring)ring.style.setProperty('--p',pct(v,g));if(pe)pe.textContent=pct(v,g)+'%'});satFatToday.textContent=round1(t.satFat)+' g';satFatGoalText.textContent='límite '+data.goals.satFat+' g';const days=new Set(data.meals.map(m=>m.date));let streak=0,d=new Date(today()+'T12:00:00');while(days.has(d.toISOString().slice(0,10))){streak++;d.setDate(d.getDate()-1)}streakCount.textContent=streak;drawMiniWeight();renderWeeklySummary(homeDay)}
@@ -294,8 +415,6 @@ async function lookupBarcode(code){
  code=String(code||'').replace(/\D/g,'');
  if(!code)return;
 
- // No reutilizar automáticamente fichas antiguas de Open Food Facts:
- // una ficha vieja pudo quedar guardada con nombre/macros incorrectos.
  const local=data.foodLibrary.find(f=>f.barcode===code && f.source!=='Open Food Facts');
  if(local){
    setMealFields(local);
@@ -324,7 +443,6 @@ async function lookupBarcode(code){
     .map(x=>String(x||'').trim()).find(Boolean)||'';
   const brands=String(p.brands||'').trim();
 
-  // Valores base por 100 g.
   const kcal100=n(nu['energy-kcal_100g'])||(n(nu.energy_100g)?n(nu.energy_100g)/4.184:0);
   const protein100=n(nu.proteins_100g);
   const carbs100=n(nu.carbohydrates_100g);
@@ -333,7 +451,6 @@ async function lookupBarcode(code){
   const satFat100=n(nu['saturated-fat_100g']);
   const transFat100=n(nu['trans-fat_100g']);
 
-  // Si OFF informa porción, usarla como cantidad predeterminada.
   let servingQty=localNum(p.serving_quantity);
   if(!servingQty){
     const m=String(p.serving_size||'').replace(',','.').match(/(\d+(?:\.\d+)?)\s*g/i);
@@ -341,7 +458,6 @@ async function lookupBarcode(code){
   }
   if(!(servingQty>0&&servingQty<=500))servingQty=100;
 
-  // Control de coherencia para evitar fichas comunitarias rotas.
   const macroKcal=protein100*4+carbs100*4+fat100*9;
   const hasMacros=(protein100+carbs100+fat100+fiber100)>0;
   const impossible=[kcal100,protein100,carbs100,fat100,fiber100,satFat100,transFat100]
@@ -349,7 +465,6 @@ async function lookupBarcode(code){
     || protein100>100 || carbs100>100 || fat100>100 || fiber100>100
     || satFat100>100 || transFat100>100;
 
-  // Tolerancia amplia porque redondeos/azúcares/fibra pueden generar diferencias.
   const energyMismatch=kcal100>0&&macroKcal>0&&(macroKcal>kcal100*1.75||macroKcal<kcal100*0.25);
 
   if(!productName){
@@ -370,7 +485,6 @@ async function lookupBarcode(code){
    return;
   }
 
-  // Eliminar del cache local cualquier ficha vieja del MISMO código proveniente de OFF.
   data.foodLibrary=data.foodLibrary.filter(f=>!(f.barcode===code&&f.source==='Open Food Facts'));
 
   const f={
@@ -502,7 +616,6 @@ function renderMinimalHome(){
  const mealTypes=[['Desayuno','☀️'],['Almuerzo','🍴'],['Merienda','☕'],['Cena','☾'],['Snack','🍎']];
  homeMeals.innerHTML=mealTypes.map(([type,icon])=>{const ms=data.meals.filter(m=>m.date===selectedHomeDate&&m.type===type),sum=ms.reduce((a,m)=>a+n(m.kcal),0);const items=ms.length?ms.map(m=>`<div class="nc-diary-item"><button type="button" onclick="openAndEditMeal('${m.id}')"><div class="name">${esc(m.name)}</div><div class="meta">${round1(m.qty)} ${esc(m.unit)} · P ${round1(m.protein)} · C ${round1(m.carbs)} · G ${round1(m.fat)}</div></button><div class="nc-diary-kcal">${Math.round(n(m.kcal))}</div></div>`).join(''):`<div class="nc-empty-meal">Agregá tu primera carga.</div>`;return `<div class="nc-diary-card"><div class="nc-diary-head"><div><strong>${icon} ${type==='Snack'?'Snacks':type}</strong><small>${ms.length} ${ms.length===1?'alimento':'alimentos'}</small></div><div class="nc-diary-total">${Math.round(sum)} kcal</div></div>${items}<button type="button" class="nc-diary-add" onclick="openFoodForType('${type}')">＋ Agregar</button></div>`}).join('');
 }
-// Selector semanal robusto para iOS/Safari: un solo listener, no se pierde al re-renderizar.
 weekStrip.addEventListener('click',function(e){
  const btn=e.target.closest('.nc-day[data-date]');
  if(!btn||!weekStrip.contains(btn))return;
@@ -510,7 +623,6 @@ weekStrip.addEventListener('click',function(e){
  renderHome();
  renderMinimalHome();
 });
-// Siempre arrancar en el día local actual. Si la app vuelve del background en otro día, actualizarlo.
 selectedHomeDate=today();
 document.addEventListener('visibilitychange',()=>{
  if(document.visibilityState==='visible'){
