@@ -517,34 +517,344 @@ async function lookupBarcode(code){
  }
 }
 async function startScanner(){scanPanel.classList.add('active');if(typeof Html5Qrcode==='undefined')return;scanner=new Html5Qrcode('reader');scannerRunning=true;await scanner.start({facingMode:'environment'},{fps:10,qrbox:{width:280,height:140}},async text=>{await stopScanner();barcodeInput.value=text;lookupBarcode(text)},()=>{})}async function stopScanner(){if(scanner&&scannerRunning){try{await scanner.stop()}catch{}try{await scanner.clear()}catch{}}scannerRunning=false;scanner=null;scanPanel.classList.remove('active')}
-const AI_API_BASE='https://nico-cut-ai.njaime475.workers.dev';let currentAiItems=[];
-photoAnalyzeBtn.onclick=()=>{platePhotoInput.value='';platePhotoInput.click()};
-photoUploadBtn.onclick=()=>{plateUploadInput.value='';plateUploadInput.click()};
-cancelAiBtn.onclick=()=>photoPanel.classList.remove('show');
-async function analyzePlateFile(file){
- if(!file)return;
- const reader=new FileReader();
- reader.onload=async()=>{
-  photoPanel.classList.add('show');platePreview.src=reader.result;photoStatus.textContent='🤖 Analizando…';aiResult.classList.remove('show');
-  try{
-   const weightRaw=(photoWeight?.value||'').trim().replace(',','.');
-   const weightNum=Number(weightRaw);
-   const weightGrams=Number.isFinite(weightNum)&&weightNum>0?weightNum:null;
-   const description=(photoDescription?.value||'').trim();
-   const r=await fetch(`${AI_API_BASE}/api/analyze`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image:reader.result,weightGrams,description})});
-   const p=await r.json();currentAiItems=p.analysis?.items||[];
-   aiItems.innerHTML=currentAiItems.map(it=>`<div class="ai-item"><strong>${esc(it.name)}</strong><small>${Math.round(it.kcal||0)} kcal · P ${round1(it.protein)} · C ${round1(it.carbs)} · G ${round1(it.fat)} · Fib ${round1(it.fiber)}</small></div>`).join('');
-   const t=currentAiItems.reduce((a,x)=>({grams:a.grams+n(x.grams),kcal:a.kcal+n(x.kcal),protein:a.protein+n(x.protein),carbs:a.carbs+n(x.carbs),fat:a.fat+n(x.fat),fiber:a.fiber+n(x.fiber)}),{grams:0,kcal:0,protein:0,carbs:0,fat:0,fiber:0});
-   aiSummary.textContent=`Total: ${Math.round(t.kcal)} kcal · P ${round1(t.protein)} · C ${round1(t.carbs)} · G ${round1(t.fat)} · Fibra ${round1(t.fiber)} g`;
-   photoStatus.textContent=currentAiItems.length?'✅ Foto analizada. Revisá la estimación antes de usarla.':'⚠️ No pude reconocer alimentos en la foto.';
-   aiResult.classList.add('show');
-   useAiEstimateBtn.onclick=()=>{mealName.value='Plato estimado por foto';mealQty.value=Math.round(t.grams)||1;mealKcal.value=Math.round(t.kcal);mealProtein.value=round1(t.protein);mealCarbs.value=round1(t.carbs);mealFat.value=round1(t.fat);mealFiber.value=round1(t.fiber);mealTransFat.value=0;mealSource.value='Estimación visual Nico Cut AI';photoPanel.classList.remove('show')};
-  }catch(err){photoStatus.textContent='⚠️ No pude analizar la foto. Revisá la conexión e intentá nuevamente.'}
- };
- reader.readAsDataURL(file);
+const AI_API_BASE='https://nico-cut-ai.njaime475.workers.dev';
+let currentAiItems=[], pendingPhotoFile=null, pendingPhotoDataUrl='';
+
+photoAnalyzeBtn.onclick=()=>{
+  platePhotoInput.value='';
+  platePhotoInput.click();
+};
+
+photoUploadBtn.onclick=()=>{
+  plateUploadInput.value='';
+  plateUploadInput.click();
+};
+
+cancelAiBtn.onclick=()=>{
+  photoPanel.classList.remove('show');
+  aiResult.classList.remove('show');
+};
+
+function photoConfidenceLabel(v){
+  return v==='alta' ? '🟢 Alta' : v==='baja' ? '🔴 Baja' : '🟡 Media';
 }
-platePhotoInput.onchange=e=>analyzePlateFile(e.target.files?.[0]);
-plateUploadInput.onchange=e=>analyzePlateFile(e.target.files?.[0]);
+
+function aiTotals(){
+  return currentAiItems.reduce((a,x)=>({
+    grams:a.grams+n(x.grams),
+    kcal:a.kcal+n(x.kcal),
+    protein:a.protein+n(x.protein),
+    carbs:a.carbs+n(x.carbs),
+    fat:a.fat+n(x.fat),
+    fiber:a.fiber+n(x.fiber)
+  }),{
+    grams:0,
+    kcal:0,
+    protein:0,
+    carbs:0,
+    fat:0,
+    fiber:0
+  });
+}
+
+function renderAiSummary(){
+  const t=aiTotals();
+
+  aiSummary.textContent=
+    `Total: ${Math.round(t.grams)} g · ${Math.round(t.kcal)} kcal · `+
+    `P ${round1(t.protein)} · C ${round1(t.carbs)} · `+
+    `G ${round1(t.fat)} · Fibra ${round1(t.fiber)} g`;
+
+  return t;
+}
+
+function renderAiItems(){
+
+  aiItems.innerHTML=currentAiItems.map((it,i)=>`
+    <div class="ai-item">
+
+      <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start">
+        <strong>${esc(it.name)}</strong>
+        <small>${photoConfidenceLabel(it.confidence)}</small>
+      </div>
+
+      <small>${esc(it.note||'')}</small>
+
+      <div class="ai-item-grid">
+
+        <div>
+          <label>Alimento</label>
+          <input
+            data-ai-name="${i}"
+            value="${esc(it.name)}"
+          >
+        </div>
+
+        <div>
+          <label>Gramos</label>
+          <input
+            data-ai-grams="${i}"
+            type="text"
+            inputmode="decimal"
+            value="${round1(it.grams)}"
+          >
+        </div>
+
+        <div>
+          <label>Kcal</label>
+          <input value="${round1(it.kcal)}" readonly>
+        </div>
+
+        <div>
+          <label>P / C / G</label>
+          <input
+            value="${round1(it.protein)} / ${round1(it.carbs)} / ${round1(it.fat)}"
+            readonly
+          >
+        </div>
+
+      </div>
+    </div>
+  `).join('');
+
+  aiItems
+    .querySelectorAll('[data-ai-name]')
+    .forEach(inp=>{
+      inp.addEventListener('input',()=>{
+        const i=Number(inp.dataset.aiName);
+
+        if(currentAiItems[i]){
+          currentAiItems[i].name=inp.value;
+        }
+      });
+    });
+
+  aiItems
+    .querySelectorAll('[data-ai-grams]')
+    .forEach(inp=>{
+      inp.addEventListener('change',()=>{
+
+        const i=Number(inp.dataset.aiGrams);
+        const it=currentAiItems[i];
+
+        if(!it)return;
+
+        const old=Math.max(.0001,n(it.grams));
+        const next=Math.max(0,localNum(inp.value));
+        const ratio=next/old;
+
+        ['kcal','protein','carbs','fat','fiber']
+          .forEach(k=>{
+            it[k]=n(it[k])*ratio;
+          });
+
+        it.grams=next;
+
+        renderAiItems();
+        renderAiSummary();
+      });
+    });
+
+  renderAiSummary();
+}
+
+function showPhotoReady(){
+
+  photoPanel.classList.add('show');
+  aiResult.classList.remove('show');
+
+  photoStatus.innerHTML=`
+    <strong>📸 Foto lista</strong><br>
+
+    <span class="hint">
+      Revisala y agregá arriba cualquier dato que sepas:
+      pesos, ingredientes, cocción, aceite, etc.
+    </span>
+
+    <div class="actions" style="margin-top:10px">
+
+      <button
+        type="button"
+        id="confirmPhotoAnalysisBtn"
+      >
+        🤖 Analizar foto
+      </button>
+
+      <button
+        type="button"
+        id="changePhotoBtn"
+        class="secondary"
+      >
+        📷 Cambiar foto
+      </button>
+
+    </div>
+  `;
+
+  document
+    .getElementById('confirmPhotoAnalysisBtn')
+    .onclick=analyzePendingPhoto;
+
+  document
+    .getElementById('changePhotoBtn')
+    .onclick=()=>{
+      platePhotoInput.value='';
+      platePhotoInput.click();
+    };
+}
+
+function preparePlateFile(file){
+
+  if(!file)return;
+
+  pendingPhotoFile=file;
+  currentAiItems=[];
+
+  const reader=new FileReader();
+
+  reader.onload=()=>{
+
+    pendingPhotoDataUrl=reader.result;
+
+    platePreview.src=pendingPhotoDataUrl;
+
+    showPhotoReady();
+  };
+
+  reader.readAsDataURL(file);
+}
+
+async function analyzePendingPhoto(){
+
+  if(!pendingPhotoDataUrl)return;
+
+  photoStatus.textContent=
+    '🤖 Analizando con el contexto que cargaste…';
+
+  aiResult.classList.remove('show');
+
+  try{
+
+    const weightRaw=
+      (photoWeight?.value||'')
+        .trim()
+        .replace(',','.');
+
+    const weightNum=Number(weightRaw);
+
+    const weightGrams=
+      Number.isFinite(weightNum)&&weightNum>0
+        ? weightNum
+        : null;
+
+    const description=
+      (photoDescription?.value||'').trim();
+
+    const r=await fetch(
+      `${AI_API_BASE}/api/analyze`,
+      {
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json'
+        },
+        body:JSON.stringify({
+          image:pendingPhotoDataUrl,
+          weightGrams,
+          description
+        })
+      }
+    );
+
+    const p=await r.json();
+
+    if(!r.ok||!p.ok){
+      throw new Error(
+        p.error||'No se pudo analizar la foto'
+      );
+    }
+
+    currentAiItems=
+      (p.analysis?.items||[])
+      .map(it=>({...it}));
+
+    if(!currentAiItems.length){
+
+      photoStatus.textContent=
+        '⚠️ No pude reconocer alimentos en la foto.';
+
+      return;
+    }
+
+    renderAiItems();
+
+    photoStatus.textContent=
+      `✅ Foto analizada · confianza general: ${
+        photoConfidenceLabel(
+          p.analysis?.confidence
+        )
+      }`;
+
+    aiResult.classList.add('show');
+
+    useAiEstimateBtn.onclick=()=>{
+
+      const t=aiTotals();
+
+      mealName.value=
+        currentAiItems.length===1
+          ? (
+              currentAiItems[0].name||
+              'Plato estimado por foto'
+            )
+          : 'Plato estimado por foto';
+
+      mealQty.value=
+        Math.round(t.grams)||1;
+
+      mealKcal.value=
+        Math.round(t.kcal);
+
+      mealProtein.value=
+        round1(t.protein);
+
+      mealCarbs.value=
+        round1(t.carbs);
+
+      mealFat.value=
+        round1(t.fat);
+
+      mealFiber.value=
+        round1(t.fiber);
+
+      mealTransFat.value=0;
+
+      mealSource.value=
+        'Estimación visual Nico Cut AI · revisada';
+
+      photoPanel.classList.remove('show');
+    };
+
+  }catch(err){
+
+    photoStatus.textContent=
+      '⚠️ No pude analizar la foto: '+
+      (
+        err?.message||
+        'revisá la conexión e intentá nuevamente.'
+      );
+  }
+}
+
+platePhotoInput.onchange=e=>
+  preparePlateFile(
+    e.target.files?.[0]
+  );
+
+plateUploadInput.onchange=e=>
+  preparePlateFile(
+    e.target.files?.[0]
+  );
+
 deleteMealBtn.onclick=()=>{if(!activeMealEditId)return;if(confirm('¿Eliminar esta carga?')){data.meals=data.meals.filter(x=>x.id!==activeMealEditId);clearMealFields();save()}};addMealBtn.onclick=()=>{if(!mealName.value.trim()||!num('mealKcal'))return alert('Cargá alimento y calorías.');const payload={date:mealDate.value||today(),type:mealType.value,name:mealName.value.trim(),qty:num('mealQty'),unit:mealUnit.value,state:mealState.value,kcal:num('mealKcal'),protein:num('mealProtein'),carbs:num('mealCarbs'),fat:num('mealFat'),fiber:num('mealFiber'),satFat:num('mealSatFat'),transFat:num('mealTransFat'),source:mealSource.value.trim()};if(activeMealEditId){const i=data.meals.findIndex(x=>x.id===activeMealEditId);if(i>=0)data.meals[i]={...data.meals[i],...payload,updatedAt:new Date().toISOString()}}else data.meals.push({id:crypto.randomUUID(),...payload,createdAt:new Date().toISOString()});clearMealFields();save()};saveFoodBtn.onclick=()=>{if(!mealName.value.trim())return alert('Escribí el nombre del alimento antes de guardarlo.');const f={id:activeFoodId||crypto.randomUUID(),name:mealName.value.trim(),basis:num('mealQty')||100,defaultQty:num('mealQty')||100,unit:mealUnit.value,state:mealState.value,kcal:num('mealKcal'),protein:num('mealProtein'),carbs:num('mealCarbs'),fat:num('mealFat'),fiber:num('mealFiber'),satFat:num('mealSatFat'),transFat:num('mealTransFat'),source:mealSource.value.trim(),updatedAt:new Date().toISOString()};const i=data.foodLibrary.findIndex(x=>x.id===f.id);i>=0?data.foodLibrary[i]=f:data.foodLibrary.unshift(f);activeFoodId=f.id;save();renderFoodLibrary();foodSaveStatus.textContent=`✅ ${f.name} quedó guardado en Mis alimentos. La próxima vez podés tocar “Usar”.`;foodSaveStatus.className='statusbox show ok';document.getElementById('foodLibraryList')?.scrollIntoView({behavior:'smooth',block:'center'});};addProgressBtn.onclick=()=>{const ds=progressDate.value||today();data.progress=data.progress.filter(p=>p.date!==ds);data.progress.push({id:crypto.randomUUID(),date:ds,weight:num('progressWeight'),waist:num('progressWaist'),navel:num('progressNavel'),steps:num('progressSteps'),gym:progressGym.value});save()};
 
 function fmtClock(sec){sec=Math.max(0,Math.floor(sec));return String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0')}
