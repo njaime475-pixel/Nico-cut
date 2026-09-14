@@ -301,6 +301,37 @@ nav{
   flex:0 0 5px;
   margin-top:auto!important;
 }
+
+/* KRAXES CUT v2.0.4 — fixed macro card rows */
+.kc-macro-deck .nc-macro,
+.kc-macro-deck .nc-extra-macros>div{
+  display:grid!important;
+  grid-template-rows:2.8em auto auto 5px!important;
+  align-content:stretch!important;
+  row-gap:3px!important;
+}
+.kc-macro-deck .nc-macro>span:first-child,
+.kc-macro-deck .nc-extra-macros>div>span:first-child{
+  min-height:0!important;
+  margin:0!important;
+  align-self:start!important;
+}
+.kc-macro-deck .nc-macro>strong,
+.kc-macro-deck .nc-extra-macros>div>strong,
+.kc-macro-deck .nc-macro>small,
+.kc-macro-deck .nc-extra-macros>div>small{
+  margin-top:0!important;
+  margin-bottom:0!important;
+  align-self:start!important;
+}
+.kc-macro-deck .nc-macro>div,
+.kc-macro-deck .nc-extra-macros>div>i{
+  grid-row:4!important;
+  align-self:end!important;
+  margin:0!important;
+  width:100%!important;
+  height:5px!important;
+}
 </style>
 </head>
 <body>
