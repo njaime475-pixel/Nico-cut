@@ -108,7 +108,7 @@ nav{left:10px;right:10px;bottom:10px;border:1px solid #223544;border-radius:22px
 .nc-weekly-track i.warning{background:#f0b429}
 .nc-weekly-track i.over{background:#ff7b72}
 .nc-weekly-grid-v2{grid-template-columns:repeat(2,1fr)}
-#weeklyAverageStat{grid-column:1/-1}
+#weeklyAverageStat,#weeklyExerciseStat{grid-column:1/-1}
 .nc-weekly-stat.good strong{color:var(--nc-green)}
 .nc-weekly-stat.warning strong{color:#f0b429}
 .nc-weekly-stat.over strong{color:#ff7b72}
@@ -204,6 +204,11 @@ nav{grid-template-columns:repeat(6,minmax(0,1fr));gap:2px;margin:0}nav button{mi
         <strong id="weeklyDailyAverage">0 kcal/día</strong>
         <small id="weeklyAverageComparison">Sin días con registros</small>
       </div>
+      <div class="nc-weekly-stat good" id="weeklyExerciseStat">
+        <span>🔥 Calorías por ejercicio</span>
+        <strong id="weeklyExerciseKcal">0 kcal</strong>
+        <small id="weeklyExerciseSub">Sin actividades registradas</small>
+      </div>
     </div>
 
   </div>
@@ -290,6 +295,8 @@ function renderWeeklySummary(ds=today()){
  const consumed=data.meals
    .filter(m=>weekSet.has(m.date))
    .reduce((sum,m)=>sum+n(m.kcal),0);
+ const weeklyActivities=(data.activities||[]).filter(a=>weekSet.has(a.date));
+ const exerciseKcal=weeklyActivities.reduce((sum,a)=>sum+n(a.kcal),0);
 
  const remaining=weeklyBudgetValue-consumed;
  const usedPct=weeklyBudgetValue>0?(consumed/weeklyBudgetValue)*100:0;
@@ -309,6 +316,8 @@ function renderWeeklySummary(ds=today()){
  const consumedDaysEl=document.getElementById('weeklyConsumedDays');
  const dailyAverageEl=document.getElementById('weeklyDailyAverage');
  const averageComparisonEl=document.getElementById('weeklyAverageComparison');
+ const exerciseKcalEl=document.getElementById('weeklyExerciseKcal');
+ const exerciseSubEl=document.getElementById('weeklyExerciseSub');
  const bar=document.getElementById('weeklyBudgetBar');
  const progressText=document.getElementById('weeklyProgressText');
  const hero=document.getElementById('weeklyRemainingHero');
@@ -342,6 +351,14 @@ function renderWeeklySummary(ds=today()){
      dailyAverageEl.textContent='0 kcal/día';
      averageComparisonEl.textContent='Sin días con registros';
    }
+ }
+
+ if(exerciseKcalEl&&exerciseSubEl){
+   exerciseKcalEl.textContent=Math.round(exerciseKcal).toLocaleString('es-AR')+' kcal';
+   const activityCount=weeklyActivities.length;
+   exerciseSubEl.textContent=activityCount
+     ? activityCount+(activityCount===1?' actividad registrada':' actividades registradas')+' · no modifica tu presupuesto'
+     : 'Sin actividades registradas · no modifica tu presupuesto';
  }
 
  if(progressText){
