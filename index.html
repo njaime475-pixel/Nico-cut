@@ -166,6 +166,7 @@ body{background:radial-gradient(circle at 50% -8%,rgba(10,70,118,.34),transparen
 .kc-report-heading{display:flex;align-items:center;justify-content:space-between;gap:10px}.kc-report-heading .section-title{margin-bottom:9px}.kc-report-heading button{width:auto;padding:9px 12px;font-size:12px}
 nav{grid-template-columns:repeat(5,minmax(0,1fr));height:calc(var(--tab-height) + env(safe-area-inset-bottom));border-radius:18px 18px 0 0;padding-top:5px}nav button{min-height:58px;font-size:9px}nav button span{font-size:19px}nav button.active{border-radius:12px}
 @media(max-width:380px){.kc-wordmark{font-size:25px}.nc-cal-ring{width:126px;height:126px}.nc-cal-ring:before{width:102px;height:102px}.kc-macro-deck .nc-macro,.kc-macro-deck .nc-extra-macros>div{padding:7px}.kc-macro-deck .nc-macro strong,.kc-macro-deck .nc-extra-macros strong{font-size:15px}}
+@media(max-width:520px){#weeklyReport .report-tools{grid-template-columns:1fr;gap:8px}#weeklyReport .report-tools input,#weeklyReport .report-tools button{width:100%;min-width:0}#weeklyReport .report-tools button{min-height:48px}}
 @media(min-width:700px){nav{grid-template-columns:repeat(5,minmax(0,1fr));height:var(--tab-height);border-radius:18px}.nc-summary-main{grid-template-columns:220px 1fr}.kc-macro-deck .nc-macro,.kc-macro-deck .nc-extra-macros>div{min-height:100px}}
 </style>
 </head>
@@ -1030,15 +1031,22 @@ function renderMinimalHome(){
  const currentKey=today();
  if(!selectedHomeDate)selectedHomeDate=currentKey;
  const selected=new Date(selectedHomeDate+'T12:00:00');
- const now=new Date();
- homeName.textContent=data.profile.name||'Nico';
- homeDateTitle.textContent=selectedHomeDate===currentKey?'Hoy · '+selected.getDate()+' de '+months[selected.getMonth()]:selected.getDate()+' de '+months[selected.getMonth()];
+ const homeNameEl=document.getElementById('homeName');
+ const homeDateTitleEl=document.getElementById('homeDateTitle');
+ const weekStripEl=document.getElementById('weekStrip');
+ const historyWeekLabelEl=document.getElementById('historyWeekLabel');
+ const historyDateEl=document.getElementById('historyDate');
+ const kcalGoalTextEl=document.getElementById('kcalGoalText');
+ const homeMealsEl=document.getElementById('homeMeals');
+ if(homeNameEl)homeNameEl.textContent=data.profile.name||'Nico';
+ if(homeDateTitleEl)homeDateTitleEl.textContent=selectedHomeDate===currentKey?'Hoy · '+selected.getDate()+' de '+months[selected.getMonth()]:selected.getDate()+' de '+months[selected.getMonth()];
  const monday=new Date(selected);monday.setDate(selected.getDate()-((selected.getDay()+6)%7));
  const sunday=new Date(monday);sunday.setDate(monday.getDate()+6);
  const dateLabel=d=>d.toLocaleDateString('es-AR',{day:'numeric',month:'short',year:'numeric'});
- document.getElementById('historyWeekLabel').textContent=dateLabel(monday)+' — '+dateLabel(sunday);
- document.getElementById('historyDate').value=selectedHomeDate;
- weekStrip.innerHTML='';
+ if(historyWeekLabelEl)historyWeekLabelEl.textContent=dateLabel(monday)+' — '+dateLabel(sunday);
+ if(historyDateEl)historyDateEl.value=selectedHomeDate;
+ if(!weekStripEl)return;
+ weekStripEl.innerHTML='';
  for(let i=0;i<7;i++){
    const d=new Date(monday); d.setDate(monday.getDate()+i); const key=localDateKey(d);
    const el=document.createElement('button');
@@ -1047,13 +1055,14 @@ function renderMinimalHome(){
    el.dataset.date=key;
    el.setAttribute('aria-label',(key===currentKey?'Hoy, ':'')+names[d.getDay()]+' '+d.getDate());
    el.innerHTML='<span>'+names[d.getDay()]+'</span><b>'+d.getDate()+'</b>';
-   weekStrip.appendChild(el);
+   weekStripEl.appendChild(el);
  }
  const t=dailyTotals(selectedHomeDate),goal=goalForDate(selectedHomeDate),pct=Math.min(100,goal?t.kcal/goal*100:0);
- document.getElementById('kcalConsumedSide').textContent=Math.round(t.kcal);
- kcalGoalText.textContent=Math.round(pct)+'% del objetivo';
+ const kcalConsumedSideEl=document.getElementById('kcalConsumedSide');
+ if(kcalConsumedSideEl)kcalConsumedSideEl.textContent=Math.round(t.kcal);
+ if(kcalGoalTextEl)kcalGoalTextEl.textContent=Math.round(pct)+'% del objetivo';
  const mealTypes=[['Desayuno','☀️'],['Almuerzo','🍴'],['Merienda','☕'],['Cena','☾'],['Snack','🍎']];
- homeMeals.innerHTML=mealTypes.map(([type,icon])=>{const ms=data.meals.filter(m=>m.date===selectedHomeDate&&m.type===type),sum=ms.reduce((a,m)=>a+n(m.kcal),0);const items=ms.length?ms.map(m=>`<div class="nc-diary-item"><button type="button" onclick="openAndEditMeal('${m.id}')"><div class="name">${esc(m.name)}</div><div class="meta">${round1(m.qty)} ${esc(m.unit)} · P ${round1(m.protein)} · C ${round1(m.carbs)} · G ${round1(m.fat)}</div></button><div class="nc-diary-kcal">${Math.round(n(m.kcal))}</div></div>`).join(''):`<div class="nc-empty-meal">Agregá tu primera carga.</div>`;return `<div class="nc-diary-card"><div class="nc-diary-head"><div><strong>${icon} ${type==='Snack'?'Snacks':type}</strong><small>${ms.length} ${ms.length===1?'alimento':'alimentos'}</small></div><div class="nc-diary-total">${Math.round(sum)} kcal</div></div>${items}<button type="button" class="nc-diary-add" onclick="openFoodForType('${type}')">＋ Agregar</button></div>`}).join('');
+ if(homeMealsEl)homeMealsEl.innerHTML=mealTypes.map(([type,icon])=>{const ms=data.meals.filter(m=>m.date===selectedHomeDate&&m.type===type),sum=ms.reduce((a,m)=>a+n(m.kcal),0);const items=ms.length?ms.map(m=>`<div class="nc-diary-item"><button type="button" onclick="openAndEditMeal('${m.id}')"><div class="name">${esc(m.name)}</div><div class="meta">${round1(m.qty)} ${esc(m.unit)} · P ${round1(m.protein)} · C ${round1(m.carbs)} · G ${round1(m.fat)}</div></button><div class="nc-diary-kcal">${Math.round(n(m.kcal))}</div></div>`).join(''):`<div class="nc-empty-meal">Agregá tu primera carga.</div>`;return `<div class="nc-diary-card"><div class="nc-diary-head"><div><strong>${icon} ${type==='Snack'?'Snacks':type}</strong><small>${ms.length} ${ms.length===1?'alimento':'alimentos'}</small></div><div class="nc-diary-total">${Math.round(sum)} kcal</div></div>${items}<button type="button" class="nc-diary-add" onclick="openFoodForType('${type}')">＋ Agregar</button></div>`}).join('');
  renderDailyHighlights(selectedHomeDate);
 }
 function selectHistoryDate(value){
@@ -1072,9 +1081,9 @@ document.getElementById('previousWeek').onclick=()=>moveHistoryWeek(-1);
 document.getElementById('nextWeek').onclick=()=>moveHistoryWeek(1);
 document.getElementById('historyToday').onclick=()=>selectHistoryDate(today());
 document.getElementById('historyDate').onchange=e=>selectHistoryDate(e.target.value);
-weekStrip.addEventListener('click',function(e){
+document.getElementById('weekStrip')?.addEventListener('click',function(e){
  const btn=e.target.closest('.nc-day[data-date]');
- if(!btn||!weekStrip.contains(btn))return;
+ if(!btn||!this.contains(btn))return;
  selectedHomeDate=btn.dataset.date;
  renderHome();
  renderMinimalHome();
@@ -1160,6 +1169,6 @@ function applyKraxesBrand(){
  }
  const homeTab=document.querySelector('nav button[data-view="home"]');if(homeTab)homeTab.classList.add('active');
 }
-function renderAll(){renderHome();renderMinimalHome();renderMeals();renderRecentFoods();renderProgress();renderSettings();renderFoodLibrary();renderTraining();renderWeeklyReport()}applyKraxesBrand();renderAll();showOnboardingIfNeeded();
+function renderAll(){renderHome();renderMinimalHome();renderMeals();renderRecentFoods();renderProgress();renderSettings();renderFoodLibrary();renderTraining();renderWeeklyReport()}window.kcalBar={style:{}};applyKraxesBrand();renderAll();showOnboardingIfNeeded();
 </script>
 </body></html>
