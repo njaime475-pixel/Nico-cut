@@ -3,8 +3,11 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<meta name="theme-color" content="#0f172a" />
-<title>Nico Cut Beta</title>
+<meta name="theme-color" content="#020812" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="format-detection" content="telephone=no" />
+<title>Kraxes Cut</title>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <style>
 :root{--bg:#0b1220;--panel:#111827;--panel2:#172033;--text:#f8fafc;--muted:#94a3b8;--accent:#38bdf8;--good:#22c55e;--warn:#f59e0b;--bad:#ef4444;--line:#263247}
@@ -125,12 +128,38 @@ nav{left:10px;right:10px;bottom:10px;border:1px solid #223544;border-radius:22px
 /* Resumen para la consulta: semanas de lunes a domingo. */
 nav{grid-template-columns:repeat(6,minmax(0,1fr));gap:2px;margin:0}nav button{min-height:44px;padding:7px 1px;line-height:1.5}nav button span{display:block;font-size:15px}nav button{font-size:10px}
 .report-nav{display:grid;grid-template-columns:44px minmax(0,1fr) 44px;gap:8px;align-items:center;margin:16px 0}.report-nav strong{text-align:center;font-size:15px}.report-tools{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;align-items:end}.report-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:14px 0}.report-stat{padding:15px;background:#0c1c27;border:1px solid #243847;border-radius:16px}.report-stat span,.report-stat small{display:block;color:#9caeba;font-size:12px;line-height:1.5}.report-stat strong{display:block;font-size:25px;margin:5px 0;color:var(--nc-green)}.report-table-wrap{overflow-x:auto;border:1px solid #243847;border-radius:14px;margin:12px 0}.report-table{width:100%;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}.report-table th,.report-table td{padding:11px 7px;text-align:right;border-bottom:1px solid #243847;white-space:nowrap}.report-table th:first-child,.report-table td:first-child{text-align:left}.report-table th{color:#a9bdc9;background:#10212e}.report-table tfoot{font-weight:800;color:var(--nc-green)}.report-table tr:last-child td{border-bottom:0}.report-coverage{font-size:13px;line-height:1.6;color:#a9bdc9}.report-archive{display:grid;gap:8px}.report-archive button{text-align:left;background:#10212e;border:1px solid #243847;padding:14px}.report-archive button[aria-current="true"]{border-color:var(--nc-green)}.report-archive strong,.report-archive small{display:block}.report-archive small{font-weight:400;color:#a9bdc9;margin-top:6px;line-height:1.5}.report-subtitle{color:var(--muted);line-height:1.5;font-size:13px}
+/* ===== Kraxes Cut · mobile app shell ===== */
+:root{--kc-bg:#020812;--kc-surface:#071523;--kc-line:#0d4f86;--kc-blue:#1299ff;--kc-cyan:#31ddf4;--kc-text:#f4f8ff;--kc-muted:#8fa1b7;--tab-height:76px}
+html{width:100%;max-width:100%;min-height:100%;background:var(--kc-bg);overflow-x:hidden;overscroll-behavior-x:none;-webkit-text-size-adjust:100%}
+body{width:100%;max-width:100%;min-height:100dvh;overflow-x:hidden;overscroll-behavior-x:none;background:radial-gradient(circle at 80% -5%,rgba(18,153,255,.16),transparent 28%),linear-gradient(180deg,#020b17 0%,#020812 100%);color:var(--kc-text);touch-action:pan-y}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;background:linear-gradient(135deg,transparent 0 92%,rgba(18,153,255,.045) 92% 94%,transparent 94%);z-index:-1}
+img,video,canvas,svg{max-width:100%}
+.container{width:100%;max-width:760px;min-height:100dvh;margin:0 auto;padding:calc(12px + env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) calc(var(--tab-height) + 32px + env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left));overflow-x:clip}
+.view{width:100%;min-width:0}.card,.nc-summary,.nc-weekly-summary,.nc-diary-card,.nc-meal-card,.nc-mini-row>div,.activity-card,.exercise-card{background:linear-gradient(155deg,rgba(8,25,41,.98),rgba(3,13,24,.98));border-color:rgba(18,153,255,.32);box-shadow:0 14px 36px rgba(0,0,0,.25),inset 0 1px rgba(255,255,255,.025)}
+.kc-brand{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;padding:4px 2px 12px}.kc-wordmark{font-size:clamp(25px,7vw,34px);font-weight:950;line-height:.9;letter-spacing:-1.4px;white-space:nowrap}.kc-wordmark span{color:var(--kc-blue)}.kc-tagline{margin-top:7px;color:#9eb0c4;font-size:10px;font-weight:700;letter-spacing:2.1px;text-transform:uppercase}.kc-mantra{color:var(--kc-blue);font-size:9px;font-weight:800;line-height:1.45;letter-spacing:1.6px;text-align:right;text-transform:uppercase}
+.nc-topbar{padding:5px 2px 10px}.nc-hello{font-size:13px}.nc-hello span,.nc-link{color:var(--kc-blue)}.nc-date{font-size:26px}.nc-bolt{padding:8px 11px;border:1px solid rgba(18,153,255,.3);border-radius:999px;background:rgba(18,153,255,.08)}
+.nc-history-nav{background:rgba(5,17,30,.82);border:1px solid rgba(18,153,255,.22);border-radius:16px;padding:8px}.nc-history-nav label{margin:0}.nc-history-nav input{margin-top:5px}
+.nc-week{gap:5px;margin:8px 0 14px}.nc-day{font-size:10px}.nc-day b{width:38px;height:38px;border:1px solid rgba(18,153,255,.18);background:#061525}.nc-day.active{color:var(--kc-cyan)}.nc-day.active b{color:white;background:linear-gradient(180deg,#0d4572,#08233a);border-color:var(--kc-cyan);box-shadow:0 0 18px rgba(18,153,255,.38)}
+.nc-summary{border-radius:20px;padding:15px}.nc-goal-chip{border-color:rgba(18,153,255,.32);background:rgba(18,153,255,.07)}.nc-cal-ring{background:conic-gradient(var(--kc-blue) calc(var(--p)*1%),#102237 0);box-shadow:0 0 28px rgba(18,153,255,.18)}.nc-cal-ring:before{background:radial-gradient(circle,#081a2c,#030d18)}.nc-track i{background:linear-gradient(90deg,var(--kc-cyan),var(--kc-blue))}
+.kc-daily-exercise{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;margin-top:11px;padding:13px 15px;border:1px solid rgba(18,153,255,.32);border-radius:17px;background:linear-gradient(135deg,rgba(18,153,255,.11),rgba(5,18,31,.96));cursor:pointer}.kc-daily-exercise span,.kc-daily-exercise small{display:block}.kc-daily-exercise span{color:#a8b7c8;font-size:12px}.kc-daily-exercise strong{display:block;margin-top:3px;font-size:20px}.kc-daily-exercise small{color:var(--kc-muted);font-size:11px;margin-top:3px}.kc-daily-exercise b{color:var(--kc-blue);font-size:25px}
+.nc-weekly-summary{border-radius:20px}.nc-weekly-track i{background:linear-gradient(90deg,var(--kc-cyan),var(--kc-blue))}.nc-weekly-stat.good strong,.nc-weekly-progress-copy strong{color:var(--kc-blue)}
+.kc-average-formula{display:block;margin-top:4px;color:#6ebeff!important;font-size:10px!important;font-weight:700}.kc-steps{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;padding:10px 12px;border-radius:14px;background:#061524;border:1px solid rgba(18,153,255,.2)}.kc-steps span{color:#8fa1b7;font-size:12px}.kc-steps strong{font-size:16px}
+.kc-quick-actions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:12px 0}.kc-quick-action{min-height:88px;padding:10px 5px;background:linear-gradient(155deg,#081b2d,#04101d);border:1px solid rgba(18,153,255,.32);border-radius:17px;color:#eaf5ff;font-size:11px;line-height:1.25}.kc-quick-action span{display:block;margin-bottom:7px;color:var(--kc-blue);font-size:24px;line-height:1}.kc-quick-action small{display:block;margin-top:4px;color:#778ba1;font-size:9px;font-weight:600}
+button{background:linear-gradient(180deg,#159fff,#087bd3);-webkit-tap-highlight-color:transparent}button.secondary{background:#0a1929;border-color:#21405d}.nc-add,.nc-diary-add{color:#55b7ff;border-color:#176aaa}.nc-food-tab.active{background:#0b3150;color:white;box-shadow:inset 0 -2px 0 var(--kc-blue)}
+nav{position:fixed;left:max(10px,env(safe-area-inset-left));right:max(10px,env(safe-area-inset-right));bottom:max(8px,env(safe-area-inset-bottom));width:auto;max-width:740px;height:var(--tab-height);margin:0 auto;padding:6px;border:1px solid rgba(18,153,255,.38);border-radius:22px;background:rgba(3,13,24,.93);box-shadow:0 14px 40px rgba(0,0,0,.55),0 0 24px rgba(18,153,255,.08);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);z-index:50;grid-template-columns:repeat(6,minmax(0,1fr));gap:2px}nav button{min-height:62px;padding:7px 1px;border:0!important;background:transparent!important;color:#71859d;font-size:9px;line-height:1.25;border-radius:15px}nav button span{font-size:19px;margin-bottom:3px}nav button.active{color:#4fb2ff!important;background:linear-gradient(180deg,rgba(18,153,255,.2),rgba(18,153,255,.07))!important;box-shadow:inset 0 0 0 1px rgba(18,153,255,.25)}
+.onboarding{min-height:100dvh;background:var(--kc-bg)}.onboarding-card{background:linear-gradient(155deg,#081b2d,#040f1d);border-color:rgba(18,153,255,.35)}
+@media(max-width:520px){.container{padding-top:calc(10px + env(safe-area-inset-top));padding-left:max(10px,env(safe-area-inset-left));padding-right:max(10px,env(safe-area-inset-right));padding-bottom:calc(var(--tab-height) + 28px + env(safe-area-inset-bottom))}.nc-summary-main{grid-template-columns:116px minmax(0,1fr);gap:13px;padding:17px 0}.nc-cal-ring{width:116px;height:116px}.nc-cal-ring:before{width:94px;height:94px}.nc-cal-ring strong{font-size:26px}.nc-macros{grid-template-columns:repeat(3,minmax(0,1fr))}.nc-macro{padding:0 6px}.nc-macro span{font-size:10px;overflow-wrap:anywhere}.nc-macro strong{font-size:15px}.nc-extra-macros{grid-template-columns:repeat(3,minmax(0,1fr))}.nc-weekly-grid-v2{grid-template-columns:1fr 1fr}.nc-weekly-stat{padding:10px}.nc-weekly-stat strong{font-size:17px}.kc-quick-actions{gap:6px}.kc-quick-action{min-height:84px;font-size:10px}.kc-quick-action span{font-size:22px}.report-table-wrap{max-width:100%}.set-table{max-width:100%;overflow-x:auto}}
+@media(min-width:700px){.container{padding-bottom:42px}nav{position:sticky;left:auto;right:auto;bottom:auto;top:max(8px,env(safe-area-inset-top));margin:8px 0 18px}.kc-brand{padding-top:4px}}
 </style>
 </head>
 <body>
 <div id="onboarding" class="onboarding" aria-modal="true" role="dialog"><div class="onboarding-card"><h2>👋 Bienvenida/o a Nico Cut</h2><p class="welcome-sub">Configuramos lo básico una sola vez. Después podés cambiarlo cuando quieras desde Ajustes.</p><div><label>¿Cómo te llamás?</label><input id="onboardName" autocomplete="name" placeholder="Ej: Cande"></div><div style="margin-top:12px"><label>¿Cuál es tu objetivo?</label><div class="goal-options"><label class="goal-option"><input type="radio" name="onboardGoal" value="lose" checked><span>🔥 Perder grasa</span></label><label class="goal-option"><input type="radio" name="onboardGoal" value="maintain"><span>⚖️ Mantener</span></label><label class="goal-option"><input type="radio" name="onboardGoal" value="gain"><span>💪 Ganar músculo</span></label></div></div><div class="row" style="margin-top:12px"><div><label>Edad</label><input id="onboardAge" type="number" inputmode="numeric" placeholder="Ej: 27"></div><div><label>Estatura (cm)</label><input id="onboardHeight" type="number" inputmode="numeric" placeholder="Ej: 165"></div></div><div class="row" style="margin-top:12px"><div><label>Peso actual (kg)</label><input id="onboardWeight" type="text" inputmode="decimal" placeholder="Ej: 62"></div><div><label>Sexo para el cálculo</label><select id="onboardSex"><option value="female">Mujer</option><option value="male">Hombre</option></select></div></div><div style="margin-top:12px"><label>Nivel de actividad habitual</label><select id="onboardActivity"><option value="sedentary">Sedentaria/o · poco ejercicio</option><option value="light">Ligera · 1–3 días/semana</option><option value="moderate" selected>Moderada · 3–5 días/semana</option><option value="high">Alta · 6–7 días/semana</option></select></div><button id="calculateTargetsBtn" class="secondary" style="margin-top:12px">🧮 Calcular mis objetivos</button><div id="calorieEstimateBox" class="statusbox" style="margin-top:10px"></div><div class="row" style="margin-top:12px"><div><label>Calorías objetivo</label><input id="onboardCalories" type="number" inputmode="numeric"></div><div><label>Proteína objetivo (g)</label><input id="onboardProtein" type="number" inputmode="numeric"></div></div><div style="margin-top:12px"><label>Pasos diarios</label><input id="onboardSteps" type="number" inputmode="numeric" placeholder="Ej: 8000"></div><button id="finishOnboardingBtn" style="margin-top:16px">Empezar 🚀</button><p class="hint" style="margin-bottom:0">Si elegís “Perder grasa”, Nico Cut estima tu mantenimiento y resta 500 kcal/día. Los demás macros se calculan automáticamente y después podés editarlos.</p></div></div>
 <div class="container"><div class="hero"><div><h1>Nico Cut Beta 💪</h1><p>Control simple de definición y déficit semanal</p><div id="profileGreeting" class="profile-greeting"></div></div><span class="badge">v0.5.2</span></div>
 <section id="home" class="view active">
+  <header class="kc-brand" aria-label="Kraxes Cut">
+    <div><div class="kc-wordmark">KRA<span>X</span>ES <span>CUT</span></div><div class="kc-tagline">Nutrición · hábitos · resultados</div></div>
+    <div class="kc-mantra">Disciplina<br>hoy<br>resultados<br>siempre</div>
+  </header>
   <div class="nc-topbar">
     <div><div class="nc-hello">Hola, <span id="homeName">Nico</span> 👋</div><div class="nc-date" id="homeDateTitle">Hoy</div></div>
     <div class="nc-bolt">⚡ <span id="streakCount">0</span></div>
@@ -155,6 +184,7 @@ nav{grid-template-columns:repeat(6,minmax(0,1fr));gap:2px;margin:0}nav button{mi
       <div class="nc-macro fat"><span>Grasas</span><strong id="fatToday">0 g</strong><small id="fatGoalText">de 60 g</small><div><i id="fatBar"></i></div></div>
       <div class="nc-macro protein"><span>Proteínas</span><strong id="proteinToday">0 g</strong><small id="proteinGoalText">de 170 g</small><div><i id="proteinBar"></i></div></div>
     </div>
+    <div class="kc-steps"><span>Pasos de hoy</span><strong id="stepsToday">0 / 10.000</strong></div>
   </div>
 
   <div class="nc-extra-macros">
@@ -162,6 +192,9 @@ nav{grid-template-columns:repeat(6,minmax(0,1fr));gap:2px;margin:0}nav button{mi
     <div><span>Saturadas</span><strong id="satFatToday">0 g</strong><small id="satFatGoalText">límite 20 g</small></div>
     <div><span>Trans</span><strong id="transFatToday">0 g</strong><small id="transFatGoalText">límite 2 g</small><i id="transFatBar"></i></div>
   </div>
+  <button type="button" id="dailyExerciseCard" class="kc-daily-exercise">
+    <div><span>Calorías gastadas por ejercicio</span><strong id="dailyExerciseKcal">0 kcal</strong><small id="dailyExerciseSub">Informativas · no modifican tu objetivo</small></div><b aria-hidden="true">›</b>
+  </button>
   <div hidden><span id="proteinPct"></span><span id="carbsPct"></span><span id="fatPct"></span><span id="fiberPct"></span><span id="satFatPct"></span><span id="transFatPct"></span><span id="dailyGoalSide"></span><span id="weekRemaining"></span><span id="weekBudgetText"></span><div id="proteinRing"></div><div id="carbsRing"></div><div id="fatRing"></div><div id="fiberRing"></div><div id="satFatRing"></div><div id="transFatRing"></div></div>
 
   <div class="nc-weekly-summary" id="weeklySummaryCard">
@@ -203,6 +236,7 @@ nav{grid-template-columns:repeat(6,minmax(0,1fr));gap:2px;margin:0}nav button{mi
         <span>Promedio diario</span>
         <strong id="weeklyDailyAverage">0 kcal/día</strong>
         <small id="weeklyAverageComparison">Sin días con registros</small>
+        <small id="weeklyAverageFormula" class="kc-average-formula">0 kcal ÷ 7 días</small>
       </div>
       <div class="nc-weekly-stat good" id="weeklyExerciseStat">
         <span>🔥 Calorías por ejercicio</span>
@@ -211,6 +245,13 @@ nav{grid-template-columns:repeat(6,minmax(0,1fr));gap:2px;margin:0}nav button{mi
       </div>
     </div>
 
+  </div>
+
+  <div class="kc-quick-actions" aria-label="Acciones rápidas">
+    <button type="button" id="quickAddFood" class="kc-quick-action"><span aria-hidden="true">＋</span>Agregar comida<small>Foto o manual</small></button>
+    <button type="button" id="quickBarcode" class="kc-quick-action"><span aria-hidden="true">▥</span>Código de barras<small>Escanear producto</small></button>
+    <button type="button" id="quickDiary" class="kc-quick-action"><span aria-hidden="true">●</span>Comidas<small>Ver registro</small></button>
+    <button type="button" id="quickExercise" class="kc-quick-action"><span aria-hidden="true">＋</span>Agregar ejercicio<small>Caminar, gym, etc.</small></button>
   </div>
 
   <div class="nc-section-head"><h2>Comidas</h2><button id="viewDiaryBtn" class="nc-link">Ver diario</button></div>
@@ -240,7 +281,7 @@ nav{grid-template-columns:repeat(6,minmax(0,1fr));gap:2px;margin:0}nav button{mi
     <p class="hint">Los promedios incluyen solo días con comidas cargadas. Un día con registros puede estar incompleto; los días sin cargas no se cuentan como consumo cero.</p>
     <h3 class="section-title">Detalle por día</h3>
     <div class="report-table-wrap" tabindex="0" role="region" aria-label="Detalle diario de calorías y macros; deslizar para ver todas las columnas"><table class="report-table"><thead><tr><th scope="col">Día</th><th scope="col">kcal</th><th scope="col">Prot. (g)</th><th scope="col">Carb. (g)</th><th scope="col">Grasas (g)</th></tr></thead><tbody id="reportDays"></tbody><tfoot id="reportTotal"></tfoot></table></div>
-    <p class="hint">— = sin registros. Los totales reflejan lo cargado en Nico Cut.</p>
+    <p class="hint">— = sin registros. Los totales reflejan lo cargado en Kraxes Cut.</p>
   </div>
   <h3 class="section-title">Historial de semanas</h3>
   <p class="report-subtitle">Se conserva a partir de tus comidas guardadas y se actualiza si corregís alguna carga.</p>
@@ -316,6 +357,7 @@ function renderWeeklySummary(ds=today()){
  const consumedDaysEl=document.getElementById('weeklyConsumedDays');
  const dailyAverageEl=document.getElementById('weeklyDailyAverage');
  const averageComparisonEl=document.getElementById('weeklyAverageComparison');
+ const averageFormulaEl=document.getElementById('weeklyAverageFormula');
  const exerciseKcalEl=document.getElementById('weeklyExerciseKcal');
  const exerciseSubEl=document.getElementById('weeklyExerciseSub');
  const bar=document.getElementById('weeklyBudgetBar');
@@ -335,11 +377,12 @@ function renderWeeklySummary(ds=today()){
  }
 
  if(dailyAverageEl&&averageComparisonEl){
-   if(loadedDays>0){
-     const dailyAverage=consumed/loadedDays;
+   if(consumed>0){
+     const dailyAverage=consumed/dates.length;
      const dailyGoalAverage=weeklyBudgetValue/dates.length;
      const averageDifference=dailyAverage-dailyGoalAverage;
      dailyAverageEl.textContent=Math.round(dailyAverage).toLocaleString('es-AR')+' kcal/día';
+     if(averageFormulaEl) averageFormulaEl.textContent=Math.round(consumed).toLocaleString('es-AR')+' kcal ÷ 7 días';
      if(Math.abs(averageDifference)<.5){
        averageComparisonEl.textContent='En línea con tu objetivo diario';
      }else if(averageDifference<0){
@@ -350,6 +393,7 @@ function renderWeeklySummary(ds=today()){
    }else{
      dailyAverageEl.textContent='0 kcal/día';
      averageComparisonEl.textContent='Sin días con registros';
+     if(averageFormulaEl) averageFormulaEl.textContent='0 kcal ÷ 7 días';
    }
  }
 
@@ -873,7 +917,7 @@ async function analyzePendingPhoto(){
       mealTransFat.value=0;
 
       mealSource.value=
-        'Estimación visual Nico Cut AI · revisada';
+        'Estimación visual Kraxes Cut AI · revisada';
 
       photoPanel.classList.remove('show');
     };
@@ -932,6 +976,8 @@ const activityMET={
   'Yoga / BodyBalance':{light:2.5,moderate:3.3,vigorous:4.0},
   'Caminata':{light:2.8,moderate:3.8,vigorous:5.0},
   'Running':{light:6.0,moderate:8.3,vigorous:10.0},
+  'HIIT':{light:6.0,moderate:8.0,vigorous:11.0},
+  'Gimnasio':{light:3.5,moderate:5.0,vigorous:6.5},
   'Bicicleta':{light:4.0,moderate:6.8,vigorous:9.0},
   'Otra actividad':{light:3.5,moderate:5.0,vigorous:7.0}
 };
@@ -942,6 +988,21 @@ function renderActivityHistory(){if(!activityHistory)return;const hist=[...(data
 function saveActivity(){const minutes=n(activityMinutes.value),weight=currentActivityWeight();if(!weight)return alert('Cargá tu peso en Perfil o Progreso para estimar calorías.');if(!minutes)return alert('Ingresá la duración de la actividad.');const watch=n(activityWatchKcal.value),useWatch=activityWatchBox.classList.contains('show')&&watch>0,kcal=useWatch?Math.round(watch):estimatedActivityKcal(),labels={light:'Suave',moderate:'Moderada',vigorous:'Fuerte'};data.activities.push({id:crypto.randomUUID(),date:activityDate.value||today(),type:activityType.value,minutes,intensity:activityIntensity.value,intensityLabel:labels[activityIntensity.value],kcal,source:useWatch?'watch':'estimate',weight,createdAt:new Date().toISOString()});activityWatchKcal.value='';activityWatchBox.classList.remove('show');save();alert(`✅ ${activityType.value} guardado · ${kcal} kcal`)}
 activityType?.addEventListener('change',updateActivityEstimate);activityMinutes?.addEventListener('input',updateActivityEstimate);activityIntensity?.addEventListener('change',updateActivityEstimate);toggleWatchKcalBtn?.addEventListener('click',()=>activityWatchBox.classList.toggle('show'));saveActivityBtn?.addEventListener('click',saveActivity);
 function activityFactor(x){return ({sedentary:1.2,light:1.375,moderate:1.55,high:1.725})[x]||1.55}function estimateTargets(age,height,weight,sex,activity,goal){const bmr=10*weight+6.25*height-5*age+(sex==='male'?5:-161),tdee=bmr*activityFactor(activity),calories=Math.round(goal==='lose'?tdee-500:goal==='gain'?tdee+250:tdee),protein=Math.round(weight*(goal==='maintain'?1.6:1.8));return {tdee:Math.round(tdee),calories,protein,...macroTargets(calories,protein)}}function calcOnboardTargets(){const r=estimateTargets(+onboardAge.value,+onboardHeight.value,localNum(onboardWeight.value),onboardSex.value,onboardActivity.value,document.querySelector('input[name="onboardGoal"]:checked')?.value||'lose');onboardCalories.value=r.calories;onboardProtein.value=r.protein;calorieEstimateBox.innerHTML=`Mantenimiento: <strong>${r.tdee} kcal</strong><br>Objetivo: <strong>${r.calories} kcal</strong> · P ${r.protein} · C ${r.carbs} · G ${r.fat} · Fibra ${r.fiber}`;calorieEstimateBox.className='statusbox show';return r}calculateTargetsBtn.onclick=calcOnboardTargets;function showOnboardingIfNeeded(){if(!data.profile.setupDone){onboardName.value=data.profile.name||'';onboardAge.value=data.profile.age||'';onboardHeight.value=data.profile.height||'';onboardWeight.value=data.profile.weight||'';onboardCalories.value=data.goals.weekday;onboardProtein.value=data.goals.protein;onboardSteps.value=data.goals.steps;onboarding.classList.add('active')}}finishOnboardingBtn.onclick=()=>{const r=calcOnboardTargets(),goal=document.querySelector('input[name="onboardGoal"]:checked')?.value||'lose';data.profile={name:onboardName.value.trim(),goal,setupDone:true,age:+onboardAge.value,height:+onboardHeight.value,weight:localNum(onboardWeight.value),sex:onboardSex.value,activity:onboardActivity.value};data.goals={...data.goals,weekday:+onboardCalories.value,saturday:+onboardCalories.value,sunday:+onboardCalories.value,protein:+onboardProtein.value,carbs:r.carbs,fat:r.fat,fiber:r.fiber,transFat:r.transFat,steps:+onboardSteps.value};localStorage.setItem(KEY,JSON.stringify(data));onboarding.classList.remove('active');renderAll()};saveProfileBtn.onclick=()=>{data.profile={...data.profile,name:profileName.value.trim(),goal:profileGoal.value,age:+profileAge.value,height:+profileHeight.value,weight:localNum(profileWeight.value),sex:profileSex.value,activity:profileActivity.value,setupDone:true};save()};recalcTargetsBtn.onclick=()=>{const r=estimateTargets(+profileAge.value,+profileHeight.value,localNum(profileWeight.value),profileSex.value,profileActivity.value,profileGoal.value);goalWeekday.value=goalSaturday.value=goalSunday.value=r.calories;goalProtein.value=r.protein;goalCarbs.value=r.carbs;goalFat.value=r.fat;goalFiber.value=r.fiber;goalTransFat.value=r.transFat};saveGoalsBtn.onclick=()=>{data.goals={...data.goals,weekday:num('goalWeekday'),saturday:num('goalSaturday'),sunday:num('goalSunday'),protein:num('goalProtein'),carbs:num('goalCarbs'),fat:num('goalFat'),fiber:num('goalFiber'),satFat:num('goalSatFat'),transFat:num('goalTransFat'),steps:num('goalSteps'),weeklyLoss:Number(goalWeeklyLoss.value)||-.3};save()};exportBtn.onclick=()=>{const b=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='nico-cut-respaldo.json';a.click()};importBtn.onclick=()=>importFile.click();importFile.onchange=e=>{const r=new FileReader();r.onload=()=>{data=normalizeData(JSON.parse(r.result));save()};r.readAsText(e.target.files[0])};resetBtn.onclick=()=>{if(confirm('¿Borrar todos los datos?')){data=structuredClone(defaultData);save()}};scanBtn.onclick=startScanner;stopScanBtn.onclick=stopScanner;mealQty.addEventListener('input',()=>{if(baseNutrition)applyBaseNutrition()});mealQty.addEventListener('change',()=>{if(baseNutrition)applyBaseNutrition()});barcodeManualBtn.onclick=()=>barcodeManualBox.classList.toggle('active');lookupBarcodeBtn.onclick=()=>lookupBarcode(barcodeInput.value);mealName.addEventListener('input',showSuggestions);librarySearch.addEventListener('input',renderFoodLibrary);document.getElementById('recentSearch')?.addEventListener('input',renderRecentFoods);document.getElementById('foodTabs')?.addEventListener('click',e=>{const b=e.target.closest('[data-food-tab]');if(b)setFoodTab(b.dataset.foodTab)});mealDate.addEventListener('change',()=>{selectedHomeDate=mealDate.value||today();renderMeals()});clearFoodFormBtn.onclick=()=>{clearMealFields();setFoodTab('cargar')};document.querySelectorAll('nav button').forEach(b=>b.onclick=async()=>{if(b.dataset.view!=='food')await stopScanner();if(b.dataset.view==='home'){renderHome();renderMinimalHome()}document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(b.dataset.view).classList.add('active');document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x===b));scrollTo(0,0)});mealDate.value=progressDate.value=today();if(activityDate)activityDate.value=today();
+function renderDailyHighlights(ds){
+ const dayActivities=(data.activities||[]).filter(a=>a.date===ds);
+ const dayExercise=dayActivities.reduce((sum,a)=>sum+n(a.kcal),0);
+ const dayProgress=[...data.progress].filter(p=>p.date===ds).sort((a,b)=>(a.id||'').localeCompare(b.id||'')).at(-1);
+ const steps=Math.round(n(dayProgress?.steps));
+ const stepsGoal=Math.round(n(data.goals.steps));
+ const exerciseEl=document.getElementById('dailyExerciseKcal');
+ const exerciseSub=document.getElementById('dailyExerciseSub');
+ const stepsEl=document.getElementById('stepsToday');
+ if(exerciseEl)exerciseEl.textContent=Math.round(dayExercise).toLocaleString('es-AR')+' kcal';
+ if(exerciseSub)exerciseSub.textContent=dayActivities.length
+   ? dayActivities.length+(dayActivities.length===1?' actividad registrada':' actividades registradas')+' · no modifica tu objetivo'
+   : 'Sin actividades · no modifica tu objetivo';
+ if(stepsEl)stepsEl.textContent=steps.toLocaleString('es-AR')+' / '+stepsGoal.toLocaleString('es-AR');
+}
 function renderMinimalHome(){
  const names=['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'], months=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
  const currentKey=today();
@@ -969,6 +1030,7 @@ function renderMinimalHome(){
  const t=dailyTotals(selectedHomeDate),goal=goalForDate(selectedHomeDate),pct=Math.min(100,goal?t.kcal/goal*100:0);kcalGoalText.textContent=Math.round(pct)+'% del objetivo';
  const mealTypes=[['Desayuno','☀️'],['Almuerzo','🍴'],['Merienda','☕'],['Cena','☾'],['Snack','🍎']];
  homeMeals.innerHTML=mealTypes.map(([type,icon])=>{const ms=data.meals.filter(m=>m.date===selectedHomeDate&&m.type===type),sum=ms.reduce((a,m)=>a+n(m.kcal),0);const items=ms.length?ms.map(m=>`<div class="nc-diary-item"><button type="button" onclick="openAndEditMeal('${m.id}')"><div class="name">${esc(m.name)}</div><div class="meta">${round1(m.qty)} ${esc(m.unit)} · P ${round1(m.protein)} · C ${round1(m.carbs)} · G ${round1(m.fat)}</div></button><div class="nc-diary-kcal">${Math.round(n(m.kcal))}</div></div>`).join(''):`<div class="nc-empty-meal">Agregá tu primera carga.</div>`;return `<div class="nc-diary-card"><div class="nc-diary-head"><div><strong>${icon} ${type==='Snack'?'Snacks':type}</strong><small>${ms.length} ${ms.length===1?'alimento':'alimentos'}</small></div><div class="nc-diary-total">${Math.round(sum)} kcal</div></div>${items}<button type="button" class="nc-diary-add" onclick="openFoodForType('${type}')">＋ Agregar</button></div>`}).join('');
+ renderDailyHighlights(selectedHomeDate);
 }
 function selectHistoryDate(value){
  if(!/^\d{4}-\d{2}-\d{2}$/.test(value))return;
@@ -1007,6 +1069,13 @@ function openFoodView(){mealDate.value=selectedHomeDate||today();const b=documen
 window.openFoodForType=type=>{openFoodView();clearMealFields();mealDate.value=selectedHomeDate||today();mealType.value=type;setFoodTab('cargar')};
 window.openAndEditMeal=id=>{openFoodView();editMeal(id)}
 homeAddFood.onclick=openFoodView;viewDiaryBtn.onclick=openFoodView;
+function openAppView(view){document.querySelector(`nav button[data-view="${view}"]`)?.click()}
+function openExerciseForm(){openAppView('training');if(activityDate)activityDate.value=selectedHomeDate||today();setTimeout(()=>activityType?.scrollIntoView({behavior:'smooth',block:'center'}),0)}
+document.getElementById('quickAddFood').onclick=()=>{openFoodView();setFoodTab('cargar')};
+document.getElementById('quickBarcode').onclick=()=>{openFoodView();setFoodTab('cargar');setTimeout(()=>scanBtn?.scrollIntoView({behavior:'smooth',block:'center'}),0)};
+document.getElementById('quickDiary').onclick=openFoodView;
+document.getElementById('quickExercise').onclick=openExerciseForm;
+document.getElementById('dailyExerciseCard').onclick=openExerciseForm;
 // Weekly report: aggregate the saved entries without changing or duplicating them.
 let selectedReportDate=today();
 const reportMetrics=[['kcal','Calorías','kcal'],['protein','Proteínas','g'],['carbs','Carbohidratos','g'],['fat','Grasas','g']];
@@ -1052,6 +1121,19 @@ document.getElementById('reportNext').onclick=()=>moveReportWeek(1);
 document.getElementById('reportToday').onclick=()=>selectReportDate(today());
 document.getElementById('reportDate').onchange=e=>{selectReportDate(e.target.value);e.target.value=selectedReportDate};
 document.getElementById('reportArchive').onclick=e=>{const button=e.target.closest('[data-report-week]');if(button){selectReportDate(button.dataset.reportWeek);document.getElementById('reportTitle').scrollIntoView({behavior:'smooth',block:'start'})}};
-function renderAll(){renderHome();renderMinimalHome();renderMeals();renderRecentFoods();renderProgress();renderSettings();renderFoodLibrary();renderTraining();renderWeeklyReport()}renderAll();showOnboardingIfNeeded();
+function applyKraxesBrand(){
+ document.querySelector('.onboarding h2')?.replaceChildren(document.createTextNode('Bienvenida/o a Kraxes Cut'));
+ document.querySelector('.hero h1')?.replaceChildren(document.createTextNode('Kraxes Cut'));
+ const heroCopy=document.querySelector('.hero p');if(heroCopy)heroCopy.textContent='Nutrición, hábitos y resultados';
+ const badge=document.querySelector('.badge');if(badge)badge.textContent='v2.0';
+ const onboardingHint=document.querySelector('.onboarding .hint');if(onboardingHint)onboardingHint.textContent='Si elegís “Perder grasa”, Kraxes Cut estima tu mantenimiento y resta 500 kcal/día. Los demás macros se calculan automáticamente y después podés editarlos.';
+ const activitySelect=document.getElementById('activityType');
+ if(activitySelect&&!activitySelect.querySelector('option[value="HIIT"]')){
+   const other=activitySelect.querySelector('option[value="Otra actividad"]');
+   for(const name of ['HIIT','Gimnasio'])activitySelect.insertBefore(new Option(name,name),other);
+ }
+ const homeTab=document.querySelector('nav button[data-view="home"]');if(homeTab)homeTab.classList.add('active');
+}
+function renderAll(){renderHome();renderMinimalHome();renderMeals();renderRecentFoods();renderProgress();renderSettings();renderFoodLibrary();renderTraining();renderWeeklyReport()}applyKraxesBrand();renderAll();showOnboardingIfNeeded();
 </script>
 </body></html>
