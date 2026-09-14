@@ -332,6 +332,139 @@ nav{
   width:100%!important;
   height:5px!important;
 }
+
+/* KRAXES CUT v2.1.0 — graphite premium theme */
+:root{
+  --kc-bg:#080b10;
+  --kc-surface:#11161d;
+  --kc-line:#273340;
+  --kc-blue:#2196f3;
+  --kc-cyan:#42b9ff;
+  --kc-text:#f4f7fb;
+  --kc-muted:#95a3b5;
+  --kc-card:#11171e;
+  --kc-card-2:#0d131a;
+  --kc-edge:rgba(137,157,180,.23);
+}
+html{background:#080b10}
+body{
+  background:
+    radial-gradient(circle at 50% -12%,rgba(33,150,243,.10),transparent 30%),
+    linear-gradient(180deg,#090d12 0%,#070a0f 100%)!important;
+  color:var(--kc-text);
+}
+body::before{
+  background:linear-gradient(135deg,transparent 0 94%,rgba(255,255,255,.018) 94% 95%,transparent 95%);
+}
+body::after{background:#080b10}
+.card,.nc-summary,.nc-weekly-summary,.nc-diary-card,.nc-meal-card,
+.nc-mini-row>div,.activity-card,.exercise-card,.panel,.photo-panel,
+.ai-item,.item,.report-stat,.report-archive button{
+  background:linear-gradient(150deg,#121922,#0d131a)!important;
+  border-color:rgba(137,157,180,.23)!important;
+  box-shadow:0 12px 30px rgba(0,0,0,.24),inset 0 1px rgba(255,255,255,.025)!important;
+}
+.kc-brand{border-color:rgba(137,157,180,.17)!important}
+.kc-wordmark span{color:var(--kc-blue);text-shadow:none!important}
+.kc-tagline,.kc-mantra{color:#9aa8b8}
+.kc-mantra{color:#58adf4}
+.nc-history-nav,.nc-week{
+  background:#0d131a!important;
+  border-color:rgba(137,157,180,.22)!important;
+}
+.nc-history-nav>button,.kc-calendar-btn,.nc-day b{
+  background:#121922!important;
+  border-color:#2a3744!important;
+  box-shadow:none!important;
+}
+.nc-day.active{color:#4cb1ff!important}
+.nc-day.active b{
+  color:#fff!important;
+  background:#123a5d!important;
+  border-color:#299fff!important;
+  box-shadow:0 0 0 1px rgba(41,159,255,.35)!important;
+}
+.nc-summary{
+  background:linear-gradient(145deg,#121922,#0b1118)!important;
+  border-color:rgba(137,157,180,.25)!important;
+}
+.nc-cal-ring{
+  background:conic-gradient(var(--kc-blue) calc(var(--p)*1%),#202a35 0)!important;
+  box-shadow:none!important;
+}
+.nc-cal-ring:before{background:#0a0f15!important}
+.kc-daily-stack{border-color:#2a3744!important}
+.kc-daily-stack>div{border-color:#26313d!important}
+.kc-daily-stack span{color:#9ba8b8!important}
+.kc-macro-deck .nc-macro,
+.kc-macro-deck .nc-extra-macros>div{
+  background:linear-gradient(150deg,#121922,#0d131a)!important;
+  border-color:rgba(137,157,180,.24)!important;
+  box-shadow:0 8px 22px rgba(0,0,0,.18)!important;
+  display:grid!important;
+  grid-template-rows:2.8em auto auto 5px!important;
+  row-gap:3px!important;
+  align-content:stretch!important;
+}
+.kc-macro-deck .nc-macro>span:first-child,
+.kc-macro-deck .nc-extra-macros>div>span:first-child{
+  min-height:0!important;
+  align-self:start!important;
+}
+.kc-macro-deck .nc-macro>strong,
+.kc-macro-deck .nc-extra-macros>div>strong,
+.kc-macro-deck .nc-macro>small,
+.kc-macro-deck .nc-extra-macros>div>small{
+  margin-top:0!important;
+  margin-bottom:0!important;
+  align-self:start!important;
+}
+.kc-macro-deck .nc-macro>div,
+.kc-macro-deck .nc-extra-macros>div>i{
+  grid-row:4!important;
+  align-self:end!important;
+  width:100%!important;
+  height:5px!important;
+  margin:0!important;
+  background-color:#26313d;
+}
+.kc-daily-exercise{
+  background:linear-gradient(150deg,#121922,#0d131a)!important;
+  border-color:rgba(137,157,180,.24)!important;
+}
+.kc-steps{
+  background:#10161d!important;
+  border-color:rgba(137,157,180,.22)!important;
+}
+.nc-weekly-summary{
+  background:linear-gradient(145deg,#121922,#0b1118)!important;
+  border-color:rgba(137,157,180,.25)!important;
+}
+.nc-weekly-progress,.nc-weekly-stat{
+  background:#0d131a!important;
+  border-color:#273340!important;
+}
+.nc-weekly-track,.nc-track,.nc-macro>div{
+  background:#26313d!important;
+}
+.nc-weekly-stat.good strong,.nc-weekly-progress-copy strong{color:#61d78a!important}
+input,select,textarea{
+  background:#0d131a!important;
+  border-color:#2a3744!important;
+  color:#f4f7fb!important;
+}
+button.secondary{background:#121922!important;border-color:#2a3744!important}
+nav{
+  background:rgba(9,13,18,.97)!important;
+  border-color:rgba(137,157,180,.24)!important;
+  box-shadow:0 -10px 30px rgba(0,0,0,.42)!important;
+}
+nav button{color:#8392a5!important}
+nav button.active{
+  color:#4badff!important;
+  background:rgba(33,150,243,.12)!important;
+  box-shadow:inset 0 0 0 1px rgba(33,150,243,.26)!important;
+}
 </style>
 </head>
 <body>
