@@ -108,6 +108,7 @@ nav{left:10px;right:10px;bottom:10px;border:1px solid #223544;border-radius:22px
 .nc-weekly-track i.warning{background:#f0b429}
 .nc-weekly-track i.over{background:#ff7b72}
 .nc-weekly-grid-v2{grid-template-columns:repeat(2,1fr)}
+#weeklyAverageStat{grid-column:1/-1}
 .nc-weekly-stat.good strong{color:var(--nc-green)}
 .nc-weekly-stat.warning strong{color:#f0b429}
 .nc-weekly-stat.over strong{color:#ff7b72}
@@ -197,6 +198,11 @@ nav{grid-template-columns:repeat(6,minmax(0,1fr));gap:2px;margin:0}nav button{mi
         <span>Presupuesto utilizado</span>
         <strong id="weeklyUsedPct">0%</strong>
         <small>del objetivo semanal</small>
+      </div>
+      <div class="nc-weekly-stat" id="weeklyAverageStat">
+        <span>Promedio diario</span>
+        <strong id="weeklyDailyAverage">0 kcal/día</strong>
+        <small id="weeklyAverageComparison">Sin días con registros</small>
       </div>
     </div>
 
@@ -301,6 +307,8 @@ function renderWeeklySummary(ds=today()){
  const usedPctEl=document.getElementById('weeklyUsedPct');
  const rangeEl=document.getElementById('weeklyRangeText');
  const consumedDaysEl=document.getElementById('weeklyConsumedDays');
+ const dailyAverageEl=document.getElementById('weeklyDailyAverage');
+ const averageComparisonEl=document.getElementById('weeklyAverageComparison');
  const bar=document.getElementById('weeklyBudgetBar');
  const progressText=document.getElementById('weeklyProgressText');
  const hero=document.getElementById('weeklyRemainingHero');
@@ -315,6 +323,25 @@ function renderWeeklySummary(ds=today()){
  const loadedDays=new Set(data.meals.filter(m=>weekSet.has(m.date)).map(m=>m.date)).size;
  if(consumedDaysEl){
    consumedDaysEl.textContent=loadedDays===1?'1 día con registros':loadedDays+' días con registros';
+ }
+
+ if(dailyAverageEl&&averageComparisonEl){
+   if(loadedDays>0){
+     const dailyAverage=consumed/loadedDays;
+     const dailyGoalAverage=weeklyBudgetValue/dates.length;
+     const averageDifference=dailyAverage-dailyGoalAverage;
+     dailyAverageEl.textContent=Math.round(dailyAverage).toLocaleString('es-AR')+' kcal/día';
+     if(Math.abs(averageDifference)<.5){
+       averageComparisonEl.textContent='En línea con tu objetivo diario';
+     }else if(averageDifference<0){
+       averageComparisonEl.textContent=Math.round(Math.abs(averageDifference)).toLocaleString('es-AR')+' kcal/día por debajo del objetivo';
+     }else{
+       averageComparisonEl.textContent=Math.round(averageDifference).toLocaleString('es-AR')+' kcal/día sobre el objetivo';
+     }
+   }else{
+     dailyAverageEl.textContent='0 kcal/día';
+     averageComparisonEl.textContent='Sin días con registros';
+   }
  }
 
  if(progressText){
