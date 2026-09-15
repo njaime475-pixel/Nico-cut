@@ -505,6 +505,21 @@ nav{
 nav button.active{
   box-shadow:inset 0 0 0 1px rgba(33,150,243,.20)!important;
 }
+
+/* KRAXES CUT — weekly summary visual hierarchy */
+.nc-budget-clarification{margin:9px 2px 0;font-size:10px;color:#9aa8b8}
+.nc-energy-result{margin-bottom:8px;padding:15px;background:linear-gradient(145deg,#111b22,#0d131a)!important}
+.nc-energy-result span{font-size:11px;font-weight:700}
+.nc-energy-result strong{font-size:clamp(24px,6vw,32px);line-height:1.12;margin-top:7px}
+.nc-energy-result small{font-size:11px;line-height:1.45;margin-top:7px;color:#a8b4c2}
+.nc-energy-secondary .nc-weekly-stat{min-height:76px}
+.nc-energy-secondary .nc-weekly-stat strong{font-size:15px}
+@media(max-width:520px){
+  .nc-weekly-grid-v2{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .nc-weekly-grid-v2 #weeklyAverageStat{grid-column:span 2}
+  .nc-energy-result{min-height:0}
+  .nc-energy-secondary{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
 </style>
 </head>
 <body>
@@ -587,32 +602,27 @@ nav button.active{
         <strong id="weeklyRemainingNow">0 kcal</strong>
         <small id="weeklyRemainingSub">para terminar la semana</small>
       </div>
-      <div class="nc-weekly-stat" id="weeklyUsedStat">
-        <span>Presupuesto utilizado</span>
-        <strong id="weeklyUsedPct">0%</strong>
-        <small>del objetivo semanal</small>
-      </div>
       <div class="nc-weekly-stat" id="weeklyAverageStat">
         <span>Promedio diario</span>
         <strong id="weeklyDailyAverage">0 kcal/día</strong>
         <small id="weeklyAverageComparison">Sin días con registros</small>
         <small id="weeklyAverageFormula" class="kc-average-formula">Sin días con comidas registradas</small>
       </div>
-      <div class="nc-weekly-stat good" id="weeklyExerciseStat">
-        <span>🔥 Calorías por ejercicio</span>
-        <strong id="weeklyExerciseKcal">0 kcal</strong>
-        <small id="weeklyExerciseSub">Sin actividades registradas</small>
-      </div>
     </div>
+    <p class="nc-weekly-note nc-budget-clarification" id="weeklyBudgetClarification">0 días registrados · El ejercicio no aumenta este presupuesto.</p>
 
     <div class="nc-energy-summary">
       <div class="nc-energy-title"><strong>Balance energético estimado</strong><small>Separado del presupuesto alimentario</small></div>
-      <div class="nc-energy-grid">
+      <div class="nc-weekly-stat nc-energy-result" id="energyBalanceStat">
+        <span id="energyBalanceLabel">Balance energético</span>
+        <strong id="energyBalanceTotal">—</strong>
+        <small id="energyBalanceExplanation">Registrá comidas para calcular tu balance.</small>
+      </div>
+      <div class="nc-energy-grid nc-energy-secondary">
         <div class="nc-weekly-stat"><span>Gasto base acumulado</span><strong id="energyBaseTotal">—</strong><small>Actividad cotidiana sin entrenamientos</small></div>
         <div class="nc-weekly-stat"><span>Ejercicio neto registrado</span><strong id="energyExerciseTotal">—</strong><small>Solo días calculables</small></div>
-        <div class="nc-weekly-stat"><span>Gasto estimado total</span><strong id="energyExpenditureTotal">—</strong><small>Base + ejercicio neto</small></div>
         <div class="nc-weekly-stat"><span>Consumo calculado</span><strong id="energyConsumedTotal">—</strong><small>Días con comidas registradas</small></div>
-        <div class="nc-weekly-stat nc-energy-result" id="energyBalanceStat"><span id="energyBalanceLabel">Déficit energético estimado</span><strong id="energyBalanceTotal">—</strong><small>Positivo = déficit · negativo = superávit</small></div>
+        <div class="nc-weekly-stat"><span>Gasto estimado total</span><strong id="energyExpenditureTotal">—</strong><small>Base + ejercicio neto</small></div>
       </div>
       <p class="nc-energy-coverage" id="energyCoverage">Sin días calculables.</p>
     </div>
@@ -749,6 +759,7 @@ function renderWeeklySummary(ds=today()){
  const usedPctEl=document.getElementById('weeklyUsedPct');
  const rangeEl=document.getElementById('weeklyRangeText');
  const consumedDaysEl=document.getElementById('weeklyConsumedDays');
+ const budgetClarificationEl=document.getElementById('weeklyBudgetClarification');
  const dailyAverageEl=document.getElementById('weeklyDailyAverage');
  const averageComparisonEl=document.getElementById('weeklyAverageComparison');
  const averageFormulaEl=document.getElementById('weeklyAverageFormula');
@@ -768,6 +779,9 @@ function renderWeeklySummary(ds=today()){
  const loadedDays=new Set(data.meals.filter(m=>weekSet.has(m.date)).map(m=>m.date)).size;
  if(consumedDaysEl){
    consumedDaysEl.textContent=loadedDays===1?'1 día con registros':loadedDays+' días con registros';
+ }
+ if(budgetClarificationEl){
+   budgetClarificationEl.textContent=(loadedDays===1?'1 día registrado':loadedDays+' días registrados')+' · El ejercicio no aumenta este presupuesto.';
  }
 
  if(dailyAverageEl&&averageComparisonEl){
@@ -843,11 +857,19 @@ function renderWeeklySummary(ds=today()){
  const energy=summarizeEnergyBalance(ds),energyFmt=value=>Math.round(value).toLocaleString('es-AR')+' kcal';
  const energyFields={energyBaseTotal:energy.baseTotal,energyExerciseTotal:energy.exerciseTotal,energyExpenditureTotal:energy.expenditureTotal,energyConsumedTotal:energy.consumedTotal};
  for(const [id,value] of Object.entries(energyFields)){const el=document.getElementById(id);if(el)el.textContent=energy.loggedDays?energyFmt(value):'—'}
- const balanceEl=document.getElementById('energyBalanceTotal'),balanceLabel=document.getElementById('energyBalanceLabel'),balanceStat=document.getElementById('energyBalanceStat');
- if(balanceEl)balanceEl.textContent=energy.loggedDays?(energy.balance>=0?energyFmt(energy.balance):'−'+energyFmt(Math.abs(energy.balance))):'—';
- if(balanceLabel)balanceLabel.textContent=energy.balance>=0?'Déficit energético estimado':'Superávit energético estimado';
- balanceStat?.classList.remove('deficit','surplus');balanceStat?.classList.add(energy.balance>=0?'deficit':'surplus');
- const coverage=document.getElementById('energyCoverage');if(coverage)coverage.textContent=energy.loggedDays?`Estimación basada en ${energy.loggedDays} de ${energy.eligibleDays} ${energy.eligibleDays===1?'día válido':'días válidos'} con comidas registradas. Los días sin entrenamiento suman 0 kcal de ejercicio; los días sin comidas y los futuros no se calculan.`:energy.profileReady?`Sin días calculables: registrá al menos una comida. Cobertura: 0 de ${energy.eligibleDays} días válidos.`:'Completá edad, estatura y peso en Perfil para calcular el balance energético.';
+ const balanceEl=document.getElementById('energyBalanceTotal'),balanceLabel=document.getElementById('energyBalanceLabel'),balanceExplanation=document.getElementById('energyBalanceExplanation'),balanceStat=document.getElementById('energyBalanceStat');
+ const isDeficit=energy.balance>=0;
+ if(balanceEl)balanceEl.textContent=energy.loggedDays?energyFmt(Math.abs(energy.balance))+(isDeficit?' de déficit':' de superávit'):'—';
+ if(balanceLabel)balanceLabel.textContent=isDeficit?'Déficit energético estimado':'Superávit energético estimado';
+ if(balanceExplanation)balanceExplanation.textContent=energy.loggedDays
+   ?(isDeficit
+     ?'Hasta hoy gastaste aproximadamente '+energyFmt(Math.abs(energy.balance))+' más de las que consumiste.'
+     :'Hasta hoy consumiste aproximadamente '+energyFmt(Math.abs(energy.balance))+' más de las que gastaste.')
+   :'Registrá comidas para calcular tu balance.';
+ balanceStat?.classList.remove('deficit','surplus');balanceStat?.classList.add(isDeficit?'deficit':'surplus');
+ const coverage=document.getElementById('energyCoverage');if(coverage)coverage.textContent=energy.loggedDays
+   ?`✓ Calculado con ${energy.loggedDays} de ${energy.eligibleDays} ${energy.eligibleDays===1?'día registrado':'días registrados'}. Días sin entrenamiento = 0 kcal extra.`
+   :energy.profileReady?`Calculado con 0 de ${energy.eligibleDays} días registrados. Registrá al menos una comida.`:'Completá edad, estatura y peso en Perfil para calcular el balance energético.';
 }
 
 function renderHome(){const homeDay=selectedHomeDate||today(),t=dailyTotals(homeDay),goal=goalForDate(homeDay);kcalToday.textContent=Math.round(t.kcal);kcalGoalText.textContent=`de ${goal} kcal`;kcalBar.style.width=Math.min(100,t.kcal/goal*100)+'%';setMetric('protein',t.protein,data.goals.protein);setMetric('carbs',t.carbs,data.goals.carbs);setMetric('fat',t.fat,data.goals.fat);setMetric('fiber',t.fiber,data.goals.fiber);transFatToday.textContent=round1(t.transFat)+' g';transFatGoalText.textContent=`límite ${data.goals.transFat} g`;transFatBar.style.width=Math.min(100,data.goals.transFat?t.transFat/data.goals.transFat*100:0)+'%';const lp=latestProgress();weightNow.textContent=lp?.weight?lp.weight.toFixed(1)+' kg':'—';const ps=[...data.progress].filter(p=>p.weight).sort((a,b)=>a.date.localeCompare(b.date));let trend='Sin datos';if(ps.length>=2){const recent=avg(ps.slice(-7).map(p=>p.weight)),prev=avg(ps.slice(-14,-7).map(p=>p.weight));trend=prev?`${recent-prev>=0?'+':''}${(recent-prev).toFixed(2)} kg vs 7d prev`:`Prom. reciente ${recent.toFixed(2)} kg`}weightTrend.textContent=trend;const rem=weeklyBudget()-weeklyConsumed();weekRemaining.textContent=Math.round(rem)+' kcal';weekBudgetText.textContent=`de ${weeklyBudget()} kcal semanales`;let tipLeadText='Sumá proteína en cada comida.',tipText='Te ayuda a mantener la masa muscular y sentirte lleno por más tiempo.';if(t.transFat>data.goals.transFat){tipLeadText='Hoy priorizá alimentos frescos.';tipText='Ya superaste el límite de grasas trans. Elegí opciones menos procesadas para el resto del día.'}else if(t.fiber<data.goals.fiber*.35&&t.kcal>goal*.45){tipLeadText='Dale un empujón a la fibra.';tipText='Frutas, verduras, legumbres o cereales integrales pueden ayudarte a acercarte a tu objetivo diario.'}else if(t.protein<data.goals.protein*.45&&t.kcal>goal*.5){tipLeadText='Te falta proteína para lo que ya comiste.';tipText='Intentá que la próxima comida tenga una fuente proteica clara para equilibrar el día.'}else if(t.fat>data.goals.fat*.85){tipLeadText='Las grasas ya vienen bastante altas.';tipText='En las próximas comidas podés priorizar proteínas magras y preparaciones con menos aceite o queso.'}else if(t.kcal>goal){tipLeadText='Objetivo diario superado.';tipText='No hace falta compensar de forma agresiva: mirá la tendencia semanal y retomá tu objetivo normalmente.'}else if(t.protein>=data.goals.protein*.8){tipLeadText='Muy buen ritmo de proteína 💪';tipText='Vas bien encaminado para proteger masa muscular. Seguí distribuyéndola entre tus comidas.'}else if(t.kcal===0){tipLeadText='Empezá el día con una buena base.';tipText='Cuando cargues tu primera comida, el tip se va a adaptar automáticamente a tus macros.'}tipLead.textContent=tipLeadText;dayStatus.textContent=tipText;dayStatus.className='status-lines muted';const recent=[...data.meals].sort((a,b)=>(b.date+b.id).localeCompare(a.date+a.id)).slice(0,5);recentMeals.innerHTML=recent.length?recent.map(m=>`<div class="item"><div><strong>${esc(m.name)}</strong><small>${m.date} · ${m.type} · ${m.qty}${esc(m.unit)} · ${Math.round(m.kcal)} kcal</small></div></div>`).join(''):'<div class="card hint">Todavía no cargaste comidas.</div>';const pct=(v,g)=>g?Math.min(100,Math.round(v/g*100)):0;dailyGoalBig.textContent=goal;dailyGoalSide.textContent=goal+' kcal';const dailyDiff=Math.round(goal-t.kcal),dailyOver=dailyDiff<0;kcalRemainingBig.textContent=dailyOver?'+'+Math.abs(dailyDiff):dailyDiff;const kcalRemainingLabel=document.getElementById('kcalRemainingLabel');if(kcalRemainingLabel)kcalRemainingLabel.textContent=dailyOver?'kcal sobre el objetivo':'kcal restantes';const remainBox=kcalRemainingBig.closest('.nc-remain');if(remainBox){remainBox.classList.toggle('over',dailyOver)}calorieRing.style.setProperty('--p',pct(t.kcal,goal));[['protein',t.protein,data.goals.protein],['carbs',t.carbs,data.goals.carbs],['fat',t.fat,data.goals.fat],['fiber',t.fiber,data.goals.fiber],['satFat',t.satFat,data.goals.satFat],['transFat',t.transFat,data.goals.transFat]].forEach(([id,v,g])=>{const ring=document.getElementById(id+'Ring'),pe=document.getElementById(id+'Pct');if(ring)ring.style.setProperty('--p',pct(v,g));if(pe)pe.textContent=pct(v,g)+'%'});satFatToday.textContent=round1(t.satFat)+' g';satFatGoalText.textContent='límite '+data.goals.satFat+' g';const days=new Set(data.meals.map(m=>m.date));let streak=0,d=new Date(today()+'T12:00:00');while(days.has(d.toISOString().slice(0,10))){streak++;d.setDate(d.getDate()-1)}streakCount.textContent=streak;drawMiniWeight();renderWeeklySummary(homeDay)}
