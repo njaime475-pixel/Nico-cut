@@ -99,6 +99,7 @@ nav{left:10px;right:10px;bottom:10px;border:1px solid #223544;border-radius:22px
 .nc-weekly-stat.deficit strong{color:var(--nc-green)}
 .nc-weekly-stat.over strong{color:#ff7b72}
 .nc-weekly-note{margin-top:10px;color:#83919d;font-size:10px;line-height:1.4}
+.nc-energy-summary{margin-top:12px;padding-top:12px;border-top:1px solid #20303c}.nc-energy-title{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:9px}.nc-energy-title strong{font-size:15px}.nc-energy-title small{color:#83919d;font-size:9px;text-align:right;line-height:1.35}.nc-energy-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.nc-energy-result{grid-column:1/-1}.nc-energy-result.deficit strong{color:var(--nc-green)}.nc-energy-result.surplus strong{color:#ff7b72}.nc-energy-coverage{margin:9px 2px 0;color:#83919d;font-size:9px;line-height:1.4}
 @media(max-width:520px){.nc-weekly-grid{grid-template-columns:1fr 1fr}.nc-weekly-stat:last-child{grid-column:1/-1}}
 
 /* Nico Cut Weekly Budget v1 */
@@ -595,13 +596,25 @@ nav button.active{
         <span>Promedio diario</span>
         <strong id="weeklyDailyAverage">0 kcal/día</strong>
         <small id="weeklyAverageComparison">Sin días con registros</small>
-        <small id="weeklyAverageFormula" class="kc-average-formula">0 kcal ÷ 7 días</small>
+        <small id="weeklyAverageFormula" class="kc-average-formula">Sin días con comidas registradas</small>
       </div>
       <div class="nc-weekly-stat good" id="weeklyExerciseStat">
         <span>🔥 Calorías por ejercicio</span>
         <strong id="weeklyExerciseKcal">0 kcal</strong>
         <small id="weeklyExerciseSub">Sin actividades registradas</small>
       </div>
+    </div>
+
+    <div class="nc-energy-summary">
+      <div class="nc-energy-title"><strong>Balance energético estimado</strong><small>Separado del presupuesto alimentario</small></div>
+      <div class="nc-energy-grid">
+        <div class="nc-weekly-stat"><span>Gasto base acumulado</span><strong id="energyBaseTotal">—</strong><small>Actividad cotidiana sin entrenamientos</small></div>
+        <div class="nc-weekly-stat"><span>Ejercicio neto registrado</span><strong id="energyExerciseTotal">—</strong><small>Solo días calculables</small></div>
+        <div class="nc-weekly-stat"><span>Gasto estimado total</span><strong id="energyExpenditureTotal">—</strong><small>Base + ejercicio neto</small></div>
+        <div class="nc-weekly-stat"><span>Consumo calculado</span><strong id="energyConsumedTotal">—</strong><small>Días con comidas registradas</small></div>
+        <div class="nc-weekly-stat nc-energy-result" id="energyBalanceStat"><span id="energyBalanceLabel">Déficit energético estimado</span><strong id="energyBalanceTotal">—</strong><small>Positivo = déficit · negativo = superávit</small></div>
+      </div>
+      <p class="nc-energy-coverage" id="energyCoverage">Sin días calculables.</p>
     </div>
 
   </div>
@@ -676,14 +689,36 @@ nav button.active{
 const KEY='nicoCutBeta_v01';const localDateKey=(d=new Date())=>{const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return `${y}-${m}-${day}`};const today=()=>localDateKey(new Date());let selectedHomeDate=today();function n(v){const x=Number(v);return Number.isFinite(x)?x:0}const starterRoutines=[{id:'routine_a',name:'Pecho + Hombros',exercises:[{id:'ex_a1',name:'Press de pecho en máquina',sets:3,reps:'8–10',rest:120},{id:'ex_a2',name:'Press inclinado en máquina',sets:3,reps:'8–10',rest:120},{id:'ex_a3',name:'Press militar',sets:3,reps:'8–10',rest:120},{id:'ex_a4',name:'Vuelos laterales',sets:3,reps:'12–15',rest:75}]},{id:'routine_b',name:'Espalda + Piernas',exercises:[{id:'ex_b1',name:'Remo máquina pecho apoyado',sets:3,reps:'8–10',rest:120},{id:'ex_b2',name:'Jalón al pecho',sets:3,reps:'8–12',rest:105},{id:'ex_b3',name:'Prensa / Hack squat',sets:3,reps:'8–12',rest:150},{id:'ex_b4',name:'Curl femoral',sets:3,reps:'10–12',rest:90}]},{id:'routine_c',name:'Bíceps + Tríceps',exercises:[{id:'ex_c1',name:'Curl de bíceps',sets:3,reps:'8–12',rest:75},{id:'ex_c2',name:'Tríceps en polea',sets:3,reps:'8–12',rest:75},{id:'ex_c3',name:'Curl martillo',sets:3,reps:'10–12',rest:75},{id:'ex_c4',name:'Extensión de tríceps',sets:3,reps:'10–12',rest:75}]}];const defaultData={profile:{name:'',goal:'lose',setupDone:false,age:0,height:0,weight:0,sex:'female',activity:'moderate'},goals:{weekday:2000,saturday:2300,sunday:2300,protein:170,carbs:180,fat:60,fiber:30,satFat:20,transFat:2,steps:10000,weeklyLoss:-0.30},meals:[],progress:[],foodLibrary:[],routines:starterRoutines,workouts:[],activities:[]};let data=load(),scanner=null,scannerRunning=false,activeFoodId=null,baseNutrition=null,activeMealEditId=null,activeFoodTab='cargar',workoutState=null,restSeconds=0,restTimerId=null,workoutClockId=null;
 function normalizeData(d){d=d&&typeof d==='object'?d:structuredClone(defaultData);d.profile={...defaultData.profile,...(d.profile||{})};d.goals={...defaultData.goals,...(d.goals||{})};d.meals=Array.isArray(d.meals)?d.meals.map(m=>({...m,transFat:n(m.transFat)})):[];d.progress=Array.isArray(d.progress)?d.progress:[];d.foodLibrary=Array.isArray(d.foodLibrary)?d.foodLibrary.map(f=>({...f,transFat:n(f.transFat)})):[];d.routines=Array.isArray(d.routines)&&d.routines.length?d.routines:structuredClone(starterRoutines);d.workouts=Array.isArray(d.workouts)?d.workouts:[];d.activities=Array.isArray(d.activities)?d.activities:[];return d}function load(){try{return normalizeData(JSON.parse(localStorage.getItem(KEY))||structuredClone(defaultData))}catch{return structuredClone(defaultData)}}function save(){data=normalizeData(data);localStorage.setItem(KEY,JSON.stringify(data));renderAll()}function localNum(v){if(typeof v==='number')return Number.isFinite(v)?v:0;const raw=String(v??'').trim().replace(/\s/g,'').replace(',','.');const x=Number(raw);return Number.isFinite(x)?x:0}function num(id){return localNum(document.getElementById(id).value)}function esc(s){return String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}function round1(v){return Math.round((n(v)+Number.EPSILON)*10)/10}function goalForDate(ds){const d=new Date(ds+'T12:00:00'),day=d.getDay();return day===6?data.goals.saturday:day===0?data.goals.sunday:data.goals.weekday}function weekStart(ds=today()){const d=new Date(ds+'T12:00:00'),day=(d.getDay()+6)%7;d.setDate(d.getDate()-day);return d.toISOString().slice(0,10)}function weekDates(ds=today()){const s=new Date(weekStart(ds)+'T12:00:00');return [...Array(7)].map((_,i)=>{const d=new Date(s);d.setDate(s.getDate()+i);return d.toISOString().slice(0,10)})}function dailyTotals(ds){return data.meals.filter(m=>m.date===ds).reduce((a,m)=>({kcal:a.kcal+n(m.kcal),protein:a.protein+n(m.protein),carbs:a.carbs+n(m.carbs),fat:a.fat+n(m.fat),fiber:a.fiber+n(m.fiber),satFat:a.satFat+n(m.satFat),transFat:a.transFat+n(m.transFat)}),{kcal:0,protein:0,carbs:0,fat:0,fiber:0,satFat:0,transFat:0})}function weeklyBudget(ds=today()){return weekDates(ds).reduce((s,d)=>s+goalForDate(d),0)}function weeklyConsumed(ds=today()){const set=new Set(weekDates(ds));return data.meals.filter(m=>set.has(m.date)).reduce((s,m)=>s+n(m.kcal),0)}function latestProgress(){return [...data.progress].sort((a,b)=>a.date.localeCompare(b.date)).at(-1)}function avg(arr){return arr.length?arr.reduce((s,x)=>s+x,0)/arr.length:null}function macroTargets(calories,protein){const fat=Math.max(40,Math.round(calories*.27/9)),carbs=Math.max(0,Math.round((calories-protein*4-fat*9)/4));return {carbs,fat,fiber:30,satFat:20,transFat:2}}
 function setMetric(prefix,value,goal){document.getElementById(prefix+'Today').textContent=Math.round(value)+' g';document.getElementById(prefix+'GoalText').textContent=`de ${goal} g`;document.getElementById(prefix+'Bar').style.width=Math.min(100,goal?value/goal*100:0)+'%'}
+function activityFactor(x){return ({sedentary:1.2,light:1.3,moderate:1.4,high:1.5})[x]||1.4}
 function estimatedDailyMaintenance(){
  const p=data.profile||{},age=n(p.age),height=n(p.height),weight=n(p.weight);
  if(age>0&&height>0&&weight>0){
   const bmr=10*weight+6.25*height-5*age+(p.sex==='male'?5:-161);
   return Math.round(bmr*activityFactor(p.activity));
  }
- const base=n(data.goals.weekday)||2000;
- return p.goal==='lose'?base+500:p.goal==='gain'?Math.max(0,base-250):base;
+ return 0;
+}
+function netActivityKcal(activity){
+ if(activity?.source==='watch')return Math.max(0,n(activity.kcal));
+ if(activity?.calorieBasis==='net')return Math.max(0,n(activity.kcal));
+ const weight=n(activity?.weight)||currentActivityWeight(),minutes=n(activity?.minutes);
+ const met=activityMET[activity?.type]?.[activity?.intensity]||0;
+ if(weight>0&&minutes>0&&met>0)return Math.max(0,(met-1)*3.5*weight/200*minutes);
+ return Math.max(0,n(activity?.kcal));
+}
+function summarizeEnergyBalance(ds=today()){
+ const dates=weekDates(ds),realToday=today(),isCurrent=dates.includes(realToday);
+ const eligibleDates=dates.filter(date=>!isCurrent||date<=realToday);
+ const loggedDates=eligibleDates.filter(date=>data.meals.some(meal=>meal.date===date));
+ const basePerDay=estimatedDailyMaintenance();
+ const calculatedDates=basePerDay>0?loggedDates:[];
+ const loggedSet=new Set(calculatedDates);
+ const baseTotal=basePerDay*calculatedDates.length;
+ const activities=(data.activities||[]).filter(activity=>loggedSet.has(activity.date));
+ const exerciseTotal=activities.reduce((sum,activity)=>sum+netActivityKcal(activity),0);
+ const consumedTotal=data.meals.filter(meal=>loggedSet.has(meal.date)).reduce((sum,meal)=>sum+n(meal.kcal),0);
+ const expenditureTotal=baseTotal+exerciseTotal;
+ return {eligibleDays:eligibleDates.length,loggedDays:calculatedDates.length,profileReady:basePerDay>0,basePerDay,baseTotal,exerciseTotal,consumedTotal,expenditureTotal,balance:expenditureTotal-consumedTotal};
 }
 function renderWeeklySummary(ds=today()){
  const dates=weekDates(ds);
@@ -696,7 +731,7 @@ function renderWeeklySummary(ds=today()){
    .filter(m=>weekSet.has(m.date))
    .reduce((sum,m)=>sum+n(m.kcal),0);
  const weeklyActivities=(data.activities||[]).filter(a=>weekSet.has(a.date));
- const exerciseKcal=weeklyActivities.reduce((sum,a)=>sum+n(a.kcal),0);
+ const exerciseKcal=weeklyActivities.reduce((sum,a)=>sum+netActivityKcal(a),0);
 
  const remaining=weeklyBudgetValue-consumed;
  const usedPct=weeklyBudgetValue>0?(consumed/weeklyBudgetValue)*100:0;
@@ -736,12 +771,13 @@ function renderWeeklySummary(ds=today()){
  }
 
  if(dailyAverageEl&&averageComparisonEl){
-   if(consumed>0){
-     const dailyAverage=consumed/dates.length;
-     const dailyGoalAverage=weeklyBudgetValue/dates.length;
+   if(loadedDays>0){
+     const dailyAverage=consumed/loadedDays;
+     const loggedGoalTotal=dates.filter(date=>data.meals.some(meal=>meal.date===date)).reduce((sum,date)=>sum+goalForDate(date),0);
+     const dailyGoalAverage=loggedGoalTotal/loadedDays;
      const averageDifference=dailyAverage-dailyGoalAverage;
      dailyAverageEl.textContent=Math.round(dailyAverage).toLocaleString('es-AR')+' kcal/día';
-     if(averageFormulaEl) averageFormulaEl.textContent=Math.round(consumed).toLocaleString('es-AR')+' kcal ÷ 7 días';
+     if(averageFormulaEl) averageFormulaEl.textContent=Math.round(consumed).toLocaleString('es-AR')+' kcal ÷ '+loadedDays+(loadedDays===1?' día registrado':' días registrados');
      if(Math.abs(averageDifference)<.5){
        averageComparisonEl.textContent='En línea con tu objetivo diario';
      }else if(averageDifference<0){
@@ -752,7 +788,7 @@ function renderWeeklySummary(ds=today()){
    }else{
      dailyAverageEl.textContent='0 kcal/día';
      averageComparisonEl.textContent='Sin días con registros';
-     if(averageFormulaEl) averageFormulaEl.textContent='0 kcal ÷ 7 días';
+     if(averageFormulaEl) averageFormulaEl.textContent='Sin días con comidas registradas';
    }
  }
 
@@ -804,6 +840,14 @@ function renderWeeklySummary(ds=today()){
    usedStat?.classList.remove('good','warning','over');
    usedStat?.classList.add(usedPct>100?'over':usedPct>=85?'warning':'good');
  }
+ const energy=summarizeEnergyBalance(ds),energyFmt=value=>Math.round(value).toLocaleString('es-AR')+' kcal';
+ const energyFields={energyBaseTotal:energy.baseTotal,energyExerciseTotal:energy.exerciseTotal,energyExpenditureTotal:energy.expenditureTotal,energyConsumedTotal:energy.consumedTotal};
+ for(const [id,value] of Object.entries(energyFields)){const el=document.getElementById(id);if(el)el.textContent=energy.loggedDays?energyFmt(value):'—'}
+ const balanceEl=document.getElementById('energyBalanceTotal'),balanceLabel=document.getElementById('energyBalanceLabel'),balanceStat=document.getElementById('energyBalanceStat');
+ if(balanceEl)balanceEl.textContent=energy.loggedDays?(energy.balance>=0?energyFmt(energy.balance):'−'+energyFmt(Math.abs(energy.balance))):'—';
+ if(balanceLabel)balanceLabel.textContent=energy.balance>=0?'Déficit energético estimado':'Superávit energético estimado';
+ balanceStat?.classList.remove('deficit','surplus');balanceStat?.classList.add(energy.balance>=0?'deficit':'surplus');
+ const coverage=document.getElementById('energyCoverage');if(coverage)coverage.textContent=energy.loggedDays?`Estimación basada en ${energy.loggedDays} de ${energy.eligibleDays} ${energy.eligibleDays===1?'día válido':'días válidos'} con comidas registradas. Los días sin entrenamiento suman 0 kcal de ejercicio; los días sin comidas y los futuros no se calculan.`:energy.profileReady?`Sin días calculables: registrá al menos una comida. Cobertura: 0 de ${energy.eligibleDays} días válidos.`:'Completá edad, estatura y peso en Perfil para calcular el balance energético.';
 }
 
 function renderHome(){const homeDay=selectedHomeDate||today(),t=dailyTotals(homeDay),goal=goalForDate(homeDay);kcalToday.textContent=Math.round(t.kcal);kcalGoalText.textContent=`de ${goal} kcal`;kcalBar.style.width=Math.min(100,t.kcal/goal*100)+'%';setMetric('protein',t.protein,data.goals.protein);setMetric('carbs',t.carbs,data.goals.carbs);setMetric('fat',t.fat,data.goals.fat);setMetric('fiber',t.fiber,data.goals.fiber);transFatToday.textContent=round1(t.transFat)+' g';transFatGoalText.textContent=`límite ${data.goals.transFat} g`;transFatBar.style.width=Math.min(100,data.goals.transFat?t.transFat/data.goals.transFat*100:0)+'%';const lp=latestProgress();weightNow.textContent=lp?.weight?lp.weight.toFixed(1)+' kg':'—';const ps=[...data.progress].filter(p=>p.weight).sort((a,b)=>a.date.localeCompare(b.date));let trend='Sin datos';if(ps.length>=2){const recent=avg(ps.slice(-7).map(p=>p.weight)),prev=avg(ps.slice(-14,-7).map(p=>p.weight));trend=prev?`${recent-prev>=0?'+':''}${(recent-prev).toFixed(2)} kg vs 7d prev`:`Prom. reciente ${recent.toFixed(2)} kg`}weightTrend.textContent=trend;const rem=weeklyBudget()-weeklyConsumed();weekRemaining.textContent=Math.round(rem)+' kcal';weekBudgetText.textContent=`de ${weeklyBudget()} kcal semanales`;let tipLeadText='Sumá proteína en cada comida.',tipText='Te ayuda a mantener la masa muscular y sentirte lleno por más tiempo.';if(t.transFat>data.goals.transFat){tipLeadText='Hoy priorizá alimentos frescos.';tipText='Ya superaste el límite de grasas trans. Elegí opciones menos procesadas para el resto del día.'}else if(t.fiber<data.goals.fiber*.35&&t.kcal>goal*.45){tipLeadText='Dale un empujón a la fibra.';tipText='Frutas, verduras, legumbres o cereales integrales pueden ayudarte a acercarte a tu objetivo diario.'}else if(t.protein<data.goals.protein*.45&&t.kcal>goal*.5){tipLeadText='Te falta proteína para lo que ya comiste.';tipText='Intentá que la próxima comida tenga una fuente proteica clara para equilibrar el día.'}else if(t.fat>data.goals.fat*.85){tipLeadText='Las grasas ya vienen bastante altas.';tipText='En las próximas comidas podés priorizar proteínas magras y preparaciones con menos aceite o queso.'}else if(t.kcal>goal){tipLeadText='Objetivo diario superado.';tipText='No hace falta compensar de forma agresiva: mirá la tendencia semanal y retomá tu objetivo normalmente.'}else if(t.protein>=data.goals.protein*.8){tipLeadText='Muy buen ritmo de proteína 💪';tipText='Vas bien encaminado para proteger masa muscular. Seguí distribuyéndola entre tus comidas.'}else if(t.kcal===0){tipLeadText='Empezá el día con una buena base.';tipText='Cuando cargues tu primera comida, el tip se va a adaptar automáticamente a tus macros.'}tipLead.textContent=tipLeadText;dayStatus.textContent=tipText;dayStatus.className='status-lines muted';const recent=[...data.meals].sort((a,b)=>(b.date+b.id).localeCompare(a.date+a.id)).slice(0,5);recentMeals.innerHTML=recent.length?recent.map(m=>`<div class="item"><div><strong>${esc(m.name)}</strong><small>${m.date} · ${m.type} · ${m.qty}${esc(m.unit)} · ${Math.round(m.kcal)} kcal</small></div></div>`).join(''):'<div class="card hint">Todavía no cargaste comidas.</div>';const pct=(v,g)=>g?Math.min(100,Math.round(v/g*100)):0;dailyGoalBig.textContent=goal;dailyGoalSide.textContent=goal+' kcal';const dailyDiff=Math.round(goal-t.kcal),dailyOver=dailyDiff<0;kcalRemainingBig.textContent=dailyOver?'+'+Math.abs(dailyDiff):dailyDiff;const kcalRemainingLabel=document.getElementById('kcalRemainingLabel');if(kcalRemainingLabel)kcalRemainingLabel.textContent=dailyOver?'kcal sobre el objetivo':'kcal restantes';const remainBox=kcalRemainingBig.closest('.nc-remain');if(remainBox){remainBox.classList.toggle('over',dailyOver)}calorieRing.style.setProperty('--p',pct(t.kcal,goal));[['protein',t.protein,data.goals.protein],['carbs',t.carbs,data.goals.carbs],['fat',t.fat,data.goals.fat],['fiber',t.fiber,data.goals.fiber],['satFat',t.satFat,data.goals.satFat],['transFat',t.transFat,data.goals.transFat]].forEach(([id,v,g])=>{const ring=document.getElementById(id+'Ring'),pe=document.getElementById(id+'Pct');if(ring)ring.style.setProperty('--p',pct(v,g));if(pe)pe.textContent=pct(v,g)+'%'});satFatToday.textContent=round1(t.satFat)+' g';satFatGoalText.textContent='límite '+data.goals.satFat+' g';const days=new Set(data.meals.map(m=>m.date));let streak=0,d=new Date(today()+'T12:00:00');while(days.has(d.toISOString().slice(0,10))){streak++;d.setDate(d.getDate()-1)}streakCount.textContent=streak;drawMiniWeight();renderWeeklySummary(homeDay)}
@@ -1341,15 +1385,17 @@ const activityMET={
   'Otra actividad':{light:3.5,moderate:5.0,vigorous:7.0}
 };
 function currentActivityWeight(){const p=latestProgress();return n(p?.weight)||n(data.profile.weight)}
-function estimatedActivityKcal(){const w=currentActivityWeight(),mins=n(activityMinutes?.value),mets=activityMET[activityType?.value]?.[activityIntensity?.value]||5;if(!w||!mins)return 0;return Math.round(mets*3.5*w/200*mins)}
-function updateActivityEstimate(){if(!activityEstimate)return;const kcal=estimatedActivityKcal();activityEstimate.textContent=kcal?`≈ ${kcal} kcal`:'— kcal';activityEstimate.title='Estimación MET según peso, duración e intensidad'}
-function renderActivityHistory(){if(!activityHistory)return;const hist=[...(data.activities||[])].sort((a,b)=>(b.createdAt||b.date||'').localeCompare(a.createdAt||a.date||'')).slice(0,8);activityHistory.innerHTML=hist.length?hist.map(a=>`<div class="activity-history"><strong>${esc(a.type)}</strong><small>${esc(a.date)} · ${n(a.minutes)} min · ${esc(a.intensityLabel||a.intensity)} · 🔥 ${Math.round(n(a.kcal))} kcal${a.source==='watch'?' · reloj':' · estimadas'}</small></div>`).join(''):'<div class="empty-train">Todavía no registraste actividades.</div>'}
-function saveActivity(){const minutes=n(activityMinutes.value),weight=currentActivityWeight();if(!weight)return alert('Cargá tu peso en Perfil o Progreso para estimar calorías.');if(!minutes)return alert('Ingresá la duración de la actividad.');const watch=n(activityWatchKcal.value),useWatch=activityWatchBox.classList.contains('show')&&watch>0,kcal=useWatch?Math.round(watch):estimatedActivityKcal(),labels={light:'Suave',moderate:'Moderada',vigorous:'Fuerte'};data.activities.push({id:crypto.randomUUID(),date:activityDate.value||today(),type:activityType.value,minutes,intensity:activityIntensity.value,intensityLabel:labels[activityIntensity.value],kcal,source:useWatch?'watch':'estimate',weight,createdAt:new Date().toISOString()});activityWatchKcal.value='';activityWatchBox.classList.remove('show');save();alert(`✅ ${activityType.value} guardado · ${kcal} kcal`)}
+function estimatedActivityKcal(){const w=currentActivityWeight(),mins=n(activityMinutes?.value),mets=activityMET[activityType?.value]?.[activityIntensity?.value]||5;if(!w||!mins)return 0;return Math.round(Math.max(0,(mets-1)*3.5*w/200*mins))}
+function updateActivityEstimate(){if(!activityEstimate)return;const kcal=estimatedActivityKcal();activityEstimate.textContent=kcal?`≈ ${kcal} kcal activas`:'— kcal';activityEstimate.title='Estimación neta: (MET − 1) × 3,5 × peso ÷ 200 × minutos'}
+function renderActivityHistory(){if(!activityHistory)return;const hist=[...(data.activities||[])].sort((a,b)=>(b.createdAt||b.date||'').localeCompare(a.createdAt||a.date||'')).slice(0,8);activityHistory.innerHTML=hist.length?hist.map(a=>`<div class="activity-history"><strong>${esc(a.type)}</strong><small>${esc(a.date)} · ${n(a.minutes)} min · ${esc(a.intensityLabel||a.intensity)} · 🔥 ${Math.round(netActivityKcal(a))} kcal activas${a.source==='watch'?' · reloj':' · estimación neta'}</small></div>`).join(''):'<div class="empty-train">Todavía no registraste actividades.</div>'}
+function saveActivity(){const minutes=n(activityMinutes.value),weight=currentActivityWeight();if(!weight)return alert('Cargá tu peso en Perfil o Progreso para estimar calorías.');if(!minutes)return alert('Ingresá la duración de la actividad.');const watch=n(activityWatchKcal.value),useWatch=activityWatchBox.classList.contains('show')&&watch>0,kcal=useWatch?Math.round(watch):estimatedActivityKcal(),labels={light:'Suave',moderate:'Moderada',vigorous:'Fuerte'};data.activities.push({id:crypto.randomUUID(),date:activityDate.value||today(),type:activityType.value,minutes,intensity:activityIntensity.value,intensityLabel:labels[activityIntensity.value],kcal,source:useWatch?'watch':'estimate',calorieBasis:'net',weight,createdAt:new Date().toISOString()});activityWatchKcal.value='';activityWatchBox.classList.remove('show');save();alert(`✅ ${activityType.value} guardado · ${kcal} kcal activas`)}
 activityType?.addEventListener('change',updateActivityEstimate);activityMinutes?.addEventListener('input',updateActivityEstimate);activityIntensity?.addEventListener('change',updateActivityEstimate);toggleWatchKcalBtn?.addEventListener('click',()=>activityWatchBox.classList.toggle('show'));saveActivityBtn?.addEventListener('click',saveActivity);
 function activityFactor(x){return ({sedentary:1.2,light:1.375,moderate:1.55,high:1.725})[x]||1.55}function estimateTargets(age,height,weight,sex,activity,goal){const bmr=10*weight+6.25*height-5*age+(sex==='male'?5:-161),tdee=bmr*activityFactor(activity),calories=Math.round(goal==='lose'?tdee-500:goal==='gain'?tdee+250:tdee),protein=Math.round(weight*(goal==='maintain'?1.6:1.8));return {tdee:Math.round(tdee),calories,protein,...macroTargets(calories,protein)}}function calcOnboardTargets(){const r=estimateTargets(+onboardAge.value,+onboardHeight.value,localNum(onboardWeight.value),onboardSex.value,onboardActivity.value,document.querySelector('input[name="onboardGoal"]:checked')?.value||'lose');onboardCalories.value=r.calories;onboardProtein.value=r.protein;calorieEstimateBox.innerHTML=`Mantenimiento: <strong>${r.tdee} kcal</strong><br>Objetivo: <strong>${r.calories} kcal</strong> · P ${r.protein} · C ${r.carbs} · G ${r.fat} · Fibra ${r.fiber}`;calorieEstimateBox.className='statusbox show';return r}calculateTargetsBtn.onclick=calcOnboardTargets;function showOnboardingIfNeeded(){if(!data.profile.setupDone){onboardName.value=data.profile.name||'';onboardAge.value=data.profile.age||'';onboardHeight.value=data.profile.height||'';onboardWeight.value=data.profile.weight||'';onboardCalories.value=data.goals.weekday;onboardProtein.value=data.goals.protein;onboardSteps.value=data.goals.steps;onboarding.classList.add('active')}}finishOnboardingBtn.onclick=()=>{const r=calcOnboardTargets(),goal=document.querySelector('input[name="onboardGoal"]:checked')?.value||'lose';data.profile={name:onboardName.value.trim(),goal,setupDone:true,age:+onboardAge.value,height:+onboardHeight.value,weight:localNum(onboardWeight.value),sex:onboardSex.value,activity:onboardActivity.value};data.goals={...data.goals,weekday:+onboardCalories.value,saturday:+onboardCalories.value,sunday:+onboardCalories.value,protein:+onboardProtein.value,carbs:r.carbs,fat:r.fat,fiber:r.fiber,transFat:r.transFat,steps:+onboardSteps.value};localStorage.setItem(KEY,JSON.stringify(data));onboarding.classList.remove('active');renderAll()};saveProfileBtn.onclick=()=>{data.profile={...data.profile,name:profileName.value.trim(),goal:profileGoal.value,age:+profileAge.value,height:+profileHeight.value,weight:localNum(profileWeight.value),sex:profileSex.value,activity:profileActivity.value,setupDone:true};save()};recalcTargetsBtn.onclick=()=>{const r=estimateTargets(+profileAge.value,+profileHeight.value,localNum(profileWeight.value),profileSex.value,profileActivity.value,profileGoal.value);goalWeekday.value=goalSaturday.value=goalSunday.value=r.calories;goalProtein.value=r.protein;goalCarbs.value=r.carbs;goalFat.value=r.fat;goalFiber.value=r.fiber;goalTransFat.value=r.transFat};saveGoalsBtn.onclick=()=>{data.goals={...data.goals,weekday:num('goalWeekday'),saturday:num('goalSaturday'),sunday:num('goalSunday'),protein:num('goalProtein'),carbs:num('goalCarbs'),fat:num('goalFat'),fiber:num('goalFiber'),satFat:num('goalSatFat'),transFat:num('goalTransFat'),steps:num('goalSteps'),weeklyLoss:Number(goalWeeklyLoss.value)||-.3};save()};exportBtn.onclick=()=>{const b=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='nico-cut-respaldo.json';a.click()};importBtn.onclick=()=>importFile.click();importFile.onchange=e=>{const r=new FileReader();r.onload=()=>{data=normalizeData(JSON.parse(r.result));save()};r.readAsText(e.target.files[0])};resetBtn.onclick=()=>{if(confirm('¿Borrar todos los datos?')){data=structuredClone(defaultData);save()}};scanBtn.onclick=startScanner;stopScanBtn.onclick=stopScanner;mealQty.addEventListener('input',()=>{if(baseNutrition)applyBaseNutrition()});mealQty.addEventListener('change',()=>{if(baseNutrition)applyBaseNutrition()});barcodeManualBtn.onclick=()=>barcodeManualBox.classList.toggle('active');lookupBarcodeBtn.onclick=()=>lookupBarcode(barcodeInput.value);mealName.addEventListener('input',showSuggestions);librarySearch.addEventListener('input',renderFoodLibrary);document.getElementById('recentSearch')?.addEventListener('input',renderRecentFoods);document.getElementById('foodTabs')?.addEventListener('click',e=>{const b=e.target.closest('[data-food-tab]');if(b)setFoodTab(b.dataset.foodTab)});mealDate.addEventListener('change',()=>{selectedHomeDate=mealDate.value||today();renderMeals()});clearFoodFormBtn.onclick=()=>{clearMealFields();setFoodTab('cargar')};document.querySelectorAll('nav button').forEach(b=>b.onclick=async()=>{if(b.dataset.view!=='food')await stopScanner();if(b.dataset.view==='home'){renderHome();renderMinimalHome()}document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(b.dataset.view).classList.add('active');document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x===b));scrollTo(0,0)});mealDate.value=progressDate.value=today();if(activityDate)activityDate.value=today();
+// Override the legacy training-inclusive factors after loading old code paths.
+activityFactor=x=>({sedentary:1.2,light:1.3,moderate:1.4,high:1.5})[x]||1.4;
 function renderDailyHighlights(ds){
  const dayActivities=(data.activities||[]).filter(a=>a.date===ds);
- const dayExercise=dayActivities.reduce((sum,a)=>sum+n(a.kcal),0);
+ const dayExercise=dayActivities.reduce((sum,a)=>sum+netActivityKcal(a),0);
  const dayProgress=[...data.progress].filter(p=>p.date===ds).sort((a,b)=>(a.id||'').localeCompare(b.id||'')).at(-1);
  const steps=Math.round(n(dayProgress?.steps));
  const stepsGoal=Math.round(n(data.goals.steps));
@@ -1477,11 +1523,15 @@ function selectReportDate(value){if(!validReportDate(value))return;selectedRepor
 function moveReportWeek(offset){const date=new Date(selectedReportDate+'T12:00:00');date.setDate(date.getDate()+offset*7);selectReportDate(localDateKey(date))}
 function renderWeeklyReport(){
  const report=summarizeReportWeek(data.meals,selectedReportDate),hasData=report.loggedDays>0;
+ const energy=summarizeEnergyBalance(selectedReportDate);
  document.getElementById('reportDate').value=selectedReportDate;
  document.getElementById('reportRange').textContent=reportRangeLabel(report.dates);
  const current=report.dates.includes(today())?' · Semana en curso':'';
- document.getElementById('reportCoverage').textContent=hasData?`${report.loggedDays} de 7 días con registros${current}`:`Sin comidas registradas en esta semana${current}`;
- document.getElementById('reportStats').innerHTML=reportMetrics.map(([key,label,unit])=>`<div class="report-stat"><span>${label} · total semanal</span><strong>${hasData?reportNumber(report.totals[key]):'—'} <small>${unit}</small></strong><small>Promedio por día con registros: ${reportNumber(report.averages[key])}${hasData?' '+unit:''}</small></div>`).join('');
+ document.getElementById('reportCoverage').textContent=hasData?`Comidas: ${report.loggedDays} de 7 días con registros${current} · Balance: ${energy.loggedDays} de ${energy.eligibleDays} días válidos calculados`:`Sin comidas registradas en esta semana${current}`;
+ const nutritionStats=reportMetrics.map(([key,label,unit])=>`<div class="report-stat"><span>${label} · total semanal</span><strong>${hasData?reportNumber(report.totals[key]):'—'} <small>${unit}</small></strong><small>Promedio por día con registros: ${reportNumber(report.averages[key])}${hasData?' '+unit:''}</small></div>`).join('');
+ const ef=value=>energy.loggedDays?Math.round(value).toLocaleString('es-AR')+' kcal':'—';
+ const energyStats=`<div class="report-stat"><span>Gasto base estimado acumulado</span><strong>${ef(energy.baseTotal)}</strong><small>Actividad cotidiana sin entrenamientos</small></div><div class="report-stat"><span>Ejercicio neto registrado</span><strong>${ef(energy.exerciseTotal)}</strong><small>Apple Watch = calorías activas</small></div><div class="report-stat"><span>Gasto energético estimado total</span><strong>${ef(energy.expenditureTotal)}</strong><small>Base + ejercicio neto</small></div><div class="report-stat"><span>Consumo de días calculados</span><strong>${ef(energy.consumedTotal)}</strong><small>${energy.loggedDays} días con comidas</small></div><div class="report-stat"><span>${energy.balance>=0?'Déficit':'Superávit'} energético estimado</span><strong>${energy.loggedDays?(energy.balance>=0?ef(energy.balance):'−'+ef(Math.abs(energy.balance))):'—'}</strong><small>Positivo = déficit · negativo = superávit</small></div>`;
+ document.getElementById('reportStats').innerHTML=nutritionStats+energyStats;
  document.getElementById('reportDays').innerHTML=report.days.map(day=>`<tr><th scope="row">${new Date(day.date+'T12:00:00').toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'numeric'})}</th>${reportMetrics.map(([key])=>`<td>${day.count?reportNumber(day[key]):'—'}</td>`).join('')}</tr>`).join('');
  document.getElementById('reportTotal').innerHTML=`<tr><th scope="row">Total</th>${reportMetrics.map(([key])=>`<td>${hasData?reportNumber(report.totals[key]):'—'}</td>`).join('')}</tr>`;
  const weeks=[...new Set(data.meals.filter(meal=>validReportDate(meal.date)).map(meal=>reportWeekDates(meal.date)[0]))].sort().reverse();
@@ -1497,6 +1547,10 @@ function applyKraxesBrand(){
  document.querySelector('.hero h1')?.replaceChildren(document.createTextNode('Kraxes Cut'));
  const heroCopy=document.querySelector('.hero p');if(heroCopy)heroCopy.textContent='Nutrición, hábitos y resultados';
  const badge=document.querySelector('.badge');if(badge)badge.textContent='v2.0';
+ const activityLabels=[[document.getElementById('onboardActivity'),'Actividad cotidiana sin contar entrenamientos'],[document.getElementById('profileActivity'),'Actividad cotidiana sin contar entrenamientos']];
+ for(const [select,label] of activityLabels){if(!select)continue;const labelEl=select.closest('div')?.querySelector('label');if(labelEl)labelEl.textContent=label}
+ const activityCopy={sedentary:'Sedentaria/o · muy poco movimiento cotidiano',light:'Ligera · algo de movimiento cotidiano',moderate:'Moderada · movimiento cotidiano frecuente',high:'Alta · rutina cotidiana muy activa'};
+ for(const select of [document.getElementById('onboardActivity'),document.getElementById('profileActivity')])if(select)for(const option of select.options)if(activityCopy[option.value])option.textContent=activityCopy[option.value];
  const onboardingHint=document.querySelector('.onboarding .hint');if(onboardingHint)onboardingHint.textContent='Si elegís “Perder grasa”, Kraxes Cut estima tu mantenimiento y resta 500 kcal/día. Los demás macros se calculan automáticamente y después podés editarlos.';
  const activitySelect=document.getElementById('activityType');
  if(activitySelect&&!activitySelect.querySelector('option[value="HIIT"]')){
