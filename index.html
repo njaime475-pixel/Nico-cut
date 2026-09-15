@@ -507,7 +507,11 @@ nav button.active{
 }
 
 /* KRAXES CUT — weekly summary visual hierarchy */
-.nc-budget-clarification{margin:9px 2px 0;font-size:10px;color:#9aa8b8}
+.nc-budget-callout{margin:12px 0 0;padding:13px 14px;border:1px solid rgba(244,189,85,.28);border-radius:14px;background:rgba(244,189,85,.07)}
+.nc-budget-callout strong{display:block;color:#fff3cf;font-size:14px;line-height:1.35}
+.nc-budget-callout small{display:block;margin-top:4px;color:#bdc7d2;font-size:11px;line-height:1.4}
+.nc-budget-clarification{margin:7px 2px 0;font-size:10px;color:#8291a1}
+.nc-energy-exercise-note{display:block;margin:9px 2px 0;color:#b9c5d1;font-size:11px;line-height:1.45}
 .nc-energy-result{margin-bottom:8px;padding:15px;background:linear-gradient(145deg,#111b22,#0d131a)!important}
 .nc-energy-result span{font-size:11px;font-weight:700}
 .nc-energy-result strong{font-size:clamp(24px,6vw,32px);line-height:1.12;margin-top:7px}
@@ -609,6 +613,10 @@ nav button.active{
         <small id="weeklyAverageFormula" class="kc-average-formula">Sin días con comidas registradas</small>
       </div>
     </div>
+    <div class="nc-budget-callout" role="note">
+      <strong>El ejercicio no suma calorías para comer.</strong>
+      <small>Tu presupuesto semanal se mantiene igual aunque entrenes.</small>
+    </div>
     <p class="nc-weekly-note nc-budget-clarification" id="weeklyBudgetClarification">0 días registrados · El ejercicio no aumenta este presupuesto.</p>
 
     <div class="nc-energy-summary">
@@ -617,11 +625,12 @@ nav button.active{
         <span id="energyBalanceLabel">Balance energético</span>
         <strong id="energyBalanceTotal">—</strong>
         <small id="energyBalanceExplanation">Registrá comidas para calcular tu balance.</small>
+        <small class="nc-energy-exercise-note">El ejercicio sí cuenta acá porque aumenta tu gasto energético.</small>
       </div>
       <div class="nc-energy-grid nc-energy-secondary">
-        <div class="nc-weekly-stat"><span>Gasto base acumulado</span><strong id="energyBaseTotal">—</strong><small>Actividad cotidiana sin entrenamientos</small></div>
+        <div class="nc-weekly-stat"><span>Gasto cotidiano estimado</span><strong id="energyBaseTotal">—</strong><small>Actividad cotidiana sin entrenamientos</small></div>
         <div class="nc-weekly-stat"><span>Ejercicio neto registrado</span><strong id="energyExerciseTotal">—</strong><small>Solo días calculables</small></div>
-        <div class="nc-weekly-stat"><span>Consumo calculado</span><strong id="energyConsumedTotal">—</strong><small>Días con comidas registradas</small></div>
+        <div class="nc-weekly-stat"><span>Calorías consumidas</span><strong id="energyConsumedTotal">—</strong><small>Días con comidas registradas</small></div>
         <div class="nc-weekly-stat"><span>Gasto estimado total</span><strong id="energyExpenditureTotal">—</strong><small>Base + ejercicio neto</small></div>
       </div>
       <p class="nc-energy-coverage" id="energyCoverage">Sin días calculables.</p>
