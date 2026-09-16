@@ -768,6 +768,42 @@ function summarizeEnergyBalance(ds=today()){
  const expenditureTotal=baseTotal+exerciseTotal;
  return {eligibleDays:eligibleDates.length,loggedDays:calculatedDates.length,profileReady:basePerDay>0,basePerDay,baseTotal,exerciseTotal,consumedTotal,expenditureTotal,balance:expenditureTotal-consumedTotal,proratesToday,weekDates:dates,eligibleDates,mealLoggedDates:loggedDates,calculatedDates,todayDate:realToday,todayFraction,dailyBreakdown};
 }
+const KRAXES_INSIGHT_ENERGY_KCAL_PER_KG=7700;
+const KRAXES_INSIGHT_MAINTENANCE_KG=0.10;
+const KRAXES_INSIGHT_MIN_TOLERANCE_KG=0.30;
+const KRAXES_INSIGHT_RELATIVE_TOLERANCE=0.50;
+const KRAXES_INSIGHT_MIN_WEIGHT_MEASUREMENTS=3;
+const KRAXES_INSIGHT_MIN_WEIGHT_SPAN_DAYS=3;
+const KRAXES_INSIGHT_ENERGY_DAY_COUNT=7;
+function weightMeasurementSpanDays(startDate,endDate){
+ const dates=[...new Set((data.progress||[]).filter(entry=>entry.date>=startDate&&entry.date<=endDate&&n(entry.weight)>0).map(entry=>entry.date))].sort();
+ return dates.length>1?dateRangeInclusive(dates[0],dates.at(-1)).length-1:0;
+}
+function summarizeEnergyRange(startDate,endDate){
+ const dates=dateRangeInclusive(startDate,endDate),weekAnchors=[...new Set(dates.map(date=>weekStart(date)))];
+ const byDate=new Map();
+ let profileReady=true;
+ for(const anchor of weekAnchors){
+  const summary=summarizeEnergyBalance(anchor);
+  profileReady=profileReady&&summary.profileReady;
+  for(const day of summary.dailyBreakdown)if(dates.includes(day.date)&&!byDate.has(day.date))byDate.set(day.date,day);
+ }
+ const breakdown=dates.map(date=>byDate.get(date)).filter(Boolean);
+ const partialDates=breakdown.filter(day=>day.isPartial).map(day=>day.date);
+ const completeBreakdown=breakdown.filter(day=>!day.isPartial);
+ const calculatedDates=completeBreakdown.map(day=>day.date);
+ const calculatedSet=new Set(calculatedDates);
+ const missingDates=dates.filter(date=>!calculatedSet.has(date));
+ return {startDate,endDate,dates,expectedDayCount:dates.length,profileReady,calculatedDates,calculatedDayCount:calculatedDates.length,missingDates,partialDates,dailyBreakdown:completeBreakdown,balanceKcal:completeBreakdown.reduce((sum,day)=>sum+day.balanceKcal,0)};
+}
+function buildWeightVsEnergyAnalysis(referenceDate,referenceEnergy){
+ const analysisReferenceDate=referenceDate===today()&&referenceEnergy.proratesToday?shiftDateKey(referenceDate,-1):referenceDate;
+ const weight=summarizeWeightTrend(analysisReferenceDate);
+ const previousSpanDays=weightMeasurementSpanDays(weight.previous.startDate,weight.previous.endDate);
+ const recentSpanDays=weightMeasurementSpanDays(weight.recent.startDate,weight.recent.endDate);
+ const energy=summarizeEnergyRange(shiftDateKey(analysisReferenceDate,-9),shiftDateKey(analysisReferenceDate,-3));
+ return {analysisReferenceDate,weight:{...weight,previous:{...weight.previous,measurementSpanDays:previousSpanDays},recent:{...weight.recent,measurementSpanDays:recentSpanDays}},energy};
+}
 function buildKraxesInsightContext(referenceDate=today()){
  const dates=weekDates(referenceDate),dateSet=new Set(dates),energy=summarizeEnergyBalance(referenceDate);
  const daily=dates.map(date=>({date,...dailyTotals(date),goalKcal:goalForDate(date),hasMeals:data.meals.some(meal=>meal.date===date)}));
@@ -778,7 +814,7 @@ function buildKraxesInsightContext(referenceDate=today()){
  const includedActivities=activities.filter(activity=>energy.calculatedDates.includes(activity.date));
  const proteinTarget=n(data.goals.protein);
  const currentDayPartial=energy.proratesToday;
- const context={schemaVersion:1,generatedAt:new Date().toISOString(),referenceDate,period:{startDate:dates[0],endDate:dates[6],dates,isCurrentWeek:dates.includes(today())},nutrition:{daily,totals,loggedDates,loggedDayCount:loggedDates.length},protein:{targetG:proteinTarget,totalG:totals.protein,averageOnLoggedDaysG:loggedDates.length?totals.protein/loggedDates.length:null,daysMeetingTarget:proteinTarget>0?daily.filter(day=>day.hasMeals&&day.protein>=proteinTarget).map(day=>day.date):[]},weeklyBudget:{dates,totalKcal:budgetTotal,consumedKcal,remainingKcal:budgetTotal-consumedKcal,usedPct:budgetTotal>0?consumedKcal/budgetTotal*100:null,loggedDates,loggedDayCount:loggedDates.length,goalsByDate:Object.fromEntries(dates.map(date=>[date,goalForDate(date)]))},energy,exercise:{period:{startDate:dates[0],endDate:dates[6]},activities,activityCount:activities.length,netKcal:activities.reduce((sum,activity)=>sum+netActivityKcal(activity),0),includedActivities,includedActivityCount:includedActivities.length,includedNetKcal:includedActivities.reduce((sum,activity)=>sum+netActivityKcal(activity),0)},weight:summarizeWeightTrend(referenceDate),profile:{ready:energy.profileReady,age:n(data.profile.age),heightCm:n(data.profile.height),weightKg:n(data.profile.weight),sex:data.profile.sex,activity:data.profile.activity},quality:{currentDayPartial,mealLoggedDayCount:loggedDates.length,energyCalculatedDayCount:energy.calculatedDates.length,recentWeightMeasurementCount:0,previousWeightMeasurementCount:0}};
+ const context={schemaVersion:1,generatedAt:new Date().toISOString(),referenceDate,period:{startDate:dates[0],endDate:dates[6],dates,isCurrentWeek:dates.includes(today())},nutrition:{daily,totals,loggedDates,loggedDayCount:loggedDates.length},protein:{targetG:proteinTarget,totalG:totals.protein,averageOnLoggedDaysG:loggedDates.length?totals.protein/loggedDates.length:null,daysMeetingTarget:proteinTarget>0?daily.filter(day=>day.hasMeals&&day.protein>=proteinTarget).map(day=>day.date):[]},weeklyBudget:{dates,totalKcal:budgetTotal,consumedKcal,remainingKcal:budgetTotal-consumedKcal,usedPct:budgetTotal>0?consumedKcal/budgetTotal*100:null,loggedDates,loggedDayCount:loggedDates.length,goalsByDate:Object.fromEntries(dates.map(date=>[date,goalForDate(date)]))},energy,exercise:{period:{startDate:dates[0],endDate:dates[6]},activities,activityCount:activities.length,netKcal:activities.reduce((sum,activity)=>sum+netActivityKcal(activity),0),includedActivities,includedActivityCount:includedActivities.length,includedNetKcal:includedActivities.reduce((sum,activity)=>sum+netActivityKcal(activity),0)},weight:summarizeWeightTrend(referenceDate),profile:{ready:energy.profileReady,age:n(data.profile.age),heightCm:n(data.profile.height),weightKg:n(data.profile.weight),sex:data.profile.sex,activity:data.profile.activity},quality:{currentDayPartial,mealLoggedDayCount:loggedDates.length,energyCalculatedDayCount:energy.calculatedDates.length,recentWeightMeasurementCount:0,previousWeightMeasurementCount:0},analysis:{weightVsEnergy:buildWeightVsEnergyAnalysis(referenceDate,energy)}};
  context.quality.recentWeightMeasurementCount=context.weight.recent.measurementCount;
  context.quality.previousWeightMeasurementCount=context.weight.previous.measurementCount;
  context.quality.limitations=buildKraxesInsightLimitations(context);
@@ -795,8 +831,38 @@ function buildKraxesInsightLimitations(context){
  return limitations;
 }
 function buildKraxesInsights(referenceDate=today(),evaluators=[]){
- void evaluators;
- return {context:buildKraxesInsightContext(referenceDate),insights:[]};
+ const context=buildKraxesInsightContext(referenceDate);
+ const active=evaluators.length?evaluators:[evaluateWeightVsEnergy];
+ return {context,insights:active.map(fn=>fn(context)).filter(Boolean)};
+}
+function evaluateWeightVsEnergy(context){
+ const analysis=context.analysis.weightVsEnergy,weight=analysis.weight,energy=analysis.energy;
+ const limitations=[];
+ if(!energy.profileReady)limitations.push({code:'ENERGY_PROFILE_INCOMPLETE',scope:'energy'});
+ if(!weight.comparable)limitations.push({code:'WEIGHT_WINDOWS_NOT_COMPARABLE',scope:'weight'});
+ for(const [name,window] of [['previous',weight.previous],['recent',weight.recent]]){
+  if(window.measurementCount<KRAXES_INSIGHT_MIN_WEIGHT_MEASUREMENTS)limitations.push({code:'INSUFFICIENT_WEIGHT_MEASUREMENTS',scope:'weight',details:{window:name,available:window.measurementCount,required:KRAXES_INSIGHT_MIN_WEIGHT_MEASUREMENTS}});
+  if(window.measurementSpanDays<KRAXES_INSIGHT_MIN_WEIGHT_SPAN_DAYS)limitations.push({code:'INSUFFICIENT_WEIGHT_SPAN',scope:'weight',details:{window:name,availableDays:window.measurementSpanDays,requiredDays:KRAXES_INSIGHT_MIN_WEIGHT_SPAN_DAYS}});
+ }
+ if(energy.missingDates.length)limitations.push({code:'MISSING_ENERGY_DATES',scope:'energy',details:{dates:energy.missingDates}});
+ if(energy.partialDates.length)limitations.push({code:'PARTIAL_ENERGY_DATES',scope:'energy',details:{dates:energy.partialDates}});
+ const minMeasurements=Math.min(weight.previous.measurementCount,weight.recent.measurementCount);
+ const confidenceLevel=minMeasurements>=6?'high':minMeasurements>=4?'medium':'low';
+ const expectedWeightChangeKg=energy.calculatedDayCount===KRAXES_INSIGHT_ENERGY_DAY_COUNT&&!energy.partialDates.length?-energy.balanceKcal/KRAXES_INSIGHT_ENERGY_KCAL_PER_KG:null;
+ const observedChangeKg=weight.differenceKg;
+ const toleranceKg=expectedWeightChangeKg===null?null:Math.max(KRAXES_INSIGHT_MIN_TOLERANCE_KG,KRAXES_INSIGHT_RELATIVE_TOLERANCE*Math.abs(expectedWeightChangeKg));
+ const absoluteDifferenceKg=expectedWeightChangeKg===null||observedChangeKg===null?null:Math.abs(observedChangeKg-expectedWeightChangeKg);
+ const directionAgreement=expectedWeightChangeKg===null||observedChangeKg===null?null:Math.sign(expectedWeightChangeKg)===Math.sign(observedChangeKg)||Math.abs(expectedWeightChangeKg)<KRAXES_INSIGHT_MAINTENANCE_KG||observedChangeKg===0;
+ let status='insufficient_data';
+ if(!limitations.length){
+  const lower=expectedWeightChangeKg-toleranceKg,upper=expectedWeightChangeKg+toleranceKg,boundaryEpsilon=1e-9;
+  if(Math.abs(expectedWeightChangeKg)<KRAXES_INSIGHT_MAINTENANCE_KG)status=Math.abs(observedChangeKg)<=KRAXES_INSIGHT_MIN_TOLERANCE_KG?'near_maintenance':'change_despite_near_maintenance';
+  else if(observedChangeKg>=lower-boundaryEpsilon&&observedChangeKg<=upper+boundaryEpsilon)status='consistent';
+  else if(expectedWeightChangeKg<=-KRAXES_INSIGHT_MAINTENANCE_KG)status=observedChangeKg>KRAXES_INSIGHT_MAINTENANCE_KG?'gain_despite_deficit':observedChangeKg<lower?'loss_greater_than_expected':'loss_less_than_expected';
+  else status=observedChangeKg<-KRAXES_INSIGHT_MAINTENANCE_KG?'loss_despite_surplus':observedChangeKg>upper?'gain_greater_than_expected':'gain_less_than_expected';
+ }
+ const copy={consistent:['Cambio consistente','El cambio de peso observado es consistente con la referencia energética aproximada.'],loss_greater_than_expected:['Descenso mayor que el esperado','El descenso observado supera la referencia energética aproximada.'],loss_less_than_expected:['Descenso menor que el esperado','El cambio observado es menor que la referencia aproximada para el déficit registrado.'],gain_despite_deficit:['Aumento frente a déficit','El peso aumentó aunque el balance registrado indica déficit.'],gain_greater_than_expected:['Aumento mayor que el esperado','El aumento observado supera la referencia energética aproximada.'],gain_less_than_expected:['Aumento menor que el esperado','El cambio observado es menor que la referencia aproximada para el superávit registrado.'],loss_despite_surplus:['Descenso frente a superávit','El peso descendió aunque el balance registrado indica superávit.'],near_maintenance:['Sin discrepancia relevante','El balance registrado está cerca del mantenimiento y el cambio observado permanece dentro de la banda.'],change_despite_near_maintenance:['Cambio con balance cercano a mantenimiento','El peso cambió más que la banda prevista con un balance registrado cercano al mantenimiento.'],insufficient_data:['Datos insuficientes','Todavía no hay datos suficientes y completos para comparar peso y balance energético.']}[status];
+ return {id:'weight_vs_energy',category:'progress',status,severity:['consistent','near_maintenance','insufficient_data'].includes(status)?'info':'attention',confidence:{level:confidenceLevel,score:null},title:copy[0],message:copy[1],evidence:{analysisReferenceDate:analysis.analysisReferenceDate,weight:{previousWindow:weight.previous,recentWindow:weight.recent,observedChangeKg,observedChangePct:weight.differencePct},energy:{startDate:energy.startDate,endDate:energy.endDate,expectedDayCount:KRAXES_INSIGHT_ENERGY_DAY_COUNT,calculatedDayCount:energy.calculatedDayCount,missingDates:energy.missingDates,partialDates:energy.partialDates,balanceKcal:energy.balanceKcal,kcalPerKg:KRAXES_INSIGHT_ENERGY_KCAL_PER_KG,expectedWeightChangeKg},comparison:{toleranceKg,absoluteDifferenceKg,directionAgreement}},limitations,meta:{evaluator:'evaluateWeightVsEnergy',version:1}};
 }
 function renderWeeklySummary(ds=today()){
  const dates=weekDates(ds);
