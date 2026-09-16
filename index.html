@@ -733,18 +733,21 @@ function netActivityKcal(activity){
  return Math.max(0,n(activity?.kcal));
 }
 function summarizeEnergyBalance(ds=today()){
- const dates=weekDates(ds),realToday=today(),isCurrent=dates.includes(realToday);
+ const now=new Date(),realToday=localDateKey(now);
+ const dates=weekDates(ds),isCurrent=dates.includes(realToday);
  const eligibleDates=dates.filter(date=>!isCurrent||date<=realToday);
  const loggedDates=eligibleDates.filter(date=>data.meals.some(meal=>meal.date===date));
  const basePerDay=estimatedDailyMaintenance();
  const calculatedDates=basePerDay>0?loggedDates:[];
  const loggedSet=new Set(calculatedDates);
- const baseTotal=basePerDay*calculatedDates.length;
+ const todayFraction=(now.getHours()*3600000+now.getMinutes()*60000+now.getSeconds()*1000+now.getMilliseconds())/86400000;
+ const proratesToday=calculatedDates.includes(realToday);
+ const baseTotal=calculatedDates.reduce((sum,date)=>sum+basePerDay*(date===realToday?todayFraction:1),0);
  const activities=(data.activities||[]).filter(activity=>loggedSet.has(activity.date));
  const exerciseTotal=activities.reduce((sum,activity)=>sum+netActivityKcal(activity),0);
  const consumedTotal=data.meals.filter(meal=>loggedSet.has(meal.date)).reduce((sum,meal)=>sum+n(meal.kcal),0);
  const expenditureTotal=baseTotal+exerciseTotal;
- return {eligibleDays:eligibleDates.length,loggedDays:calculatedDates.length,profileReady:basePerDay>0,basePerDay,baseTotal,exerciseTotal,consumedTotal,expenditureTotal,balance:expenditureTotal-consumedTotal};
+ return {eligibleDays:eligibleDates.length,loggedDays:calculatedDates.length,profileReady:basePerDay>0,basePerDay,baseTotal,exerciseTotal,consumedTotal,expenditureTotal,balance:expenditureTotal-consumedTotal,proratesToday};
 }
 function renderWeeklySummary(ds=today()){
  const dates=weekDates(ds);
@@ -876,7 +879,7 @@ function renderWeeklySummary(ds=today()){
  const energyDaySuffix=energy.loggedDays===1?' · 1 día':' · '+energy.loggedDays+' días';
  const energyPeriodLabels={energyBaseLabel:'Gasto cotidiano estimado',energyExerciseLabel:'＋ Ejercicio neto registrado',energyExpenditureLabel:'= Gasto total estimado'};
  for(const [id,label] of Object.entries(energyPeriodLabels)){const el=document.getElementById(id);if(el)el.textContent=label+(energy.loggedDays?energyDaySuffix:'')}
- const energyBaseAverage=document.getElementById('energyBaseAverage');if(energyBaseAverage)energyBaseAverage.textContent=energy.loggedDays?'Promedio: '+energyFmt(energy.baseTotal/energy.loggedDays).replace(' kcal',' kcal/día'):'Promedio: — kcal/día';
+ const energyBaseAverage=document.getElementById('energyBaseAverage');if(energyBaseAverage)energyBaseAverage.textContent=energy.loggedDays?'Referencia diaria completa: '+energyFmt(energy.basePerDay).replace(' kcal',' kcal/día'):'Referencia diaria completa: — kcal/día';
  const balanceEl=document.getElementById('energyBalanceTotal'),balanceLabel=document.getElementById('energyBalanceLabel'),balanceExplanation=document.getElementById('energyBalanceExplanation'),balanceStat=document.getElementById('energyBalanceStat');
  const isDeficit=energy.balance>=0;
  if(balanceEl)balanceEl.textContent=energy.loggedDays?energyFmt(Math.abs(energy.balance))+(isDeficit?' de déficit':' de superávit'):'—';
@@ -892,7 +895,7 @@ function renderWeeklySummary(ds=today()){
    :'Registrá comidas para calcular tu balance.';
  balanceStat?.classList.remove('deficit','surplus');balanceStat?.classList.add(isDeficit?'deficit':'surplus');
  const coverage=document.getElementById('energyCoverage');if(coverage)coverage.textContent=energy.loggedDays
-   ?`✓ Calculado con ${energy.loggedDays} de ${energy.eligibleDays} ${energy.eligibleDays===1?'día registrado':'días registrados'}. Días sin entrenamiento = 0 kcal extra.`
+   ?`✓ Calculado con ${energy.loggedDays} de ${energy.eligibleDays} ${energy.eligibleDays===1?'día registrado':'días registrados'}. Días sin entrenamiento = 0 kcal extra.${energy.proratesToday?' Hoy se calcula proporcionalmente hasta la hora actual.':''}`
    :energy.profileReady?`Calculado con 0 de ${energy.eligibleDays} días registrados. Registrá al menos una comida.`:'Completá edad, estatura y peso en Perfil para calcular el balance energético.';
 }
 
@@ -1576,7 +1579,7 @@ function renderWeeklyReport(){
  document.getElementById('reportCoverage').textContent=hasData?`Comidas: ${report.loggedDays} de 7 días con registros${current} · Balance: ${energy.loggedDays} de ${energy.eligibleDays} días válidos calculados`:`Sin comidas registradas en esta semana${current}`;
  const nutritionStats=reportMetrics.map(([key,label,unit])=>`<div class="report-stat"><span>${label} · total semanal</span><strong>${hasData?reportNumber(report.totals[key]):'—'} <small>${unit}</small></strong><small>Promedio por día con registros: ${reportNumber(report.averages[key])}${hasData?' '+unit:''}</small></div>`).join('');
  const ef=value=>energy.loggedDays?Math.round(value).toLocaleString('es-AR')+' kcal':'—';
- const energyStats=`<div class="report-stat"><span>Gasto base estimado acumulado</span><strong>${ef(energy.baseTotal)}</strong><small>Actividad cotidiana sin entrenamientos</small></div><div class="report-stat"><span>Ejercicio neto registrado</span><strong>${ef(energy.exerciseTotal)}</strong><small>Apple Watch = calorías activas</small></div><div class="report-stat"><span>Gasto energético estimado total</span><strong>${ef(energy.expenditureTotal)}</strong><small>Base + ejercicio neto</small></div><div class="report-stat"><span>Consumo de días calculados</span><strong>${ef(energy.consumedTotal)}</strong><small>${energy.loggedDays} días con comidas</small></div><div class="report-stat"><span>${energy.balance>=0?'Déficit':'Superávit'} energético estimado</span><strong>${energy.loggedDays?(energy.balance>=0?ef(energy.balance):'−'+ef(Math.abs(energy.balance))):'—'}</strong><small>Positivo = déficit · negativo = superávit</small></div>`;
+ const energyStats=`<div class="report-stat"><span>Gasto base estimado acumulado</span><strong>${ef(energy.baseTotal)}</strong><small>Actividad cotidiana sin entrenamientos${energy.proratesToday?' · Hoy se calcula proporcionalmente hasta la hora actual.':''}</small></div><div class="report-stat"><span>Ejercicio neto registrado</span><strong>${ef(energy.exerciseTotal)}</strong><small>Apple Watch = calorías activas</small></div><div class="report-stat"><span>Gasto energético estimado total</span><strong>${ef(energy.expenditureTotal)}</strong><small>Base + ejercicio neto</small></div><div class="report-stat"><span>Consumo de días calculados</span><strong>${ef(energy.consumedTotal)}</strong><small>${energy.loggedDays} días con comidas</small></div><div class="report-stat"><span>${energy.balance>=0?'Déficit':'Superávit'} energético estimado</span><strong>${energy.loggedDays?(energy.balance>=0?ef(energy.balance):'−'+ef(Math.abs(energy.balance))):'—'}</strong><small>Positivo = déficit · negativo = superávit</small></div>`;
  document.getElementById('reportStats').innerHTML=nutritionStats+energyStats;
  document.getElementById('reportDays').innerHTML=report.days.map(day=>`<tr><th scope="row">${new Date(day.date+'T12:00:00').toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'numeric'})}</th>${reportMetrics.map(([key])=>`<td>${day.count?reportNumber(day[key]):'—'}</td>`).join('')}</tr>`).join('');
  document.getElementById('reportTotal').innerHTML=`<tr><th scope="row">Total</th>${reportMetrics.map(([key])=>`<td>${hasData?reportNumber(report.totals[key]):'—'}</td>`).join('')}</tr>`;
