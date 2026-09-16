@@ -99,7 +99,7 @@ nav{left:10px;right:10px;bottom:10px;border:1px solid #223544;border-radius:22px
 .nc-weekly-stat.deficit strong{color:var(--nc-green)}
 .nc-weekly-stat.over strong{color:#ff7b72}
 .nc-weekly-note{margin-top:10px;color:#83919d;font-size:10px;line-height:1.4}
-.nc-energy-summary{margin-top:12px;padding-top:12px;border-top:1px solid #20303c}.nc-energy-title{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:9px}.nc-energy-title strong{font-size:15px}.nc-energy-title small{color:#83919d;font-size:9px;text-align:right;line-height:1.35}.nc-energy-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.nc-energy-result{grid-column:1/-1}.nc-energy-result.deficit strong{color:var(--nc-green)}.nc-energy-result.surplus strong{color:#ff7b72}.nc-energy-coverage{margin:9px 2px 0;color:#83919d;font-size:9px;line-height:1.4}
+.nc-energy-summary{margin-top:12px;padding-top:12px;border-top:1px solid #20303c}.nc-energy-title{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:9px}.nc-energy-title strong{font-size:15px}.nc-energy-title small{color:#83919d;font-size:9px;text-align:right;line-height:1.35}.nc-energy-result{grid-column:1/-1}.nc-energy-result.deficit strong{color:var(--nc-green)}.nc-energy-result.surplus strong{color:#ff7b72}.nc-energy-breakdown{margin-top:10px;padding:14px;border:1px solid #263746;border-radius:14px;background:#0c151d}.nc-energy-breakdown h4{margin:0 0 11px;font-size:13px;color:#f4f7fa}.nc-energy-equation{display:grid;gap:7px}.nc-energy-equation+.nc-energy-equation{margin-top:13px;padding-top:13px;border-top:1px solid #263746}.nc-energy-line{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:baseline;color:#aebac6;font-size:11px;line-height:1.35}.nc-energy-line span:first-child{min-width:0}.nc-energy-line strong{color:#f4f7fa;font-size:12px;text-align:right;white-space:nowrap}.nc-energy-line.total{padding-top:8px;border-top:1px solid #263746;color:#dce5ec;font-weight:700}.nc-energy-line.result strong{color:var(--nc-green)}.nc-energy-line.result.surplus strong{color:#ff7b72}.nc-energy-coverage{margin:9px 2px 0;color:#83919d;font-size:9px;line-height:1.4}
 @media(max-width:520px){.nc-weekly-grid{grid-template-columns:1fr 1fr}.nc-weekly-stat:last-child{grid-column:1/-1}}
 
 /* Nico Cut Weekly Budget v1 */
@@ -627,11 +627,18 @@ nav button.active{
         <small id="energyBalanceExplanation">Registrá comidas para calcular tu balance.</small>
         <small class="nc-energy-exercise-note">El ejercicio sí cuenta acá porque aumenta tu gasto energético.</small>
       </div>
-      <div class="nc-energy-grid nc-energy-secondary">
-        <div class="nc-weekly-stat"><span>Gasto cotidiano estimado</span><strong id="energyBaseTotal">—</strong><small>Actividad cotidiana sin entrenamientos</small></div>
-        <div class="nc-weekly-stat"><span>Ejercicio neto registrado</span><strong id="energyExerciseTotal">—</strong><small>Solo días calculables</small></div>
-        <div class="nc-weekly-stat"><span>Calorías consumidas</span><strong id="energyConsumedTotal">—</strong><small>Días con comidas registradas</small></div>
-        <div class="nc-weekly-stat"><span>Gasto estimado total</span><strong id="energyExpenditureTotal">—</strong><small>Base + ejercicio neto</small></div>
+      <div class="nc-energy-breakdown" aria-label="Detalle del cálculo energético">
+        <h4>¿De dónde sale?</h4>
+        <div class="nc-energy-equation">
+          <div class="nc-energy-line"><span>Gasto cotidiano estimado</span><strong id="energyBaseTotal">—</strong></div>
+          <div class="nc-energy-line"><span>＋ Ejercicio neto registrado</span><strong id="energyExerciseTotal">—</strong></div>
+          <div class="nc-energy-line total"><span>= Gasto total estimado</span><strong id="energyExpenditureTotal">—</strong></div>
+        </div>
+        <div class="nc-energy-equation">
+          <div class="nc-energy-line"><span>Gasto total estimado</span><strong id="energyExpenditureMirror">—</strong></div>
+          <div class="nc-energy-line"><span>− Calorías consumidas</span><strong id="energyConsumedTotal">—</strong></div>
+          <div class="nc-energy-line total result" id="energyEquationResultLine"><span id="energyEquationResultLabel">= Déficit energético</span><strong id="energyEquationResult">—</strong></div>
+        </div>
       </div>
       <p class="nc-energy-coverage" id="energyCoverage">Sin días calculables.</p>
     </div>
@@ -864,12 +871,16 @@ function renderWeeklySummary(ds=today()){
    usedStat?.classList.add(usedPct>100?'over':usedPct>=85?'warning':'good');
  }
  const energy=summarizeEnergyBalance(ds),energyFmt=value=>Math.round(value).toLocaleString('es-AR')+' kcal';
- const energyFields={energyBaseTotal:energy.baseTotal,energyExerciseTotal:energy.exerciseTotal,energyExpenditureTotal:energy.expenditureTotal,energyConsumedTotal:energy.consumedTotal};
+ const energyFields={energyBaseTotal:energy.baseTotal,energyExerciseTotal:energy.exerciseTotal,energyExpenditureTotal:energy.expenditureTotal,energyExpenditureMirror:energy.expenditureTotal,energyConsumedTotal:energy.consumedTotal};
  for(const [id,value] of Object.entries(energyFields)){const el=document.getElementById(id);if(el)el.textContent=energy.loggedDays?energyFmt(value):'—'}
  const balanceEl=document.getElementById('energyBalanceTotal'),balanceLabel=document.getElementById('energyBalanceLabel'),balanceExplanation=document.getElementById('energyBalanceExplanation'),balanceStat=document.getElementById('energyBalanceStat');
  const isDeficit=energy.balance>=0;
  if(balanceEl)balanceEl.textContent=energy.loggedDays?energyFmt(Math.abs(energy.balance))+(isDeficit?' de déficit':' de superávit'):'—';
- if(balanceLabel)balanceLabel.textContent=isDeficit?'Déficit energético estimado':'Superávit energético estimado';
+ const equationResult=document.getElementById('energyEquationResult'),equationResultLabel=document.getElementById('energyEquationResultLabel'),equationResultLine=document.getElementById('energyEquationResultLine');
+ if(equationResult)equationResult.textContent=energy.loggedDays?energyFmt(Math.abs(energy.balance)):'—';
+ if(equationResultLabel)equationResultLabel.textContent=isDeficit?'= Déficit energético':'= Superávit energético';
+ equationResultLine?.classList.toggle('surplus',!isDeficit);
+ if(balanceLabel)balanceLabel.textContent=isDeficit?'Déficit energético':'Superávit energético';
  if(balanceExplanation)balanceExplanation.textContent=energy.loggedDays
    ?(isDeficit
      ?'Hasta hoy gastaste aproximadamente '+energyFmt(Math.abs(energy.balance))+' más de las que consumiste.'
