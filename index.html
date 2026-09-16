@@ -1595,7 +1595,7 @@ function applyKraxesBrand(){
  const badge=document.querySelector('.badge');if(badge)badge.textContent='v2.0';
  const activityLabels=[[document.getElementById('onboardActivity'),'Actividad cotidiana sin contar entrenamientos'],[document.getElementById('profileActivity'),'Actividad cotidiana sin contar entrenamientos']];
  for(const [select,label] of activityLabels){if(!select)continue;const labelEl=select.closest('div')?.querySelector('label');if(labelEl)labelEl.textContent=label}
- const activityCopy={sedentary:'Sedentaria/o · mayormente sentado/a durante el día',light:'Ligera · algo de movimiento cotidiano',moderate:'Moderada · bastante tiempo de pie o en movimiento',high:'Alta · rutina cotidiana físicamente exigente'};
+ const activityCopy={sedentary:'Sedentaria · casi siempre sentado/a fuera del ejercicio',light:'Ligera · algo de movimiento fuera del ejercicio',moderate:'Moderada · bastante movimiento fuera del ejercicio',high:'Alta · rutina cotidiana físicamente exigente fuera del ejercicio'};
  for(const select of [document.getElementById('onboardActivity'),document.getElementById('profileActivity')]){
    if(!select)continue;
    for(const option of select.options)if(activityCopy[option.value])option.textContent=activityCopy[option.value];
