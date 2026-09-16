@@ -99,7 +99,7 @@ nav{left:10px;right:10px;bottom:10px;border:1px solid #223544;border-radius:22px
 .nc-weekly-stat.deficit strong{color:var(--nc-green)}
 .nc-weekly-stat.over strong{color:#ff7b72}
 .nc-weekly-note{margin-top:10px;color:#83919d;font-size:10px;line-height:1.4}
-.nc-energy-summary{margin-top:12px;padding-top:12px;border-top:1px solid #20303c}.nc-energy-title{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:9px}.nc-energy-title strong{font-size:15px}.nc-energy-title small{color:#83919d;font-size:9px;text-align:right;line-height:1.35}.nc-energy-result{grid-column:1/-1}.nc-energy-result.deficit strong{color:var(--nc-green)}.nc-energy-result.surplus strong{color:#ff7b72}.nc-energy-breakdown{margin-top:10px;padding:14px;border:1px solid #263746;border-radius:14px;background:#0c151d}.nc-energy-breakdown h4{margin:0 0 11px;font-size:13px;color:#f4f7fa}.nc-energy-equation{display:grid;gap:7px}.nc-energy-equation+.nc-energy-equation{margin-top:13px;padding-top:13px;border-top:1px solid #263746}.nc-energy-line{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:baseline;color:#aebac6;font-size:11px;line-height:1.35}.nc-energy-line span:first-child{min-width:0}.nc-energy-line strong{color:#f4f7fa;font-size:12px;text-align:right;white-space:nowrap}.nc-energy-line.total{padding-top:8px;border-top:1px solid #263746;color:#dce5ec;font-weight:700}.nc-energy-line.result strong{color:var(--nc-green)}.nc-energy-line.result.surplus strong{color:#ff7b72}.nc-energy-coverage{margin:9px 2px 0;color:#83919d;font-size:9px;line-height:1.4}
+.nc-energy-summary{margin-top:12px;padding-top:12px;border-top:1px solid #20303c}.nc-energy-title{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:9px}.nc-energy-title strong{font-size:15px}.nc-energy-title small{color:#83919d;font-size:9px;text-align:right;line-height:1.35}.nc-energy-result{grid-column:1/-1}.nc-energy-result.deficit strong{color:var(--nc-green)}.nc-energy-result.surplus strong{color:#ff7b72}.nc-energy-breakdown{margin-top:10px;padding:14px;border:1px solid #263746;border-radius:14px;background:#0c151d}.nc-energy-breakdown h4{margin:0 0 11px;font-size:13px;color:#f4f7fa}.nc-energy-equation{display:grid;gap:7px}.nc-energy-equation+.nc-energy-equation{margin-top:13px;padding-top:13px;border-top:1px solid #263746}.nc-energy-line{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:baseline;color:#aebac6;font-size:11px;line-height:1.35}.nc-energy-line span:first-child{min-width:0}.nc-energy-line strong{color:#f4f7fa;font-size:12px;text-align:right;white-space:nowrap}.nc-energy-line small{grid-column:1/-1;color:#83919d;font-size:9px}.nc-energy-line.total{padding-top:8px;border-top:1px solid #263746;color:#dce5ec;font-weight:700}.nc-energy-line.result strong{color:var(--nc-green)}.nc-energy-line.result.surplus strong{color:#ff7b72}.nc-energy-coverage{margin:9px 2px 0;color:#83919d;font-size:9px;line-height:1.4}.activity-guidance{margin-top:7px;padding:9px 10px;border:1px solid #294257;border-radius:10px;background:#0a1723}.activity-guidance strong,.activity-guidance small{display:block;line-height:1.4}.activity-guidance strong{color:#dce8f1;font-size:11px}.activity-guidance small{margin-top:4px;color:#83919d;font-size:10px}
 @media(max-width:520px){.nc-weekly-grid{grid-template-columns:1fr 1fr}.nc-weekly-stat:last-child{grid-column:1/-1}}
 
 /* Nico Cut Weekly Budget v1 */
@@ -630,9 +630,9 @@ nav button.active{
       <div class="nc-energy-breakdown" aria-label="Detalle del cálculo energético">
         <h4>¿De dónde sale?</h4>
         <div class="nc-energy-equation">
-          <div class="nc-energy-line"><span>Gasto cotidiano estimado</span><strong id="energyBaseTotal">—</strong></div>
-          <div class="nc-energy-line"><span>＋ Ejercicio neto registrado</span><strong id="energyExerciseTotal">—</strong></div>
-          <div class="nc-energy-line total"><span>= Gasto total estimado</span><strong id="energyExpenditureTotal">—</strong></div>
+          <div class="nc-energy-line"><span id="energyBaseLabel">Gasto cotidiano estimado</span><strong id="energyBaseTotal">—</strong><small id="energyBaseAverage">Promedio: — kcal/día</small></div>
+          <div class="nc-energy-line"><span id="energyExerciseLabel">＋ Ejercicio neto registrado</span><strong id="energyExerciseTotal">—</strong></div>
+          <div class="nc-energy-line total"><span id="energyExpenditureLabel">= Gasto total estimado</span><strong id="energyExpenditureTotal">—</strong></div>
         </div>
         <div class="nc-energy-equation">
           <div class="nc-energy-line"><span>Gasto total estimado</span><strong id="energyExpenditureMirror">—</strong></div>
@@ -873,6 +873,10 @@ function renderWeeklySummary(ds=today()){
  const energy=summarizeEnergyBalance(ds),energyFmt=value=>Math.round(value).toLocaleString('es-AR')+' kcal';
  const energyFields={energyBaseTotal:energy.baseTotal,energyExerciseTotal:energy.exerciseTotal,energyExpenditureTotal:energy.expenditureTotal,energyExpenditureMirror:energy.expenditureTotal,energyConsumedTotal:energy.consumedTotal};
  for(const [id,value] of Object.entries(energyFields)){const el=document.getElementById(id);if(el)el.textContent=energy.loggedDays?energyFmt(value):'—'}
+ const energyDaySuffix=energy.loggedDays===1?' · 1 día':' · '+energy.loggedDays+' días';
+ const energyPeriodLabels={energyBaseLabel:'Gasto cotidiano estimado',energyExerciseLabel:'＋ Ejercicio neto registrado',energyExpenditureLabel:'= Gasto total estimado'};
+ for(const [id,label] of Object.entries(energyPeriodLabels)){const el=document.getElementById(id);if(el)el.textContent=label+(energy.loggedDays?energyDaySuffix:'')}
+ const energyBaseAverage=document.getElementById('energyBaseAverage');if(energyBaseAverage)energyBaseAverage.textContent=energy.loggedDays?'Promedio: '+energyFmt(energy.baseTotal/energy.loggedDays).replace(' kcal',' kcal/día'):'Promedio: — kcal/día';
  const balanceEl=document.getElementById('energyBalanceTotal'),balanceLabel=document.getElementById('energyBalanceLabel'),balanceExplanation=document.getElementById('energyBalanceExplanation'),balanceStat=document.getElementById('energyBalanceStat');
  const isDeficit=energy.balance>=0;
  if(balanceEl)balanceEl.textContent=energy.loggedDays?energyFmt(Math.abs(energy.balance))+(isDeficit?' de déficit':' de superávit'):'—';
@@ -1591,8 +1595,16 @@ function applyKraxesBrand(){
  const badge=document.querySelector('.badge');if(badge)badge.textContent='v2.0';
  const activityLabels=[[document.getElementById('onboardActivity'),'Actividad cotidiana sin contar entrenamientos'],[document.getElementById('profileActivity'),'Actividad cotidiana sin contar entrenamientos']];
  for(const [select,label] of activityLabels){if(!select)continue;const labelEl=select.closest('div')?.querySelector('label');if(labelEl)labelEl.textContent=label}
- const activityCopy={sedentary:'Sedentaria/o · muy poco movimiento cotidiano',light:'Ligera · algo de movimiento cotidiano',moderate:'Moderada · movimiento cotidiano frecuente',high:'Alta · rutina cotidiana muy activa'};
- for(const select of [document.getElementById('onboardActivity'),document.getElementById('profileActivity')])if(select)for(const option of select.options)if(activityCopy[option.value])option.textContent=activityCopy[option.value];
+ const activityCopy={sedentary:'Sedentaria/o · mayormente sentado/a durante el día',light:'Ligera · algo de movimiento cotidiano',moderate:'Moderada · bastante tiempo de pie o en movimiento',high:'Alta · rutina cotidiana físicamente exigente'};
+ for(const select of [document.getElementById('onboardActivity'),document.getElementById('profileActivity')]){
+   if(!select)continue;
+   for(const option of select.options)if(activityCopy[option.value])option.textContent=activityCopy[option.value];
+   if(!select.parentElement.querySelector('.activity-guidance')){
+     const guidance=document.createElement('div');guidance.className='activity-guidance';
+     guidance.innerHTML='<strong>No incluyas gimnasio, running, caminatas de ejercicio, bicicleta ni otros entrenamientos que registres en KRAXES.</strong><small>Elegí el nivel según cuánto te movés en tu vida cotidiana fuera del ejercicio.</small>';
+     select.insertAdjacentElement('afterend',guidance);
+   }
+ }
  const onboardingHint=document.querySelector('.onboarding .hint');if(onboardingHint)onboardingHint.textContent='Si elegís “Perder grasa”, Kraxes Cut estima tu mantenimiento y resta 500 kcal/día. Los demás macros se calculan automáticamente y después podés editarlos.';
  const activitySelect=document.getElementById('activityType');
  if(activitySelect&&!activitySelect.querySelector('option[value="HIIT"]')){
