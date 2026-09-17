@@ -518,11 +518,28 @@ nav button.active{
 .nc-energy-result small{font-size:11px;line-height:1.45;margin-top:7px;color:#a8b4c2}
 .nc-energy-secondary .nc-weekly-stat{min-height:76px}
 .nc-energy-secondary .nc-weekly-stat strong{font-size:15px}
+.kraxes-insight{margin:0 0 14px;padding:15px;border:1px solid #293746;border-radius:16px;background:linear-gradient(145deg,#101c25,#0b131a)}
+.kraxes-insight[data-severity="attention"]{border-color:rgba(244,189,85,.35);background:linear-gradient(145deg,rgba(67,49,22,.34),#0b131a)}
+.kraxes-insight-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.kraxes-insight-kicker{display:block;color:#66d5c2;font-size:10px;font-weight:850;letter-spacing:.12em;text-transform:uppercase}
+.kraxes-insight[data-severity="attention"] .kraxes-insight-kicker{color:#f4bd55}
+.kraxes-insight h3{margin:4px 0 0;font-size:17px;line-height:1.3}
+.kraxes-insight-confidence{flex:0 0 auto;padding:5px 8px;border:1px solid #304252;border-radius:999px;color:#aebdca;font-size:10px;white-space:nowrap}
+.kraxes-insight-message{margin:10px 0 0;color:#c7d2dc;font-size:13px;line-height:1.5}
+.kraxes-insight details{margin-top:11px;border-top:1px solid #273641;padding-top:10px}
+.kraxes-insight summary{color:#69cfff;font-size:12px;font-weight:800;cursor:pointer;list-style-position:inside}
+.kraxes-insight-detail{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}
+.kraxes-insight-detail>div{padding:10px;border:1px solid #263744;border-radius:12px;background:rgba(5,13,19,.38)}
+.kraxes-insight-detail span,.kraxes-insight-detail small{display:block;color:#93a4b3;font-size:10px;line-height:1.4}
+.kraxes-insight-detail strong{display:block;margin:4px 0;font-size:16px;font-variant-numeric:tabular-nums}
+.kraxes-insight-note{margin:10px 0 0;color:#9dadba;font-size:11px;line-height:1.5}
+.kraxes-insight-limitations{margin:10px 0 0;padding-left:18px;color:#abb8c4;font-size:11px;line-height:1.5}
 @media(max-width:520px){
   .nc-weekly-grid-v2{grid-template-columns:repeat(2,minmax(0,1fr))}
   .nc-weekly-grid-v2 #weeklyAverageStat{grid-column:span 2}
   .nc-energy-result{min-height:0}
   .nc-energy-secondary{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .kraxes-insight{padding:13px}.kraxes-insight-head{gap:8px}.kraxes-insight h3{font-size:16px}.kraxes-insight-detail{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -676,6 +693,7 @@ nav button.active{
     <div class="report-tools"><div><label for="reportDate">Elegir una fecha de la semana</label><input type="date" id="reportDate"></div><button type="button" class="secondary" id="reportToday">Semana actual</button></div>
     <p class="report-coverage" id="reportCoverage" aria-live="polite"></p>
     <div class="report-stats" id="reportStats"></div>
+    <div id="kraxesWeightEnergyInsight" aria-live="polite"></div>
     <p class="hint">Los promedios incluyen solo días con comidas cargadas. Un día con registros puede estar incompleto; los días sin cargas no se cuentan como consumo cero.</p>
     <h3 class="section-title">Detalle por día</h3>
     <div class="report-table-wrap" tabindex="0" role="region" aria-label="Detalle diario de calorías y macros; deslizar para ver todas las columnas"><table class="report-table"><thead><tr><th scope="col">Día</th><th scope="col">kcal</th><th scope="col">Prot. (g)</th><th scope="col">Carb. (g)</th><th scope="col">Grasas (g)</th></tr></thead><tbody id="reportDays"></tbody><tfoot id="reportTotal"></tfoot></table></div>
@@ -863,6 +881,31 @@ function evaluateWeightVsEnergy(context){
  }
  const copy={consistent:['Cambio consistente','El cambio de peso observado es consistente con la referencia energética aproximada.'],loss_greater_than_expected:['Descenso mayor que el esperado','El descenso observado supera la referencia energética aproximada.'],loss_less_than_expected:['Descenso menor que el esperado','El cambio observado es menor que la referencia aproximada para el déficit registrado.'],gain_despite_deficit:['Aumento frente a déficit','El peso aumentó aunque el balance registrado indica déficit.'],gain_greater_than_expected:['Aumento mayor que el esperado','El aumento observado supera la referencia energética aproximada.'],gain_less_than_expected:['Aumento menor que el esperado','El cambio observado es menor que la referencia aproximada para el superávit registrado.'],loss_despite_surplus:['Descenso frente a superávit','El peso descendió aunque el balance registrado indica superávit.'],near_maintenance:['Sin discrepancia relevante','El balance registrado está cerca del mantenimiento y el cambio observado permanece dentro de la banda.'],change_despite_near_maintenance:['Cambio con balance cercano a mantenimiento','El peso cambió más que la banda prevista con un balance registrado cercano al mantenimiento.'],insufficient_data:['Datos insuficientes','Todavía no hay datos suficientes y completos para comparar peso y balance energético.']}[status];
  return {id:'weight_vs_energy',category:'progress',status,severity:['consistent','near_maintenance','insufficient_data'].includes(status)?'info':'attention',confidence:{level:confidenceLevel,score:null},title:copy[0],message:copy[1],evidence:{analysisReferenceDate:analysis.analysisReferenceDate,weight:{previousWindow:weight.previous,recentWindow:weight.recent,observedChangeKg,observedChangePct:weight.differencePct},energy:{startDate:energy.startDate,endDate:energy.endDate,expectedDayCount:KRAXES_INSIGHT_ENERGY_DAY_COUNT,calculatedDayCount:energy.calculatedDayCount,missingDates:energy.missingDates,partialDates:energy.partialDates,balanceKcal:energy.balanceKcal,kcalPerKg:KRAXES_INSIGHT_ENERGY_KCAL_PER_KG,expectedWeightChangeKg},comparison:{toleranceKg,absoluteDifferenceKg,directionAgreement}},limitations,meta:{evaluator:'evaluateWeightVsEnergy',version:1}};
+}
+const KRAXES_INSIGHT_CONFIDENCE_LABELS={high:'Confianza alta',medium:'Confianza media',low:'Confianza baja'};
+const KRAXES_INSIGHT_LIMITATION_LABELS={
+ ENERGY_PROFILE_INCOMPLETE:'Completá edad, estatura, peso, sexo y actividad para estimar el balance energético.',
+ WEIGHT_WINDOWS_NOT_COMPARABLE:'Faltan pesajes en una de las dos ventanas comparadas.',
+ INSUFFICIENT_WEIGHT_MEASUREMENTS:'Se necesitan al menos 3 pesajes en cada ventana.',
+ INSUFFICIENT_WEIGHT_SPAN:'Los pesajes de cada ventana deben cubrir al menos 3 días.',
+ MISSING_ENERGY_DATES:'Faltan días completos con consumo registrado en el período energético.',
+ PARTIAL_ENERGY_DATES:'El período energético contiene días parciales que todavía no permiten comparar.'
+};
+function formatInsightKg(value){
+ if(value===null||!Number.isFinite(value))return '—';
+ const rounded=Math.abs(value)<.005?0:value;
+ return `${rounded>0?'+':''}${rounded.toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2})} kg`;
+}
+function formatInsightDate(value){return value?new Date(value+'T12:00:00').toLocaleDateString('es-AR',{day:'2-digit',month:'short'}):'—'}
+function renderWeightVsEnergyInsight(referenceDate=today()){
+ const host=document.getElementById('kraxesWeightEnergyInsight');
+ if(!host)return;
+ const insight=buildKraxesInsights(referenceDate).insights.find(item=>item.id==='weight_vs_energy');
+ if(!insight){host.replaceChildren();return}
+ const evidence=insight.evidence,weight=evidence.weight,energy=evidence.energy;
+ const limitationItems=[...new Set(insight.limitations.map(item=>item.code))].map(code=>`<li>${KRAXES_INSIGHT_LIMITATION_LABELS[code]||'Hay una limitación en los datos disponibles.'}</li>`).join('');
+ const period=`${formatInsightDate(energy.startDate)}–${formatInsightDate(energy.endDate)}`;
+ host.innerHTML=`<article class="kraxes-insight" data-status="${esc(insight.status)}" data-severity="${esc(insight.severity)}"><div class="kraxes-insight-head"><div><span class="kraxes-insight-kicker">KRAXES Insight</span><h3>${esc(insight.title)}</h3></div><span class="kraxes-insight-confidence">${esc(KRAXES_INSIGHT_CONFIDENCE_LABELS[insight.confidence.level]||'Confianza no disponible')}</span></div><p class="kraxes-insight-message">${esc(insight.message)}</p><details><summary>Ver análisis</summary><div class="kraxes-insight-detail"><div><span>Cambio de peso observado</span><strong>${formatInsightKg(weight.observedChangeKg)}</strong><small>Promedio reciente frente al promedio anterior</small></div><div><span>Cambio energético esperable</span><strong>${formatInsightKg(energy.expectedWeightChangeKg)}</strong><small>${period} · referencia aproximada</small></div></div>${limitationItems?`<ul class="kraxes-insight-limitations">${limitationItems}</ul>`:''}<p class="kraxes-insight-note">Esta comparación orienta sobre la coherencia entre los registros y la tendencia. No determina cuánto del cambio corresponde a grasa ni reemplaza una evaluación profesional.</p></details></article>`;
 }
 function renderWeeklySummary(ds=today()){
  const dates=weekDates(ds);
@@ -1696,6 +1739,7 @@ function renderWeeklyReport(){
  const ef=value=>energy.loggedDays?Math.round(value).toLocaleString('es-AR')+' kcal':'—';
  const energyStats=`<div class="report-stat"><span>Gasto base estimado acumulado${energy.proratesToday?` · ${energy.loggedDays} días incluidos · hoy parcial`:``}</span><strong>${ef(energy.baseTotal)}</strong><small>Actividad cotidiana sin entrenamientos${energy.proratesToday?' · Hoy se calcula proporcionalmente hasta la hora actual.':''}</small></div><div class="report-stat"><span>Ejercicio neto registrado</span><strong>${ef(energy.exerciseTotal)}</strong><small>Apple Watch = calorías activas</small></div><div class="report-stat"><span>Gasto energético estimado total</span><strong>${ef(energy.expenditureTotal)}</strong><small>Base + ejercicio neto</small></div><div class="report-stat"><span>Consumo de días calculados</span><strong>${ef(energy.consumedTotal)}</strong><small>${energy.loggedDays} días con comidas</small></div><div class="report-stat"><span>${energy.balance>=0?'Déficit':'Superávit'} energético estimado</span><strong>${energy.loggedDays?(energy.balance>=0?ef(energy.balance):'−'+ef(Math.abs(energy.balance))):'—'}</strong><small>Positivo = déficit · negativo = superávit</small></div>`;
  document.getElementById('reportStats').innerHTML=nutritionStats+energyStats;
+ renderWeightVsEnergyInsight(selectedReportDate);
  document.getElementById('reportDays').innerHTML=report.days.map(day=>`<tr><th scope="row">${new Date(day.date+'T12:00:00').toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'numeric'})}</th>${reportMetrics.map(([key])=>`<td>${day.count?reportNumber(day[key]):'—'}</td>`).join('')}</tr>`).join('');
  document.getElementById('reportTotal').innerHTML=`<tr><th scope="row">Total</th>${reportMetrics.map(([key])=>`<td>${hasData?reportNumber(report.totals[key]):'—'}</td>`).join('')}</tr>`;
  const weeks=[...new Set(data.meals.filter(meal=>validReportDate(meal.date)).map(meal=>reportWeekDates(meal.date)[0]))].sort().reverse();
