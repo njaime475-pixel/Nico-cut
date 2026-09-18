@@ -1214,7 +1214,80 @@ async function lookupBarcode(code){
   scanStatus.className='statusbox show warn';
  }
 }
-async function startScanner(){scanPanel.classList.add('active');if(typeof Html5Qrcode==='undefined')return;scanner=new Html5Qrcode('reader');scannerRunning=true;await scanner.start({facingMode:'environment'},{fps:10,qrbox:{width:280,height:140}},async text=>{await stopScanner();barcodeInput.value=text;lookupBarcode(text)},()=>{});requestAnimationFrame(()=>requestAnimationFrame(()=>{const reader=document.getElementById('reader');if(!reader)return;const top=window.scrollY+reader.getBoundingClientRect().top-270;window.scrollTo({top:Math.max(0,top),behavior:'smooth'})}))}async function stopScanner(){if(scanner&&scannerRunning){try{await scanner.stop()}catch{}try{await scanner.clear()}catch{}}scannerRunning=false;scanner=null;scanPanel.classList.remove('active')}
+let scannerScrollRun=0,scannerResizeObserver=null,scannerScrollTimer=0;
+function cancelScannerAutoScroll(){
+  scannerScrollRun++;
+  clearTimeout(scannerScrollTimer);
+  scannerScrollTimer=0;
+  scannerResizeObserver?.disconnect();
+  scannerResizeObserver=null;
+}
+function alignScannerToFinalLayout(run,behavior='smooth'){
+  if(run!==scannerScrollRun||!scannerRunning||!scanPanel.classList.contains('active'))return;
+  const controls=scanBtn.closest('.scan-tools'),closeButton=document.getElementById('stopScanBtn');
+  if(!controls||!closeButton)return;
+  const viewport=window.visualViewport;
+  const viewportTop=viewport?.offsetTop||0;
+  let viewportBottom=viewportTop+(viewport?.height||window.innerHeight);
+  const nav=document.querySelector('nav');
+  if(nav){
+    const navRect=nav.getBoundingClientRect();
+    if(navRect.top>viewportTop&&navRect.top<viewportBottom)viewportBottom=navRect.top;
+  }
+  const controlsRect=controls.getBoundingClientRect(),closeRect=closeButton.getBoundingClientRect();
+  const topTarget=window.scrollY+controlsRect.top-viewportTop-10;
+  const bottomTarget=window.scrollY+closeRect.bottom-viewportBottom+10;
+  window.scrollTo({top:Math.max(0,Math.max(topTarget,bottomTarget)),behavior});
+}
+function waitForFinalScannerLayout(run){
+  const reader=document.getElementById('reader');
+  if(!reader)return;
+  let previousHeight=-1,stableFrames=0,frames=0;
+  const measure=()=>{
+    if(run!==scannerScrollRun||!scannerRunning)return;
+    const video=reader.querySelector('video');
+    const height=reader.getBoundingClientRect().height;
+    const ready=video&&video.readyState>=1&&video.getBoundingClientRect().height>0;
+    stableFrames=ready&&Math.abs(height-previousHeight)<.5?stableFrames+1:0;
+    previousHeight=height;
+    if(stableFrames>=3||frames++>=90){
+      alignScannerToFinalLayout(run);
+      scannerScrollTimer=setTimeout(()=>alignScannerToFinalLayout(run,'auto'),450);
+      return;
+    }
+    requestAnimationFrame(measure);
+  };
+  requestAnimationFrame(measure);
+}
+async function startScanner(){
+  cancelScannerAutoScroll();
+  const run=scannerScrollRun;
+  scanPanel.classList.add('active');
+  if(typeof Html5Qrcode==='undefined')return;
+  scanner=new Html5Qrcode('reader');
+  scannerRunning=true;
+  await scanner.start({facingMode:'environment'},{fps:10,qrbox:{width:280,height:140}},async text=>{await stopScanner();barcodeInput.value=text;lookupBarcode(text)},()=>{});
+  if(run!==scannerScrollRun||!scannerRunning)return;
+  const reader=document.getElementById('reader');
+  let resizeTimer=0;
+  scannerResizeObserver=new ResizeObserver(()=>{
+    clearTimeout(resizeTimer);
+    resizeTimer=setTimeout(()=>{
+      if(run===scannerScrollRun&&scannerRunning)waitForFinalScannerLayout(run);
+    },120);
+  });
+  scannerResizeObserver.observe(reader);
+  reader.querySelector('video')?.addEventListener('loadedmetadata',()=>waitForFinalScannerLayout(run),{once:true});
+  waitForFinalScannerLayout(run);
+  setTimeout(()=>scannerResizeObserver?.disconnect(),2500);
+}
+async function stopScanner(){
+  cancelScannerAutoScroll();
+  if(scanner&&scannerRunning){try{await scanner.stop()}catch{}try{await scanner.clear()}catch{}}
+  scannerRunning=false;
+  scanner=null;
+  scanPanel.classList.remove('active');
+}
 const AI_API_BASE='https://nico-cut-ai.njaime475.workers.dev';
 let currentAiItems=[], pendingPhotoFile=null, pendingPhotoDataUrl='';
 
