@@ -1214,7 +1214,7 @@ async function lookupBarcode(code){
   scanStatus.className='statusbox show warn';
  }
 }
-async function startScanner(){scanPanel.classList.add('active');if(typeof Html5Qrcode==='undefined')return;scanner=new Html5Qrcode('reader');scannerRunning=true;await scanner.start({facingMode:'environment'},{fps:10,qrbox:{width:280,height:140}},async text=>{await stopScanner();barcodeInput.value=text;lookupBarcode(text)},()=>{});requestAnimationFrame(()=>requestAnimationFrame(()=>{const reader=document.getElementById('reader');if(!reader)return;const top=window.scrollY+reader.getBoundingClientRect().top-180;window.scrollTo({top:Math.max(0,top),behavior:'smooth'})}))}async function stopScanner(){if(scanner&&scannerRunning){try{await scanner.stop()}catch{}try{await scanner.clear()}catch{}}scannerRunning=false;scanner=null;scanPanel.classList.remove('active')}
+async function startScanner(){scanPanel.classList.add('active');if(typeof Html5Qrcode==='undefined')return;scanner=new Html5Qrcode('reader');scannerRunning=true;await scanner.start({facingMode:'environment'},{fps:10,qrbox:{width:280,height:140}},async text=>{await stopScanner();barcodeInput.value=text;lookupBarcode(text)},()=>{});requestAnimationFrame(()=>requestAnimationFrame(()=>{const reader=document.getElementById('reader');if(!reader)return;const top=window.scrollY+reader.getBoundingClientRect().top-270;window.scrollTo({top:Math.max(0,top),behavior:'smooth'})}))}async function stopScanner(){if(scanner&&scannerRunning){try{await scanner.stop()}catch{}try{await scanner.clear()}catch{}}scannerRunning=false;scanner=null;scanPanel.classList.remove('active')}
 const AI_API_BASE='https://nico-cut-ai.njaime475.workers.dev';
 let currentAiItems=[], pendingPhotoFile=null, pendingPhotoDataUrl='';
 
