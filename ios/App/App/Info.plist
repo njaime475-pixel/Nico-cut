@@ -24,6 +24,8 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>KRAXES necesita acceder a la cámara para sacar fotos de alimentos y escanear códigos de barras</string>
 	<key>NSHealthShareUsageDescription</key>
 	<string>KRAXES Cut accede a tus pasos, entrenamientos y calorias activas para calcular tu actividad y balance energético</string>
 	<key>NSHealthUpdateUsageDescription</key>
