@@ -57,8 +57,23 @@
     return button;
   }
 
+  function setActivityEditorMode(editing) {
+    const card = document.querySelector('.activity-card');
+    const heading = card?.querySelector('h3');
+    const intro = card?.querySelector('p.hint');
+    const toggleWatchButton = $('toggleWatchKcalBtn');
+    const watchLabel = $('activityWatchBox')?.querySelector('label');
+    if (heading) heading.textContent = editing ? '✏️ Editar actividad' : '🤸 Registrar actividad / clase';
+    if (intro) intro.textContent = editing
+      ? 'Modificá los valores de esta actividad manual.'
+      : 'Las kcal se estiman automáticamente con tu peso, duración e intensidad. No aumentan tu objetivo de comida.';
+    if (toggleWatchButton) toggleWatchButton.style.display = editing ? 'none' : '';
+    if (watchLabel) watchLabel.textContent = editing ? 'Kcal activas' : 'Kcal activas del reloj';
+  }
+
   function resetActivityEditor() {
     editingActivityId = null;
+    setActivityEditorMode(false);
     if ($('activityType')) $('activityType').value = 'Aero Local';
     if ($('activityMinutes')) $('activityMinutes').value = 55;
     if ($('activityIntensity')) $('activityIntensity').value = 'moderate';
@@ -76,6 +91,7 @@
     const activity = (data.activities || []).find(item => item.id === id);
     if (!activity || isAppleHealth(activity)) return;
     editingActivityId = id;
+    setActivityEditorMode(true);
     const type = $('activityType');
     if (type) type.value = [...type.options].some(option => option.value === activity.type) ? activity.type : 'Otra actividad';
     if ($('activityMinutes')) $('activityMinutes').value = number(activity.minutes) || 1;
