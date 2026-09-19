@@ -17,7 +17,9 @@
 
   function sourceLabel(activity) {
     if (isAppleHealth(activity)) return ' · Apple Salud';
-    return activity.source === 'watch' ? ' · reloj' : ' · estimación neta';
+    if (activity.source === 'watch') return ' · reloj';
+    if (activity.source === 'manual') return ' · edición manual';
+    return ' · estimación neta';
   }
 
   function renderEditableActivityHistory() {
@@ -63,12 +65,16 @@
     const intro = card?.querySelector('p.hint');
     const toggleWatchButton = $('toggleWatchKcalBtn');
     const watchLabel = $('activityWatchBox')?.querySelector('label');
+    const estimateHint = card?.querySelector('#activityEstimate + .hint');
     if (heading) heading.textContent = editing ? '✏️ Editar actividad' : '🤸 Registrar actividad / clase';
     if (intro) intro.textContent = editing
       ? 'Modificá los valores de esta actividad manual.'
       : 'Las kcal se estiman automáticamente con tu peso, duración e intensidad. No aumentan tu objetivo de comida.';
     if (toggleWatchButton) toggleWatchButton.style.display = editing ? 'none' : '';
     if (watchLabel) watchLabel.textContent = editing ? 'Kcal activas' : 'Kcal activas del reloj';
+    if (estimateHint) estimateHint.textContent = editing
+      ? 'Podés reemplazar la estimación modificando las kcal activas.'
+      : 'Estimación orientativa. Si tenés Apple Watch u otro reloj, podés reemplazarla.';
   }
 
   function resetActivityEditor() {
@@ -97,13 +103,8 @@
     if ($('activityMinutes')) $('activityMinutes').value = number(activity.minutes) || 1;
     if ($('activityIntensity')) $('activityIntensity').value = ['light', 'moderate', 'vigorous'].includes(activity.intensity) ? activity.intensity : 'moderate';
     if ($('activityDate')) $('activityDate').value = activity.date || today();
-    if (activity.source === 'watch') {
-      if ($('activityWatchKcal')) $('activityWatchKcal').value = Math.round(number(activity.kcal));
-      $('activityWatchBox')?.classList.add('show');
-    } else {
-      if ($('activityWatchKcal')) $('activityWatchKcal').value = '';
-      $('activityWatchBox')?.classList.remove('show');
-    }
+    if ($('activityWatchKcal')) $('activityWatchKcal').value = Math.round(netActivityKcal(activity));
+    $('activityWatchBox')?.classList.add('show');
     $('saveActivityBtn').textContent = 'Guardar cambios';
     ensureCancelButton().style.display = 'block';
     updateActivityEstimate();
@@ -125,8 +126,10 @@
     if (!weight) return alert('Cargá tu peso en Perfil o Progreso para estimar calorías.');
     if (!minutes) return alert('Ingresá la duración de la actividad.');
     const watch = number($('activityWatchKcal')?.value);
-    const useWatch = $('activityWatchBox')?.classList.contains('show') && watch > 0;
-    const kcal = useWatch ? Math.round(watch) : estimatedActivityKcal();
+    const edited = Boolean(editingActivityId);
+    const useManualKcal = edited && watch > 0;
+    const useWatch = !edited && $('activityWatchBox')?.classList.contains('show') && watch > 0;
+    const kcal = useManualKcal || useWatch ? Math.round(watch) : estimatedActivityKcal();
     const labels = { light: 'Suave', moderate: 'Moderada', vigorous: 'Fuerte' };
     const payload = {
       date: $('activityDate')?.value || today(),
@@ -135,11 +138,10 @@
       intensity: $('activityIntensity')?.value || 'moderate',
       intensityLabel: labels[$('activityIntensity')?.value] || 'Moderada',
       kcal,
-      source: useWatch ? 'watch' : 'estimate',
+      source: useManualKcal ? 'manual' : useWatch ? 'watch' : 'estimate',
       calorieBasis: 'net',
       weight
     };
-    const edited = Boolean(editingActivityId);
     if (edited) {
       const index = data.activities.findIndex(item => item.id === editingActivityId);
       if (index < 0) return resetActivityEditor();
