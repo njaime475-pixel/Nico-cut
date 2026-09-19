@@ -1,0 +1,29 @@
+{
+  "name": "nico-cut",
+  "version": "1.0.0",
+  "description": "App móvil para registrar alimentación, macros, progreso, entrenamiento y gasto de ejercicio.",
+  "main": "worker.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/njaime475-pixel/Nico-cut.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/njaime475-pixel/Nico-cut/issues"
+  },
+  "homepage": "https://github.com/njaime475-pixel/Nico-cut#readme",
+  "dependencies": {
+    "@capacitor/core": "^8.5.2",
+    "@capacitor/ios": "^8.5.2",
+    "@capgo/capacitor-health": "^8.11.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.5.2"
+  }
+}
