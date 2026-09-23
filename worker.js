@@ -95,7 +95,7 @@ async function analyzeWithCloudflare(image, prompt, ai) {
     }],
     max_tokens: 1400,
     temperature: 0.2
-  });
+  }, { rejectIfBusy: true });
   const raw = result?.response ?? result?.choices?.[0]?.message?.content;
   if (!raw) throw new Error("Cloudflare AI no devolvió análisis.");
   if (typeof raw === "object" && !Array.isArray(raw)) return raw;
@@ -108,6 +108,20 @@ function validAnalysis(a) {
   return a && Array.isArray(a.items) && a.items.every(it =>
     it && typeof it.name === "string" && Number.isFinite(Number(it.kcal))
   );
+}
+
+async function withTimeout(promise, milliseconds) {
+  let timer;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise((_, reject) => {
+        timer = setTimeout(() => reject(new Error("Cloudflare AI tardó demasiado.")), milliseconds);
+      })
+    ]);
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 async function analyzeWithGemini(mimeType, data, prompt, apiKey) {
@@ -200,7 +214,7 @@ Reglas importantes:
       let primaryError;
       if (env.AI) {
         try {
-          const analysis = await analyzeWithCloudflare(body.image, prompt, env.AI);
+          const analysis = await withTimeout(analyzeWithCloudflare(body.image, prompt, env.AI), 20000);
           if (!validAnalysis(analysis)) throw new Error("Cloudflare AI devolvió un análisis incompleto.");
           return jsonResponse({ ok: true, provider: "cloudflare-ai", model: CLOUDFLARE_MODEL,
             analysis: normalizeAnalysis(analysis) }, 200, corsHeaders);
