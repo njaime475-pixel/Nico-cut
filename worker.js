@@ -1,5 +1,5 @@
 const GEMINI_MODEL = "gemini-3.1-flash-lite";
-const CLOUDFLARE_MODEL = "@cf/google/gemma-4-26b-a4b-it";
+const CLOUDFLARE_MODEL = "@cf/moondream/moondream3.1-9B-A2B";
 
 const RESPONSE_SCHEMA = {
   type: "OBJECT",
@@ -86,17 +86,14 @@ function normalizeAnalysis(a) {
 
 async function analyzeWithCloudflare(image, prompt, ai) {
   const result = await ai.run(CLOUDFLARE_MODEL, {
-    messages: [{
-      role: "user",
-      content: [
-        { type: "text", text: `${prompt}\nRespondé únicamente JSON válido con las claves items, totals, confidence y note. Cada item debe incluir name, grams, kcal, protein, carbs, fat, fiber, confidence y note. Sin Markdown.` },
-        { type: "image_url", image_url: { url: image } }
-      ]
-    }],
+    task: "query",
+    image,
+    question: `${prompt}\nRespondé únicamente JSON válido con las claves items, totals, confidence y note. Cada item debe incluir name, grams, kcal, protein, carbs, fat, fiber, confidence y note. Sin Markdown.`,
     max_tokens: 1400,
+    reasoning: false,
     temperature: 0.2
   }, { rejectIfBusy: true });
-  const raw = result?.response ?? result?.choices?.[0]?.message?.content;
+  const raw = result?.answer;
   if (!raw) throw new Error("Cloudflare AI no devolvió análisis.");
   if (typeof raw === "object" && !Array.isArray(raw)) return raw;
   const text = String(raw).trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
@@ -160,7 +157,7 @@ export default {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "POST, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type",
-      "X-Kraxes-AI-Flow": "cloudflare-first-gemini-fallback-diagnostic"
+      "X-Kraxes-AI-Flow": "moondream-first-gemini-fallback-v1"
     };
 
     if (request.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
