@@ -112,7 +112,7 @@ function parseCloudflareStream(text) {
     const data = line.slice(5).trim();
     if (!data || data === "[DONE]") continue;
     const event = JSON.parse(data);
-    const fragment = event?.choices?.[0]?.delta?.content ?? event?.answer ?? event?.response ?? event?.text;
+    const fragment = event?.choices?.[0]?.delta?.content ?? event?.result?.answer ?? event?.data?.answer ?? event?.answer ?? event?.response ?? event?.text;
     if (typeof fragment === "string") parts.push(fragment);
   }
   if (!parts.length) throw new Error(`Cloudflare AI devolvió un flujo sin texto (${text.slice(0, 160)}).`);
@@ -177,7 +177,7 @@ export default {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "POST, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type",
-      "X-Kraxes-AI-Flow": "moondream-first-gemini-fallback-sse-diagnostic"
+      "X-Kraxes-AI-Flow": "moondream-first-gemini-fallback-nested"
     };
 
     if (request.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
