@@ -117,7 +117,7 @@ function parseCloudflareStream(text) {
   }
   if (!parts.length) throw new Error(`Cloudflare AI devolvió un flujo sin texto (${text.slice(0, 160)}).`);
   const answer = parts.join("");
-  if (!answer) throw new Error(`Cloudflare AI devolvió texto vacío (${text.slice(0, 500)}).`);
+  if (!answer) throw new Error(`Cloudflare AI devolvió texto vacío (${text.slice(-650)}).`);
   return { answer };
 }
 
