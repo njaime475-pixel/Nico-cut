@@ -117,7 +117,7 @@ function parseCloudflareStream(text) {
   }
   if (!parts.length) throw new Error(`Cloudflare AI devolvió un flujo sin texto (${text.slice(0, 160)}).`);
   const answer = parts.join("");
-  if (!answer) throw new Error(`Cloudflare AI devolvió texto vacío (${text.slice(0, 160)}).`);
+  if (!answer) throw new Error(`Cloudflare AI devolvió texto vacío (${text.slice(0, 500)}).`);
   return { answer };
 }
 
@@ -246,6 +246,7 @@ Reglas importantes:
         try {
           const analysis = await analyzeWithGemini(mimeType, data, prompt, env.GEMINI_API_KEY);
           return jsonResponse({ ok: true, provider: "google-gemini", model: GEMINI_MODEL,
+            fallbackReason: primaryError?.message,
             analysis: normalizeAnalysis(analysis) }, 200, corsHeaders);
         } catch (err) {
           console.error("Gemini photo analysis failed:", err?.message);
