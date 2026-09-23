@@ -94,7 +94,7 @@ async function analyzeWithCloudflare(image, prompt, ai) {
     temperature: 0.2
   }, { rejectIfBusy: true });
   const raw = result?.answer;
-  if (!raw) throw new Error("Cloudflare AI no devolvió análisis.");
+  if (!raw) throw new Error(`Cloudflare AI no devolvió análisis (${JSON.stringify(result).slice(0, 400)}).`);
   if (typeof raw === "object" && !Array.isArray(raw)) return raw;
   const text = String(raw).trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
   try { return JSON.parse(text); }
@@ -157,7 +157,7 @@ export default {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "POST, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type",
-      "X-Kraxes-AI-Flow": "moondream-first-gemini-fallback-v1"
+      "X-Kraxes-AI-Flow": "moondream-first-gemini-fallback-diagnostic"
     };
 
     if (request.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
