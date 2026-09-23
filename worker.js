@@ -97,7 +97,7 @@ async function analyzeWithCloudflare(image, prompt, ai) {
     ? parseCloudflareStream(await new Response(result).text())
     : result instanceof Response ? await result.json() : result;
   const raw = output?.answer;
-  if (!raw) throw new Error(`Cloudflare AI no devolvió análisis (claves=${Object.keys(output || {}).join(",")}).`);
+  if (!raw) throw new Error("Cloudflare AI no devolvió análisis.");
   if (typeof raw === "object" && !Array.isArray(raw)) return raw;
   const text = String(raw).trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
   try { return JSON.parse(text); }
@@ -112,12 +112,12 @@ function parseCloudflareStream(text) {
     const data = line.slice(5).trim();
     if (!data || data === "[DONE]") continue;
     const event = JSON.parse(data);
-    const fragment = event?.choices?.[0]?.delta?.content ?? event?.result?.answer ?? event?.data?.answer ?? event?.answer ?? event?.response ?? event?.text;
+    const fragment = event?.choices?.[0]?.delta?.content ?? event?.results?.[0]?.answer ?? event?.result?.answer ?? event?.data?.answer ?? event?.answer ?? event?.response ?? event?.text;
     if (typeof fragment === "string") parts.push(fragment);
   }
-  if (!parts.length) throw new Error(`Cloudflare AI devolvió un flujo sin texto (${text.slice(0, 160)}).`);
+  if (!parts.length) throw new Error("Cloudflare AI devolvió un flujo sin texto.");
   const answer = parts.join("");
-  if (!answer) throw new Error(`Cloudflare AI devolvió texto vacío (${text.slice(-650)}).`);
+  if (!answer) throw new Error("Cloudflare AI devolvió texto vacío.");
   return { answer };
 }
 
@@ -177,7 +177,7 @@ export default {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "POST, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type",
-      "X-Kraxes-AI-Flow": "moondream-first-gemini-fallback-nested"
+      "X-Kraxes-AI-Flow": "cloudflare-first-gemini-fallback-v1"
     };
 
     if (request.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -246,12 +246,11 @@ Reglas importantes:
         try {
           const analysis = await analyzeWithGemini(mimeType, data, prompt, env.GEMINI_API_KEY);
           return jsonResponse({ ok: true, provider: "google-gemini", model: GEMINI_MODEL,
-            fallbackReason: primaryError?.message,
             analysis: normalizeAnalysis(analysis) }, 200, corsHeaders);
         } catch (err) {
           console.error("Gemini photo analysis failed:", err?.message);
           throw new Error(primaryError
-            ? `Cloudflare AI: ${String(primaryError.message).slice(0, 220)} · Gemini: ${String(err?.message).slice(0, 220)}`
+            ? "Cloudflare AI y Gemini no pudieron analizar la foto. Probá de nuevo en unos minutos."
             : `Gemini: ${err?.message || "error del servicio"}`);
         }
       }
