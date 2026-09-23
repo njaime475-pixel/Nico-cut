@@ -233,7 +233,7 @@ Reglas importantes:
         } catch (err) {
           console.error("Gemini photo analysis failed:", err?.message);
           throw new Error(primaryError
-            ? "Cloudflare AI y Gemini no pudieron analizar la foto. Probá de nuevo en unos minutos."
+            ? `Cloudflare AI: ${String(primaryError.message).slice(0, 220)} · Gemini: ${String(err?.message).slice(0, 220)}`
             : `Gemini: ${err?.message || "error del servicio"}`);
         }
       }
