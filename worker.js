@@ -1,5 +1,4 @@
 const GEMINI_MODEL = "gemini-3.1-flash-lite";
-const CLOUDFLARE_MODEL = "@cf/google/gemma-4-26b-a4b-it";
 
 const RESPONSE_SCHEMA = {
   type: "OBJECT",
@@ -84,103 +83,12 @@ function normalizeAnalysis(a) {
   };
 }
 
-async function analyzeWithCloudflare(image, prompt, ai) {
-  const result = await ai.run(CLOUDFLARE_MODEL, {
-    messages: [{
-      role: "user",
-      content: [
-        { type: "text", text: `${prompt}\nRespondé únicamente JSON válido con las claves items, totals, confidence y note. Cada item debe incluir name, grams, kcal, protein, carbs, fat, fiber, confidence y note. Sin Markdown.` },
-        { type: "image_url", image_url: { url: image } }
-      ]
-    }],
-    max_tokens: 2000,
-    temperature: 0.2
-  }, { rejectIfBusy: true });
-  const output = result instanceof ReadableStream
-    ? parseCloudflareStream(await new Response(result).text())
-    : result instanceof Response ? await result.json() : result;
-  const raw = output?.answer ?? output?.response;
-  if (!raw) throw new Error("Cloudflare AI no devolvió análisis.");
-  if (typeof raw === "object" && !Array.isArray(raw)) return raw;
-  const text = String(raw).trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
-  try { return JSON.parse(text); }
-  catch { throw new Error("Cloudflare AI respondió, pero el JSON nutricional no pudo interpretarse."); }
-}
-
-function parseCloudflareStream(text) {
-  if (!text.startsWith("data:")) return JSON.parse(text);
-  const parts = [];
-  for (const line of text.split(/\r?\n/)) {
-    if (!line.startsWith("data:")) continue;
-    const data = line.slice(5).trim();
-    if (!data || data === "[DONE]") continue;
-    const event = JSON.parse(data);
-    const fragment = event?.choices?.[0]?.delta?.content ?? event?.results?.[0]?.answer ?? event?.results?.[0]?.response ?? event?.result?.answer ?? event?.data?.answer ?? event?.answer ?? event?.response ?? event?.text;
-    if (typeof fragment === "string") parts.push(fragment);
-  }
-  if (!parts.length) throw new Error("Cloudflare AI devolvió un flujo sin texto.");
-  const answer = parts.join("");
-  if (!answer) throw new Error("Cloudflare AI devolvió texto vacío.");
-  return { answer };
-}
-
-function validAnalysis(a) {
-  return a && Array.isArray(a.items) && a.items.every(it =>
-    it && typeof it.name === "string" && Number.isFinite(Number(it.kcal))
-  );
-}
-
-async function withTimeout(promise, milliseconds) {
-  let timer;
-  try {
-    return await Promise.race([
-      promise,
-      new Promise((_, reject) => {
-        timer = setTimeout(() => reject(new Error("Cloudflare AI tardó demasiado.")), milliseconds);
-      })
-    ]);
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
-async function analyzeWithGemini(mimeType, data, prompt, apiKey) {
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(GEMINI_MODEL)}:generateContent`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-goog-api-key": apiKey },
-      body: JSON.stringify({
-        contents: [{ role: "user", parts: [{ inlineData: { mimeType, data } }, { text: prompt }] }],
-        generationConfig: {
-          temperature: 0.2,
-          maxOutputTokens: 1200,
-          responseMimeType: "application/json",
-          responseSchema: RESPONSE_SCHEMA
-        }
-      })
-    }
-  );
-  const raw = await response.text();
-  let payload;
-  try { payload = JSON.parse(raw); }
-  catch { throw new Error("Gemini devolvió una respuesta HTTP inválida."); }
-  if (!response.ok) {
-    throw new Error(`Gemini (${response.status}): ${String(payload?.error?.message || "error del servicio").slice(0, 300)}`);
-  }
-  const text = payload?.candidates?.[0]?.content?.parts?.map(part => part.text || "").join("").trim();
-  if (!text) throw new Error(`Gemini no devolvió análisis (${payload?.candidates?.[0]?.finishReason || "sin contenido"}).`);
-  try { return JSON.parse(text); }
-  catch { throw new Error("Gemini respondió, pero el JSON nutricional no pudo interpretarse."); }
-}
-
 export default {
   async fetch(request, env) {
     const corsHeaders = {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
-      "X-Kraxes-AI-Flow": "gemma-first-gemini-fallback-v1"
+      "Access-Control-Allow-Headers": "Content-Type"
     };
 
     if (request.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -191,8 +99,8 @@ export default {
       return jsonResponse({ ok: false, error: "Ruta no encontrada." }, 404, corsHeaders);
     }
 
-    if (!env.AI && !env.GEMINI_API_KEY) {
-      return jsonResponse({ ok: false, error: "Falta configurar AI o GEMINI_API_KEY en Cloudflare." }, 500, corsHeaders);
+    if (!env.GEMINI_API_KEY) {
+      return jsonResponse({ ok: false, error: "Falta configurar GEMINI_API_KEY en Cloudflare." }, 500, corsHeaders);
     }
 
     try {
@@ -232,32 +140,59 @@ Reglas importantes:
 - Es una estimación nutricional, no un diagnóstico médico.
 `;
 
-      let primaryError;
-      if (env.AI) {
-        try {
-          const analysis = await withTimeout(analyzeWithCloudflare(body.image, prompt, env.AI), 35000);
-          if (!validAnalysis(analysis)) throw new Error("Cloudflare AI devolvió un análisis incompleto.");
-          return jsonResponse({ ok: true, provider: "cloudflare-ai", model: CLOUDFLARE_MODEL,
-            analysis: normalizeAnalysis(analysis) }, 200, corsHeaders);
-        } catch (err) {
-          primaryError = err;
-          console.warn("Cloudflare AI photo analysis failed; trying Gemini:", err?.message);
+      const geminiResponse = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(GEMINI_MODEL)}:generateContent`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-goog-api-key": env.GEMINI_API_KEY
+          },
+          body: JSON.stringify({
+            contents: [{
+              role: "user",
+              parts: [
+                { inlineData: { mimeType, data } },
+                { text: prompt }
+              ]
+            }],
+            generationConfig: {
+              temperature: 0.2,
+              maxOutputTokens: 1200,
+              responseMimeType: "application/json",
+              responseSchema: RESPONSE_SCHEMA
+            }
+          })
         }
+      );
+
+      const raw = await geminiResponse.text();
+      if (!geminiResponse.ok) {
+        let detail = raw;
+        try { detail = JSON.parse(raw)?.error?.message || raw; } catch {}
+        return jsonResponse({ ok: false, error: `Gemini: ${String(detail).slice(0, 500)}` }, geminiResponse.status, corsHeaders);
       }
 
-      if (env.GEMINI_API_KEY) {
-        try {
-          const analysis = await analyzeWithGemini(mimeType, data, prompt, env.GEMINI_API_KEY);
-          return jsonResponse({ ok: true, provider: "google-gemini", model: GEMINI_MODEL,
-            analysis: normalizeAnalysis(analysis) }, 200, corsHeaders);
-        } catch (err) {
-          console.error("Gemini photo analysis failed:", err?.message);
-          throw new Error(primaryError
-            ? "Cloudflare AI y Gemini no pudieron analizar la foto. Probá de nuevo en unos minutos."
-            : `Gemini: ${err?.message || "error del servicio"}`);
-        }
+      let payload;
+      try { payload = JSON.parse(raw); }
+      catch { throw new Error("Gemini devolvió una respuesta HTTP inválida."); }
+
+      const text = payload?.candidates?.[0]?.content?.parts?.map(p => p.text || "").join("")?.trim();
+      if (!text) {
+        const reason = payload?.candidates?.[0]?.finishReason || "sin contenido";
+        throw new Error(`Gemini no devolvió análisis (${reason}).`);
       }
-      throw new Error(primaryError?.message || "No hay proveedor disponible para analizar la foto.");
+
+      let parsed;
+      try { parsed = JSON.parse(text); }
+      catch { throw new Error("Gemini respondió, pero el JSON nutricional no pudo interpretarse."); }
+
+      return jsonResponse({
+        ok: true,
+        provider: "google-gemini",
+        model: GEMINI_MODEL,
+        analysis: normalizeAnalysis(parsed)
+      }, 200, corsHeaders);
     } catch (err) {
       return jsonResponse({ ok: false, error: err?.message || "Error analizando la imagen." }, 500, corsHeaders);
     }
