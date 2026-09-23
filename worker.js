@@ -94,7 +94,7 @@ async function analyzeWithCloudflare(image, prompt, ai) {
     temperature: 0.2
   }, { rejectIfBusy: true });
   const output = result instanceof ReadableStream
-    ? JSON.parse(await new Response(result).text())
+    ? parseCloudflareStream(await new Response(result).text())
     : result instanceof Response ? await result.json() : result;
   const raw = output?.answer;
   if (!raw) throw new Error(`Cloudflare AI no devolvió análisis (claves=${Object.keys(output || {}).join(",")}).`);
@@ -102,6 +102,21 @@ async function analyzeWithCloudflare(image, prompt, ai) {
   const text = String(raw).trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
   try { return JSON.parse(text); }
   catch { throw new Error("Cloudflare AI respondió, pero el JSON nutricional no pudo interpretarse."); }
+}
+
+function parseCloudflareStream(text) {
+  if (!text.startsWith("data:")) return JSON.parse(text);
+  const parts = [];
+  for (const line of text.split(/\r?\n/)) {
+    if (!line.startsWith("data:")) continue;
+    const data = line.slice(5).trim();
+    if (!data || data === "[DONE]") continue;
+    const event = JSON.parse(data);
+    const fragment = event?.choices?.[0]?.delta?.content ?? event?.answer ?? event?.response ?? event?.text;
+    if (typeof fragment === "string") parts.push(fragment);
+  }
+  if (!parts.length) throw new Error(`Cloudflare AI devolvió un flujo sin texto (${text.slice(0, 160)}).`);
+  return { answer: parts.join("") };
 }
 
 function validAnalysis(a) {
@@ -160,7 +175,7 @@ export default {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "POST, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type",
-      "X-Kraxes-AI-Flow": "moondream-first-gemini-fallback-stream"
+      "X-Kraxes-AI-Flow": "moondream-first-gemini-fallback-sse"
     };
 
     if (request.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
