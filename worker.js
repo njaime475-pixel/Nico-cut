@@ -1,5 +1,5 @@
 const GEMINI_MODEL = "gemini-3.1-flash-lite";
-const CLOUDFLARE_MODEL = "@cf/moondream/moondream3.1-9B-A2B";
+const CLOUDFLARE_MODEL = "@cf/google/gemma-4-26b-a4b-it";
 
 const RESPONSE_SCHEMA = {
   type: "OBJECT",
@@ -86,17 +86,20 @@ function normalizeAnalysis(a) {
 
 async function analyzeWithCloudflare(image, prompt, ai) {
   const result = await ai.run(CLOUDFLARE_MODEL, {
-    task: "query",
-    image,
-    question: `${prompt}\nRespondé únicamente JSON válido con las claves items, totals, confidence y note. Cada item debe incluir name, grams, kcal, protein, carbs, fat, fiber, confidence y note. Sin Markdown.`,
-    max_tokens: 1400,
-    reasoning: false,
+    messages: [{
+      role: "user",
+      content: [
+        { type: "text", text: `${prompt}\nRespondé únicamente JSON válido con las claves items, totals, confidence y note. Cada item debe incluir name, grams, kcal, protein, carbs, fat, fiber, confidence y note. Sin Markdown.` },
+        { type: "image_url", image_url: { url: image } }
+      ]
+    }],
+    max_tokens: 2000,
     temperature: 0.2
   }, { rejectIfBusy: true });
   const output = result instanceof ReadableStream
     ? parseCloudflareStream(await new Response(result).text())
     : result instanceof Response ? await result.json() : result;
-  const raw = output?.answer;
+  const raw = output?.answer ?? output?.response;
   if (!raw) throw new Error("Cloudflare AI no devolvió análisis.");
   if (typeof raw === "object" && !Array.isArray(raw)) return raw;
   const text = String(raw).trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
@@ -112,7 +115,7 @@ function parseCloudflareStream(text) {
     const data = line.slice(5).trim();
     if (!data || data === "[DONE]") continue;
     const event = JSON.parse(data);
-    const fragment = event?.choices?.[0]?.delta?.content ?? event?.results?.[0]?.answer ?? event?.result?.answer ?? event?.data?.answer ?? event?.answer ?? event?.response ?? event?.text;
+    const fragment = event?.choices?.[0]?.delta?.content ?? event?.results?.[0]?.answer ?? event?.results?.[0]?.response ?? event?.result?.answer ?? event?.data?.answer ?? event?.answer ?? event?.response ?? event?.text;
     if (typeof fragment === "string") parts.push(fragment);
   }
   if (!parts.length) throw new Error("Cloudflare AI devolvió un flujo sin texto.");
@@ -177,7 +180,7 @@ export default {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "POST, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type",
-      "X-Kraxes-AI-Flow": "cloudflare-first-gemini-fallback-v1"
+      "X-Kraxes-AI-Flow": "gemma-first-gemini-fallback-v1"
     };
 
     if (request.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -232,7 +235,7 @@ Reglas importantes:
       let primaryError;
       if (env.AI) {
         try {
-          const analysis = await withTimeout(analyzeWithCloudflare(body.image, prompt, env.AI), 20000);
+          const analysis = await withTimeout(analyzeWithCloudflare(body.image, prompt, env.AI), 35000);
           if (!validAnalysis(analysis)) throw new Error("Cloudflare AI devolvió un análisis incompleto.");
           return jsonResponse({ ok: true, provider: "cloudflare-ai", model: CLOUDFLARE_MODEL,
             analysis: normalizeAnalysis(analysis) }, 200, corsHeaders);
