@@ -1,4 +1,5 @@
 const GEMINI_MODEL = "gemini-3.1-flash-lite";
+const CLOUDFLARE_MODEL = "@cf/meta/llama-3.2-11b-vision-instruct";
 
 const RESPONSE_SCHEMA = {
   type: "OBJECT",
@@ -83,6 +84,25 @@ function normalizeAnalysis(a) {
   };
 }
 
+async function cloudflareAnalysis(env, image, prompt, corsHeaders) {
+  if (!env.AI) throw new Error("Cloudflare AI no está configurado.");
+  const result = await env.AI.run(CLOUDFLARE_MODEL, {
+    messages: [
+      { role: "system", content: "Respondé únicamente JSON válido para estimación nutricional visual." },
+      { role: "user", content: `${prompt}\nRespondé SOLO JSON con items (name, grams, kcal, protein, carbs, fat, fiber, confidence, note), confidence y note.` }
+    ],
+    image,
+    temperature: 0.2,
+    max_tokens: 1400
+  });
+  const responseText = String(result?.response ?? result?.result ?? "").trim()
+    .replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
+  const parsed = JSON.parse(responseText);
+  const analysis = normalizeAnalysis(parsed);
+  if (!analysis.items.length) throw new Error("Cloudflare no reconoció alimentos en la imagen.");
+  return jsonResponse({ ok: true, provider: "cloudflare-workers-ai", model: CLOUDFLARE_MODEL, analysis }, 200, corsHeaders);
+}
+
 export default {
   async fetch(request, env) {
     const corsHeaders = {
@@ -97,10 +117,6 @@ export default {
     const url = new URL(request.url);
     if (url.pathname !== "/api/analyze") {
       return jsonResponse({ ok: false, error: "Ruta no encontrada." }, 404, corsHeaders);
-    }
-
-    if (!env.GEMINI_API_KEY) {
-      return jsonResponse({ ok: false, error: "Falta configurar GEMINI_API_KEY en Cloudflare." }, 500, corsHeaders);
     }
 
     try {
@@ -139,6 +155,15 @@ Reglas importantes:
 - Los totales deben corresponder a la suma de los items.
 - Es una estimación nutricional, no un diagnóstico médico.
 `;
+
+      // Primero Cloudflare; Gemini cubre fallas o respuestas no utilizables.
+      let cloudflareError;
+      try { return await cloudflareAnalysis(env, body.image, prompt, corsHeaders); }
+      catch (err) { cloudflareError = err; }
+
+      if (!env.GEMINI_API_KEY) {
+        throw new Error(`No se pudo analizar la foto con Cloudflare: ${cloudflareError?.message || "servicio no disponible"}. Gemini no está configurado.`);
+      }
 
       const geminiResponse = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(GEMINI_MODEL)}:generateContent`,
