@@ -1,0 +1,36 @@
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const vm=require('node:vm');
+const html=fs.readFileSync(require('node:path').join(__dirname,'../index.html'),'utf8');
+const weightSummary=html.slice(html.indexOf('function summarizeWeightTrend('),html.indexOf('function setMetric('));
+const body=html.slice(html.indexOf('const KRAXES_INSIGHT_ENERGY_KCAL_PER_KG'),html.indexOf('const KRAXES_INSIGHT_CONFIDENCE_LABELS'));
+const context=vm.runInNewContext(`const data={progress:[]}; const n=x=>Number(x)||0; const avg=x=>x.length?x.reduce((a,b)=>a+b,0)/x.length:null; const dateRangeInclusive=(a,b)=>{const out=[];for(let d=a;d<=b;d=shiftDateKey(d,1))out.push(d);return out}; const shiftDateKey=(d,n)=>new Date(Date.parse(d+'T12:00:00')+n*86400000).toISOString().slice(0,10); const today=()=> '2026-09-27'; ${weightSummary} ${body}; ({data,summarizeInsightWeightDirection,evaluateWeightVsEnergy,buildWeightVsEnergyAnalysis})`);
+const {data,summarizeInsightWeightDirection,evaluateWeightVsEnergy,buildWeightVsEnergyAnalysis}=context;
+const start='2026-09-13',end='2026-09-26';
+function scenario(weights,{balance=2200,missing=[],aligned=true}={}){
+ data.progress=weights.map(([day,weight])=>({date:`2026-09-${String(13+day).padStart(2,'0')}`,weight}));
+ const trend=summarizeInsightWeightDirection(start,end);
+ const previous=weights.filter(([day])=>day<7),recent=weights.filter(([day])=>day>=7);
+ const window=entries=>({measurementCount:entries.length,measurementSpanDays:entries.at(-1)?.[0]-entries[0]?.[0]||0});
+ const mean=entries=>entries.reduce((sum,[,kg])=>sum+kg,0)/entries.length;
+ const energy={startDate:aligned?start:'2026-09-14',endDate:end,profileReady:true,missingDates:missing,partialDates:[],calculatedDayCount:14,balanceKcal:balance};
+ return evaluateWeightVsEnergy({analysis:{weightVsEnergy:{analysisReferenceDate:end,weight:{comparable:!!previous.length&&!!recent.length,previous:window(previous),recent:window(recent),differenceKg:previous.length&&recent.length?mean(recent)-mean(previous):null,trend},energy}}});
+}
+const down=Array.from({length:14},(_,i)=>[i,79-i*.12]);
+assert.equal(scenario(down).status,'consistent');
+const rebound=[79,78,77,76.5,76.3,76.2,76.1,76.7,76.8,77,77.2,77.3,77.5,77.7].map((w,i)=>[i,w]);
+assert(scenario(rebound).evidence.weight.observedChangeKg>0);
+assert.notEqual(scenario(rebound).status,'gain_despite_deficit');
+assert.equal(scenario(Array.from({length:14},(_,i)=>[i,77+i*.12])).status,'gain_despite_deficit');
+assert.equal(scenario(Array.from({length:14},(_,i)=>[i,77+(i%2)*.02])).status,'stable_despite_deficit');
+const outlier=down.map(([i,w])=>[i,i===10?w+2:w]);
+assert.notEqual(scenario(outlier).status,'gain_despite_deficit');
+assert.equal(scenario([[0,79],[8,78]]).status,'insufficient_data');
+assert.equal(scenario([[0,79],[8,78]]).confidence.level,'low');
+assert.equal(scenario(down,{aligned:false}).status,'insufficient_data');
+assert.equal(scenario(down,{missing:['2026-09-16']}).status,'insufficient_data');
+assert.equal(scenario(down).evidence.energy.expectedDayCount,14);
+const historical={progress:[{date:'2026-09-13',weight:79},{date:'2026-09-20',weight:77}],meals:[{date:'2026-09-19',kcal:1200}]};
+const snapshot=JSON.stringify(historical);data.progress=historical.progress;
+summarizeInsightWeightDirection(start,end);assert.equal(JSON.stringify(historical),snapshot);
+console.log('Insight: rebote, descenso, ascenso, estabilidad, valor aislado, insuficiencia, períodos y datos históricos OK');
