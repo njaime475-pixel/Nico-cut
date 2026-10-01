@@ -4,7 +4,7 @@ const vm=require('node:vm');
 const html=fs.readFileSync(require('node:path').join(__dirname,'../index.html'),'utf8');
 const weightSummary=html.slice(html.indexOf('function summarizeWeightTrend('),html.indexOf('function setMetric('));
 const body=html.slice(html.indexOf('const KRAXES_INSIGHT_ENERGY_KCAL_PER_KG'),html.indexOf('const KRAXES_INSIGHT_CONFIDENCE_LABELS'));
-const context=vm.runInNewContext(`const data={progress:[]}; const n=x=>Number(x)||0; const avg=x=>x.length?x.reduce((a,b)=>a+b,0)/x.length:null; const dateRangeInclusive=(a,b)=>{const out=[];for(let d=a;d<=b;d=shiftDateKey(d,1))out.push(d);return out}; const shiftDateKey=(d,n)=>new Date(Date.parse(d+'T12:00:00')+n*86400000).toISOString().slice(0,10); const today=()=> '2026-09-27'; ${weightSummary} ${body}; ({data,summarizeInsightWeightDirection,evaluateWeightVsEnergy,buildWeightVsEnergyAnalysis})`);
+const context=vm.runInNewContext(`const data={progress:[]}; const n=x=>Number(x)||0; const avg=x=>x.length?x.reduce((a,b)=>a+b,0)/x.length:null; const dateRangeInclusive=(a,b)=>{const out=[];for(let d=a;d<=b;d=shiftDateKey(d,1))out.push(d);return out}; const shiftDateKey=(d,n)=>new Date(Date.parse(d+'T12:00:00')+n*86400000).toISOString().slice(0,10); const today=()=> '2026-09-27'; ${weightSummary} ${body}; ({data,summarizeWeightTrend,summarizeInsightWeightDirection,evaluateWeightVsEnergy,buildWeightVsEnergyAnalysis})`);
 const {data,summarizeInsightWeightDirection,evaluateWeightVsEnergy,buildWeightVsEnergyAnalysis}=context;
 const start='2026-09-13',end='2026-09-26';
 function scenario(weights,{balance=2200,missing=[],aligned=true}={}){
@@ -33,4 +33,8 @@ assert.equal(scenario(down).evidence.energy.expectedDayCount,14);
 const historical={progress:[{date:'2026-09-13',weight:79},{date:'2026-09-20',weight:77}],meals:[{date:'2026-09-19',kcal:1200}]};
 const snapshot=JSON.stringify(historical);data.progress=historical.progress;
 summarizeInsightWeightDirection(start,end);assert.equal(JSON.stringify(historical),snapshot);
+const totalSummary=context.summarizeWeightTrend('2026-09-26');
+assert.equal(totalSummary.totalHistory.startWeightKg,79);
+assert.equal(totalSummary.totalHistory.endWeightKg,77);
+assert.equal(totalSummary.totalHistory.cumulativeChangeKg,-2);
 console.log('Insight: rebote, descenso, ascenso, estabilidad, valor aislado, insuficiencia, períodos y datos históricos OK');
