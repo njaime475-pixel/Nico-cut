@@ -33,4 +33,8 @@ assert.equal(scenario(down).evidence.energy.expectedDayCount,14);
 const historical={progress:[{date:'2026-09-13',weight:79},{date:'2026-09-20',weight:77}],meals:[{date:'2026-09-19',kcal:1200}]};
 const snapshot=JSON.stringify(historical);data.progress=historical.progress;
 summarizeInsightWeightDirection(start,end);assert.equal(JSON.stringify(historical),snapshot);
+const totalSummary=context.summarizeWeightTrend('2026-09-26');
+assert.equal(totalSummary.totalHistory.startWeightKg,79);
+assert.equal(totalSummary.totalHistory.endWeightKg,77);
+assert.equal(totalSummary.totalHistory.cumulativeChangeKg,-2);
 console.log('Insight: rebote, descenso, ascenso, estabilidad, valor aislado, insuficiencia, períodos y datos históricos OK');
